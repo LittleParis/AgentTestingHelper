@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+dist/
+*.egg-info/
+
+# 环境变量
+.env
+
+# 测试和报告
+.pytest_cache/
+allure-results/
+allure-report/
+screenshots/
+test-results/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 日志
+*.log
+
+# 数据库
+*.db
+*.sqlite3

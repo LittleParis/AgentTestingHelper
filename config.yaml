@@ -1,0 +1,22 @@
+# 项目配置
+project:
+  name: "AI测试自动化平台"
+  version: "0.1.0"
+
+# LLM配置
+llm:
+  model: "claude-3-5-sonnet-20241022"
+  temperature: 0.7
+  max_tokens: 4096
+
+# 测试配置
+testing:
+  screenshot_on_failure: true
+  video_on_failure: false
+  retry_times: 2
+  timeout: 30000
+
+# 报告配置
+reporting:
+  allure_results_dir: "allure-results"
+  screenshots_dir: "screenshots"

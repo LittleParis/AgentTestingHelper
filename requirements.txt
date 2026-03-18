@@ -1,0 +1,24 @@
+# LLM和Agent
+anthropic==0.39.0
+langchain==0.3.13
+langchain-anthropic==0.3.0
+langchain-core==0.3.28
+
+# 文档解析
+PyMuPDF==1.24.0
+python-docx==1.1.0
+markdown==3.7
+
+# UI自动化 (Midscene暂时用Playwright模拟)
+playwright==1.48.0
+pytest-playwright==0.5.2
+
+# 测试框架
+pytest==8.3.4
+pytest-asyncio==0.24.0
+allure-pytest==2.13.5
+
+# 工具库
+pydantic==2.10.3
+python-dotenv==1.0.1
+pyyaml==6.0.2

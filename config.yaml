@@ -5,7 +5,9 @@ project:
 
 # LLM配置
 llm:
-  model: "claude-3-5-sonnet-20241022"
+  # 推荐: qwen-coder-plus (通义千问编程版)
+  # 备选: glm-4 (智谱GLM)
+  model: "qwen-coder-plus"
   temperature: 0.7
   max_tokens: 4096
 

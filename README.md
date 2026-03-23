@@ -13,7 +13,7 @@ AI驱动的端到端测试自动化平台，从需求文档自动生成测试用
 ### 1. 安装依赖
 
 ```bash
-# 创建虚拟环境（推荐）
+# 创建虚拟环境（推荐）`
 python -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
 

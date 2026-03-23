@@ -2,22 +2,15 @@
 import json
 import os
 from typing import Dict, Any
-from anthropic import Anthropic
+from utils.llm_client import get_llm_client
 
 
 class RequirementAnalyzer:
     """需求分析Agent"""
     
-    def __init__(self, api_key: str = None):
-        """
-        初始化需求分析Agent
-        
-        Args:
-            api_key: Anthropic API密钥
-        """
-        self.api_key = api_key or os.getenv("ANTHROPIC_API_KEY")
-        self.client = Anthropic(api_key=self.api_key)
-        self.model = "claude-3-5-sonnet-20241022"
+    def __init__(self):
+        """初始化需求分析Agent"""
+        self.llm = get_llm_client()
     
     def analyze(self, requirement_text: str) -> Dict[str, Any]:
         """
@@ -31,17 +24,8 @@ class RequirementAnalyzer:
         """
         prompt = self._build_prompt(requirement_text)
         
-        response = self.client.messages.create(
-            model=self.model,
-            max_tokens=4096,
-            temperature=0.7,
-            messages=[
-                {"role": "user", "content": prompt}
-            ]
-        )
-        
-        # 提取JSON内容
-        content = response.content[0].text
+        # 调用LLM
+        content = self.llm.chat_simple(prompt, temperature=0.7, max_tokens=4096)
         
         # 尝试解析JSON
         try:

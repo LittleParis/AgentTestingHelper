@@ -2,22 +2,15 @@
 import json
 import os
 from typing import Dict, Any, List
-from anthropic import Anthropic
+from utils.llm_client import get_llm_client
 
 
 class TestCaseGenerator:
     """测试用例生成Agent"""
     
-    def __init__(self, api_key: str = None):
-        """
-        初始化测试用例生成Agent
-        
-        Args:
-            api_key: Anthropic API密钥
-        """
-        self.api_key = api_key or os.getenv("ANTHROPIC_API_KEY")
-        self.client = Anthropic(api_key=self.api_key)
-        self.model = "claude-3-5-sonnet-20241022"
+    def __init__(self):
+        """初始化测试用例生成Agent"""
+        self.llm = get_llm_client()
     
     def generate(self, requirement: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
@@ -31,16 +24,8 @@ class TestCaseGenerator:
         """
         prompt = self._build_prompt(requirement)
         
-        response = self.client.messages.create(
-            model=self.model,
-            max_tokens=4096,
-            temperature=0.7,
-            messages=[
-                {"role": "user", "content": prompt}
-            ]
-        )
-        
-        content = response.content[0].text
+        # 调用LLM
+        content = self.llm.chat_simple(prompt, temperature=0.7, max_tokens=4096)
         
         try:
             if "```json" in content:

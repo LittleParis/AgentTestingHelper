@@ -12,7 +12,7 @@ inclusion: always
 
 ## 技术栈
 - **AI 助手**: Claude Code (主要使用)
-- **LLM**: 通义千问 qwen-coder-plus (阿里云百炼)
+- **LLM**: 通过环境变量配置 (LLM_KEY, LLM_MODEL)
 - **文档解析**: Markdown, PyMuPDF, python-docx
 - **UI 自动化**: Playwright / Midscene
 - **测试框架**: pytest

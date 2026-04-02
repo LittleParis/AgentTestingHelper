@@ -1,4 +1,4 @@
-"""LLM客户端封装 - 支持阿里云百炼"""
+"""LLM客户端封装"""
 import os
 from typing import Dict, Any, List
 import dashscope
@@ -6,7 +6,7 @@ from dashscope import Generation
 
 
 class LLMClient:
-    """统一的LLM客户端，支持阿里云百炼"""
+    """统一的LLM客户端"""
     
     def __init__(self, api_key: str = None, model: str = None):
         """
@@ -16,8 +16,8 @@ class LLMClient:
             api_key: API密钥
             model: 模型名称
         """
-        self.api_key = api_key or os.getenv("DASHSCOPE_API_KEY")
-        self.model = model or os.getenv("LLM_MODEL", "qwen-coder-plus")
+        self.api_key = api_key or os.getenv("LLM_KEY")
+        self.model = model or os.getenv("LLM_MODEL", "")
         
         # 设置 dashscope API密钥
         dashscope.api_key = self.api_key

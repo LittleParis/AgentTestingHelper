@@ -31,7 +31,7 @@ AgentTest/
 │   ├── steering/       # 项目规范
 │   └── skills/         # 技能库
 ├── utils/
-│   └── llm_client.py   # LLM 客户端 (支持阿里云百炼)
+│   └── llm_client.py   # LLM 客户端
 ├── config.yaml         # 配置文件
 ├── main.py             # 主程序
 └── requirements.txt    # 依赖列表
@@ -44,7 +44,7 @@ AgentTest/
 当用户提供需求文档后：
 
 1. **读取需求文档** - 支持 Markdown、PDF、Word 格式
-2. **调用需求分析 Agent** - 使用 LLM (通义千问/百炼) 分析需求
+2. **调用需求分析 Agent** - 使用 LLM 分析需求
 3. **输出结构化需求** - JSON 格式包含：
    - 功能模块清单
    - 需求优先级
@@ -217,7 +217,7 @@ project:
   version: "0.1.0"
 
 llm:
-  model: "qwen-coder-plus"  # 通义千问编程版
+  model: ""  # 由环境变量 LLM_MODEL 配置
   temperature: 0.7
   max_tokens: 4096
 
@@ -287,11 +287,11 @@ async def page(browser):
 
 ### .env.example
 ```bash
-# 阿里云百炼 API 密钥
-DASHSCOPE_API_KEY=your_api_key_here
+# LLM API 密钥
+LLM_KEY=your_api_key_here
 
 # LLM 模型选择
-LLM_MODEL=qwen-coder-plus
+LLM_MODEL=your_model_name
 ```
 
 ## Midscene UI 自动化规范
@@ -371,7 +371,7 @@ async def test_login():
     await enter_credentials(page, "test@example.com", "password")
 ```
 
-## LLM 集成 (阿里云百炼)
+## LLM 集成
 
 ### LLMClient 使用
 ```python
@@ -470,7 +470,7 @@ ls tests/generated/
 A: 阶段 1 生成的脚本是模板，需要手动调整选择器。阶段 2 会改进为更智能的生成。
 
 **Q: API 调用失败？**
-A: 检查 `.env` 文件中的 `DASHSCOPE_API_KEY` 是否正确配置。
+A: 检查 `.env` 文件中的 `LLM_KEY` 是否正确配置。
 
 **Q: 如何调整生成的测试用例？**
 A: 修改 `agents/test_case_generator.py` 中的 prompt 模板。

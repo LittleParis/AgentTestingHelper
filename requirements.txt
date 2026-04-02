@@ -1,9 +1,9 @@
 # LLM和Agent
-dashscope==1.20.0
 openai==1.12.0
 langchain==0.3.13
 langchain-community==0.3.13
 langchain-core==0.3.28
+langchain-openai==0.2.14
 
 # 文档解析
 PyMuPDF==1.24.0

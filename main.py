@@ -1,6 +1,7 @@
 """主程序 - 阶段1演示"""
 import os
 import json
+import shutil
 from pathlib import Path
 from datetime import datetime
 from dotenv import load_dotenv
@@ -16,6 +17,31 @@ def get_timestamp() -> str:
     return datetime.now().strftime("(%Y-%m-%d_%H-%M-%S)")
 
 
+def clean_history_data():
+    """
+    清理历史数据
+
+    在执行新任务前，清理 output 和 tests/generated 目录中的所有旧文件
+    """
+    output_dir = Path("output")
+    tests_dir = Path("tests/generated")
+
+    # 清理 output 目录
+    if output_dir.exists():
+        print("  [清理] output 目录...")
+        for file in output_dir.iterdir():
+            if file.is_file():
+                file.unlink()
+                print(f"    - 删除: {file.name}")
+
+    # 清理 tests/generated 目录
+    if tests_dir.exists():
+        print("  [清理] tests/generated 目录...")
+        for file in tests_dir.glob("*.py"):
+            file.unlink()
+            print(f"    - 删除: {file.name}")
+
+
 def main():
     """主流程"""
     # 加载环境变量
@@ -24,6 +50,10 @@ def main():
     print("=" * 60)
     print("AI测试自动化平台 - 阶段1演示")
     print("=" * 60)
+
+    # 0. 清理历史数据
+    print("\n[步骤0] 清理历史数据...")
+    clean_history_data()
 
     # 获取时间戳
     timestamp = get_timestamp()

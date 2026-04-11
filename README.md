@@ -34,26 +34,37 @@ cp .env.example .env
 # ANTHROPIC_API_KEY=your_api_key_here
 ```
 
-### 3. 运行阶段1演示
+### 3. 运行演示
 
+#### 阶段1：基础流程
 ```bash
 python main.py
+```
+
+#### 阶段2：LangGraph工作流（推荐）
+```bash
+python main_v2.py
 ```
 
 这将：
 1. 读取 `examples/requirement_login.md` 需求文档
 2. 使用Agent分析需求
-3. 生成测试用例（保存到 `output/test_cases.json`）
-4. 生成Playwright测试脚本（保存到 `tests/generated/`）
+3. 生成测试用例
+4. LLM智能评审（5维度评分）
+5. 评审不通过自动迭代重试
+6. 生成Playwright测试脚本
 
 ### 4. 查看生成的内容
 
 ```bash
 # 查看需求分析结果
-cat output/requirements.json
+cat output/requirements*.json
 
 # 查看测试用例
-cat output/test_cases.json
+cat output/test_cases*.json
+
+# 查看评审结果
+cat output/review*.json
 
 # 查看生成的测试脚本
 ls tests/generated/
@@ -75,62 +86,78 @@ allure serve allure-results
 .
 ├── agents/              # Agent模块
 │   ├── requirement_analyzer.py    # 需求分析Agent
-│   └── test_case_generator.py    # 测试用例生成Agent
+│   ├── test_case_generator.py    # 测试用例生成Agent
+│   ├── case_reviewer.py          # 测试用例评审Agent（LLM智能评审）
+│   └── workflow.py               # LangGraph工作流编排
 ├── parsers/            # 文档解析
 │   └── markdown_parser.py
 ├── automation/         # 自动化执行
 │   └── script_generator.py
+├── utils/              # 工具模块
+│   └── llm_client.py             # LLM客户端封装（LangChain）
 ├── examples/           # 示例需求文档
 │   └── requirement_login.md
 ├── output/             # 输出目录
+│   ├── requirements*.json        # 需求分析结果
+│   ├── test_cases*.json          # 生成的测试用例
+│   └── review*.json              # 评审结果
 ├── tests/              # 测试目录
-│   └── generated/      # 生成的测试脚本
-├── .kiro/              # Kiro配置
-│   ├── steering/       # 项目规范
-│   └── skills/         # 技能库
-├── main.py             # 主程序
+│   ├── test_main_flow.py         # 主流程测试
+│   ├── test_workflow.py          # LangGraph工作流测试
+│   └── generated/                # 生成的测试脚本
+├── docs/               # 文档
+│   └── LANGGRAPH_GUIDE.md        # LangGraph学习指南
+├── main.py             # 阶段1主程序
+├── main_v2.py          # 阶段2主程序（LangGraph工作流）
 ├── config.yaml         # 配置文件
 └── requirements.txt    # 依赖列表
 ```
 
 ## 学习路线
 
-### ✅ 阶段1：Hello World（当前）
+### ✅ 阶段1：Hello World
 - [x] 基础项目结构
 - [x] 需求分析Agent
 - [x] 测试用例生成Agent
 - [x] 脚本生成器
 - [x] 端到端流程演示
 
-### 🔄 阶段2：Agent化（下一步）
-- [ ] 引入LangGraph状态机
-- [ ] 实现工作流编排
-- [ ] 添加Tool Calling
-- [ ] 优化Prompt
+### ✅ 阶段2：Agent化（已完成）
+- [x] 引入LangGraph状态机
+- [x] 实现工作流编排（需求分析 → 用例生成 → 评审 → 反馈循环）
+- [x] LLM智能评审Agent（5维度评分）
+- [x] 评审不通过自动迭代重试
 
-### 📋 阶段3：工程化
+### 🔄 阶段3：智能化元素定位（进行中）
+- [ ] 集成Midscene智能定位
+- [ ] 自动识别页面元素选择器
+- [ ] 生成可执行的测试脚本
+- [ ] 实际运行测试并生成报告
+
+### 📋 阶段4：工程化
 - [ ] 数据库集成（PostgreSQL）
 - [ ] 版本管理
 - [ ] API接口
 
-### 🧠 阶段4：智能化
+### 🧠 阶段5：智能化增强
 - [ ] 测试策略Agent
 - [ ] 失败分析Agent
 - [ ] 用例优化
 
-### 🎨 阶段5：前端界面
+### 🎨 阶段6：前端界面
 - [ ] React前端
 - [ ] 文档上传
 - [ ] 报告展示
 
 ## 技术栈
 
-- **Agent框架**: LangGraph（阶段2引入）
-- **LLM**: Claude 3.5 Sonnet
+- **Agent框架**: LangGraph ✅
+- **LLM**: 支持OpenAI、阿里云百炼、智谱AI等
+- **LLM集成**: LangChain（ChatOpenAI）
 - **文档解析**: PyMuPDF, python-docx
-- **UI自动化**: Playwright（Midscene概念验证）
+- **UI自动化**: Playwright
 - **测试报告**: Allure Framework
-- **数据存储**: PostgreSQL（阶段3引入）
+- **数据存储**: PostgreSQL（阶段4引入）
 
 ## 开发指南
 
@@ -163,13 +190,16 @@ allure serve allure-results
 ## 常见问题
 
 ### Q: 生成的测试脚本无法运行？
-A: 阶段1生成的脚本是模板，需要手动调整选择器。阶段2会改进为更智能的生成。
+A: 当前脚本生成器基于关键词匹配，生成的选择器是通用的（如 `input`、`button`），需要手动调整。阶段3将集成Midscene实现智能元素定位。
 
 ### Q: API调用失败？
-A: 检查 `.env` 文件中的 `ANTHROPIC_API_KEY` 是否正确配置。
+A: 检查 `.env` 文件中的 `LLM_KEY` 是否正确配置。支持OpenAI、阿里云百炼、智谱AI等服务商。
 
 ### Q: 如何调整生成的测试用例？
 A: 修改 `agents/test_case_generator.py` 中的prompt模板。
+
+### Q: 评审不通过会怎样？
+A: 阶段2的工作流支持自动迭代重试，最多2次。评审建议会保存到 `output/review*.json`。
 
 ## 贡献
 

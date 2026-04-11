@@ -33,3 +33,12 @@ test-results/
 # 数据库
 *.db
 *.sqlite3
+
+# Midscene.js dump files
+midscene_run/dump
+midscene_run/report
+midscene_run/tmp
+midscene_run/log
+
+# Playwright browsers (本地安装，不提交到 git)
+browsers/

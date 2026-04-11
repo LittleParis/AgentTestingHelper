@@ -1,7 +1,6 @@
 """主程序 - 阶段1演示"""
 import os
 import json
-import shutil
 from pathlib import Path
 from datetime import datetime
 from dotenv import load_dotenv
@@ -9,7 +8,7 @@ from dotenv import load_dotenv
 from parsers.markdown_parser import parse_markdown
 from agents.requirement_analyzer import RequirementAnalyzer
 from agents.test_case_generator import TestCaseGenerator
-from automation.script_generator import ScriptGenerator
+from automation.midscene_generator import MidsceneScriptGenerator
 
 
 def get_timestamp() -> str:
@@ -37,7 +36,7 @@ def clean_history_data():
     # 清理 tests/generated 目录
     if tests_dir.exists():
         print("  [清理] tests/generated 目录...")
-        for file in tests_dir.glob("*.py"):
+        for file in tests_dir.glob("*.spec.ts"):
             file.unlink()
             print(f"    - 删除: {file.name}")
 
@@ -112,23 +111,15 @@ def main():
         json.dump({"test_cases": all_test_cases}, f, ensure_ascii=False, indent=2)
     print(f"  已保存到: {test_cases_file}")
 
-    # 4. 生成测试脚本
+    # 4. 生成测试脚本 (使用 Midscene)
     print("\n[步骤4] 生成测试脚本...")
-    script_gen = ScriptGenerator()
+    script_gen = MidsceneScriptGenerator(output_dir="tests/generated")
 
-    tests_dir = Path("tests/generated")
-    tests_dir.mkdir(parents=True, exist_ok=True)
+    # 使用 Midscene 生成 TypeScript 测试脚本
+    script_file = script_gen.generate(all_test_cases, page_url="https://example.com/login")
+    print(f"  [OK] 生成测试脚本: {script_file}")
 
-    for test_case in all_test_cases:
-        script = script_gen.generate(test_case)
-        script_file = tests_dir / f"{test_case['id'].lower()}{timestamp}.py"
-
-        with open(script_file, "w", encoding="utf-8") as f:
-            f.write(script)
-
-        print(f"  [OK] {test_case['id']}: {script_file}")
-
-    print(f"[OK] 测试脚本生成完成")
+    print("[OK] 测试脚本生成完成")
 
     # 5. 提示下一步
     print("\n" + "=" * 60)
@@ -137,10 +128,9 @@ def main():
     print(f"\n生成时间: {timestamp}")
     print("\n下一步操作：")
     print(f"1. 查看生成的测试用例: {test_cases_file}")
-    print(f"2. 查看生成的测试脚本: tests/generated/*{timestamp}.py")
-    print("3. 运行测试: pytest tests/generated/ --alluredir=allure-results")
-    print("4. 查看报告: allure serve allure-results")
-    print("\n注意: 生成的脚本需要手动调整选择器才能实际运行")
+    print(f"2. 查看生成的测试脚本: {script_file}")
+    print("3. 运行测试: npx playwright test tests/generated/ --headed")
+    print("\n注意: 使用 Midscene AI 进行元素定位，无需手动调整选择器")
 
 
 if __name__ == "__main__":

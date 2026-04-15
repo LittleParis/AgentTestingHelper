@@ -1,0 +1,242 @@
+{
+  "pkgName": "agent-test-platform",
+  "pkgVersion": "1.0.0",
+  "cacheId": "auto_generated_20260412_161514.spec.ts(自动生成的测试用例__TC_003--验证搜索框为空时点击搜索按钮的交互)",
+  "aiTasks": [
+    {
+      "prompt": "等待页面加载完成",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "等待页面加载完成 @ ",
+          "response": {
+            "actions": [
+              {
+                "type": "Sleep",
+                "thought": "等待页面加载完成，确保所有元素都已渲染完毕。",
+                "param": {
+                  "timeMs": 2000
+                }
+              }
+            ],
+            "log": "等待页面加载完成，暂停2秒以确保页面元素稳定。",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [\n    {\n      \"type\": \"Sleep\",\n      \"thought\": \"等待页面加载完成，确保所有元素都已渲染完毕。\",\n      \"param\": {\n        \"timeMs\": 2000\n      }\n    }\n  ],\n  \"log\": \"等待页面加载完成，暂停2秒以确保页面元素稳定。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 4432,
+              "completion_tokens": 88,
+              "total_tokens": 4520,
+              "prompt_tokens_details": {
+                "cached_tokens": 2496
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证: 页面加载完成且稳定",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证: 页面加载完成且稳定 @ ",
+          "response": {
+            "actions": [
+              {
+                "type": "Sleep",
+                "thought": "等待页面加载完成并保持稳定状态",
+                "param": {
+                  "timeMs": 2000
+                }
+              }
+            ],
+            "log": "等待页面加载完成并保持稳定状态，确保所有元素都已正确渲染",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [\n    {\n      \"type\": \"Sleep\",\n      \"thought\": \"等待页面加载完成并保持稳定状态\",\n      \"param\": {\n        \"timeMs\": 2000\n      }\n    }\n  ],\n  \"log\": \"等待页面加载完成并保持稳定状态，确保所有元素都已正确渲染\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 4435,
+              "completion_tokens": 88,
+              "total_tokens": 4523,
+              "prompt_tokens_details": {
+                "cached_tokens": 2496
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "点击搜索按钮",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "点击搜索按钮 @ ",
+          "response": {
+            "actions": [
+              {
+                "type": "Tap",
+                "thought": "点击搜索按钮（百度一下按钮）来执行搜索操作。",
+                "param": null,
+                "locate": {
+                  "id": "kcckf",
+                  "prompt": "百度一下按钮"
+                }
+              }
+            ],
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "log": "点击“百度一下”搜索按钮执行搜索。",
+            "rawResponse": "{\n  \"actions\": [\n    {\n      \"type\": \"Tap\",\n      \"thought\": \"点击搜索按钮（百度一下按钮）来执行搜索操作。\",\n      \"param\": null,\n      \"locate\": {\n        \"id\": \"kcckf\",\n        \"prompt\": \"百度一下按钮\"\n      }\n    }\n  ],\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false,\n  \"log\": \"点击“百度一下”搜索按钮执行搜索。\"\n}",
+            "usage": {
+              "prompt_tokens": 4428,
+              "completion_tokens": 102,
+              "total_tokens": 4530,
+              "prompt_tokens_details": {
+                "cached_tokens": 2496
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        },
+        {
+          "type": "locate",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "百度一下按钮",
+          "response": {
+            "elements": [
+              {
+                "id": "kcckf"
+              }
+            ]
+          },
+          "element": {
+            "id": "kcckf",
+            "indexId": 18,
+            "center": [
+              968,
+              252
+            ],
+            "rect": {
+              "left": 914,
+              "top": 230,
+              "width": 108,
+              "height": 44,
+              "zoom": 1
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证: 页面加载完成且稳定",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E4%BC%8A%E6%9C%97%E8%AE%AE%E9%95%BF%E5%87%9D%E8%A7%86%E9%81%87%E9%9A%BE%E5%84%BF%E7%AB%A5%E7%85%A7%E7%89%87&fenlei=256&rsv_pq=0x8db5dac5004ca649&rsv_t=919aV1JQMpELDVrGhLR0KT4fMPP9ZCP4IoIGrpLik4oynTIcnFA8Ytj7n1Gg&rqlang=en&rsv_enter=1&rsv_dl=ikrec_click_iph_igh_notyyc_gsnd&rsv_btype=i&rsv_sug9=eb_1",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证: 页面加载完成且稳定 @ ",
+          "response": {
+            "actions": [],
+            "log": "页面已加载完成且稳定。可以看到百度首页已完全呈现，包括顶部导航（百度首页、设置、登录）、搜索框、搜索按钮以及下方的导航标签（网页、图片、资讯等）。页面元素均已正常显示，无需执行额外操作。",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [],\n  \"log\": \"页面已加载完成且稳定。可以看到百度首页已完全呈现，包括顶部导航（百度首页、设置、登录）、搜索框、搜索按钮以及下方的导航标签（网页、图片、资讯等）。页面元素均已正常显示，无需执行额外操作。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 2884,
+              "completion_tokens": 87,
+              "total_tokens": 2971,
+              "prompt_tokens_details": {
+                "cached_tokens": 1984
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证: 页面URL发生了变化",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E4%BC%8A%E6%9C%97%E8%AE%AE%E9%95%BF%E5%87%9D%E8%A7%86%E9%81%87%E9%9A%BE%E5%84%BF%E7%AB%A5%E7%85%A7%E7%89%87&fenlei=256&rsv_pq=0x8db5dac5004ca649&rsv_t=919aV1JQMpELDVrGhLR0KT4fMPP9ZCP4IoIGrpLik4oynTIcnFA8Ytj7n1Gg&rqlang=en&rsv_enter=1&rsv_dl=ikrec_click_iph_igh_notyyc_gsnd&rsv_btype=i&rsv_sug9=eb_1",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证: 页面URL发生了变化 @ ",
+          "response": {
+            "actions": [],
+            "log": "当前指令是验证页面URL是否发生了变化。由于我无法直接访问或比较URL信息，也无法通过页面截图和元素树来验证URL的变化，这个验证任务无法通过UI自动化操作来完成。",
+            "error": "无法通过当前页面截图和元素信息验证URL是否发生变化。URL验证需要访问浏览器地址栏或获取当前页面URL信息，这超出了当前UI自动化能力的范围。",
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [],\n  \"log\": \"当前指令是验证页面URL是否发生了变化。由于我无法直接访问或比较URL信息，也无法通过页面截图和元素树来验证URL的变化，这个验证任务无法通过UI自动化操作来完成。\",\n  \"error\": \"无法通过当前页面截图和元素信息验证URL是否发生变化。URL验证需要访问浏览器地址栏或获取当前页面URL信息，这超出了当前UI自动化能力的范围。\",\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 6416,
+              "completion_tokens": 110,
+              "total_tokens": 6526,
+              "prompt_tokens_details": {
+                "cached_tokens": 1984
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,401 @@
+{
+  "pkgName": "agent-test-platform",
+  "pkgVersion": "1.0.0",
+  "cacheId": "ui_layout_test.spec.ts(UI-布局验证测试__验证百度首页布局)",
+  "aiTasks": [
+    {
+      "prompt": "等待页面加载完成",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "等待页面加载完成 @ ",
+          "response": {
+            "actions": [
+              {
+                "type": "Sleep",
+                "thought": "等待页面加载完成，等待2秒让页面元素完全渲染。",
+                "param": {
+                  "timeMs": 2000
+                }
+              }
+            ],
+            "log": "等待页面加载完成，等待2秒。",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [\n    {\n      \"type\": \"Sleep\",\n      \"thought\": \"等待页面加载完成，等待2秒让页面元素完全渲染。\",\n      \"param\": {\n        \"timeMs\": 2000\n      }\n    }\n  ],\n  \"log\": \"等待页面加载完成，等待2秒。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 4398,
+              "completion_tokens": 90,
+              "total_tokens": 4488,
+              "prompt_tokens_details": {
+                "cached_tokens": 2432
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证页面上有一个搜索输入框",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证页面上有一个搜索输入框 @ ",
+          "response": {
+            "actions": [],
+            "log": "页面上已经存在一个搜索输入框，位于页面中部，其placeholder为““赌王”何鸿燊女儿去世”，当前内容也是““赌王”何鸿燊女儿去世”。验证完成。",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [],\n  \"log\": \"页面上已经存在一个搜索输入框，位于页面中部，其placeholder为““赌王”何鸿燊女儿去世”，当前内容也是““赌王”何鸿燊女儿去世”。验证完成。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 4400,
+              "completion_tokens": 79,
+              "total_tokens": 4479,
+              "prompt_tokens_details": {
+                "cached_tokens": 2432
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证页面上有一个搜索按钮",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证页面上有一个搜索按钮 @ ",
+          "response": {
+            "actions": [],
+            "log": "页面上已经存在搜索按钮，元素ID为 'kcckf'，显示文本为 '百度一下'，位于搜索输入框右侧。验证完成。",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [],\n  \"log\": \"页面上已经存在搜索按钮，元素ID为 'kcckf'，显示文本为 '百度一下'，位于搜索输入框右侧。验证完成。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 4399,
+              "completion_tokens": 66,
+              "total_tokens": 4465,
+              "prompt_tokens_details": {
+                "cached_tokens": 2432
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证页面上有百度Logo",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证页面上有百度Logo @ ",
+          "response": {
+            "actions": [],
+            "log": "验证页面上是否有百度Logo。根据页面描述，在坐标(left=497, top=41)处有一个id为'cloil'的div元素，class为'index-logo-src'，尺寸为270x129，这符合百度Logo的特征。因此，页面上存在百度Logo，验证通过。",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [],\n  \"log\": \"验证页面上是否有百度Logo。根据页面描述，在坐标(left=497, top=41)处有一个id为'cloil'的div元素，class为'index-logo-src'，尺寸为270x129，这符合百度Logo的特征。因此，页面上存在百度Logo，验证通过。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 4399,
+              "completion_tokens": 98,
+              "total_tokens": 4497,
+              "prompt_tokens_details": {
+                "cached_tokens": 4352
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证搜索框在页面中央偏上的位置",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证搜索框在页面中央偏上的位置 @ ",
+          "response": {
+            "actions": [
+              {
+                "type": "ExpectedFalsyCondition",
+                "thought": "验证搜索框的位置。根据页面描述，搜索框(textarea)的位置是 left=250, top=195, width=770, height=28。页面宽度为1265，高度为720。搜索框的水平中心点约为 (250+770/2)=635，页面水平中心约为 1265/2=632.5，基本居中。搜索框的垂直位置 top=195，约为页面高度的 195/720≈27%，属于页面中央偏上的位置。因此搜索框确实位于页面中央偏上的位置，验证通过。",
+                "param": {
+                  "reason": "搜索框位置验证通过：搜索框位于 left=250, top=195，水平居中，垂直位置在页面上部约27%处，符合'页面中央偏上'的描述。"
+                }
+              }
+            ],
+            "log": "验证搜索框位置：搜索框位于 left=250, top=195，水平居中，垂直位置在页面上部约27%处，符合'页面中央偏上'的描述。",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [\n    {\n      \"type\": \"ExpectedFalsyCondition\",\n      \"thought\": \"验证搜索框的位置。根据页面描述，搜索框(textarea)的位置是 left=250, top=195, width=770, height=28。页面宽度为1265，高度为720。搜索框的水平中心点约为 (250+770/2)=635，页面水平中心约为 1265/2=632.5，基本居中。搜索框的垂直位置 top=195，约为页面高度的 195/720≈27%，属于页面中央偏上的位置。因此搜索框确实位于页面中央偏上的位置，验证通过。\",\n      \"param\": {\n        \"reason\": \"搜索框位置验证通过：搜索框位于 left=250, top=195，水平居中，垂直位置在页面上部约27%处，符合'页面中央偏上'的描述。\"\n      }\n    }\n  ],\n  \"log\": \"验证搜索框位置：搜索框位于 left=250, top=195，水平居中，垂直位置在页面上部约27%处，符合'页面中央偏上'的描述。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 4402,
+              "completion_tokens": 264,
+              "total_tokens": 4666,
+              "prompt_tokens_details": {
+                "cached_tokens": 4352
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证搜索按钮在搜索框的右边",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证搜索按钮在搜索框的右边 @ ",
+          "response": {
+            "actions": [
+              {
+                "type": "ExpectedFalsyCondition",
+                "thought": "验证搜索按钮是否在搜索框的右边。根据页面描述，搜索框(textarea)的位置是left=250，宽度770，右边界在1020。搜索按钮'百度一下'的位置是left=914。由于914 < 1020，搜索按钮实际上在搜索框内部，而不是在搜索框的右边。这个条件陈述是错误的。",
+                "param": {
+                  "reason": "搜索按钮不在搜索框的右边。根据页面元素位置，搜索框(textarea)的left=250，宽度770，右边界在1020。而搜索按钮'百度一下'的left=914，位于搜索框的右边界(1020)左侧，说明搜索按钮实际上在搜索框内部，而不是在搜索框的右边。"
+                }
+              }
+            ],
+            "log": "验证搜索按钮位置条件，发现该条件为假：搜索按钮不在搜索框的右边，而是在搜索框内部。",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [\n    {\n      \"type\": \"ExpectedFalsyCondition\",\n      \"thought\": \"验证搜索按钮是否在搜索框的右边。根据页面描述，搜索框(textarea)的位置是left=250，宽度770，右边界在1020。搜索按钮'百度一下'的位置是left=914。由于914 < 1020，搜索按钮实际上在搜索框内部，而不是在搜索框的右边。这个条件陈述是错误的。\",\n      \"param\": {\n        \"reason\": \"搜索按钮不在搜索框的右边。根据页面元素位置，搜索框(textarea)的left=250，宽度770，右边界在1020。而搜索按钮'百度一下'的left=914，位于搜索框的右边界(1020)左侧，说明搜索按钮实际上在搜索框内部，而不是在搜索框的右边。\"\n      }\n    }\n  ],\n  \"log\": \"验证搜索按钮位置条件，发现该条件为假：搜索按钮不在搜索框的右边，而是在搜索框内部。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 4401,
+              "completion_tokens": 238,
+              "total_tokens": 4639,
+              "prompt_tokens_details": {
+                "cached_tokens": 4352
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证搜索按钮是可点击的",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证搜索按钮是可点击的 @ ",
+          "response": {
+            "actions": [
+              {
+                "type": "Hover",
+                "thought": "将鼠标悬停在搜索按钮上，验证按钮是否可交互",
+                "param": null,
+                "locate": {
+                  "id": "kcckf",
+                  "prompt": "百度一下搜索按钮"
+                }
+              }
+            ],
+            "log": "将鼠标悬停在'百度一下'搜索按钮上，验证其是否可点击",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [\n    {\n      \"type\": \"Hover\",\n      \"thought\": \"将鼠标悬停在搜索按钮上，验证按钮是否可交互\",\n      \"param\": null,\n      \"locate\": {\n        \"id\": \"kcckf\",\n        \"prompt\": \"百度一下搜索按钮\"\n      }\n    }\n  ],\n  \"log\": \"将鼠标悬停在'百度一下'搜索按钮上，验证其是否可点击\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 4400,
+              "completion_tokens": 115,
+              "total_tokens": 4515,
+              "prompt_tokens_details": {
+                "cached_tokens": 1728
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        },
+        {
+          "type": "locate",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "百度一下搜索按钮",
+          "response": {
+            "elements": [
+              {
+                "id": "kcckf"
+              }
+            ]
+          },
+          "element": {
+            "id": "kcckf",
+            "indexId": 18,
+            "center": [
+              968,
+              252
+            ],
+            "rect": {
+              "left": 914,
+              "top": 230,
+              "width": 108,
+              "height": 44,
+              "zoom": 1
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证搜索输入框可以输入文字",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证搜索输入框可以输入文字 @ ",
+          "response": {
+            "actions": [
+              {
+                "type": "Input",
+                "thought": "在搜索输入框中输入测试文字，验证输入框可以正常输入",
+                "param": {
+                  "value": "测试输入"
+                },
+                "locate": {
+                  "id": "djeld",
+                  "prompt": "搜索输入框"
+                }
+              }
+            ],
+            "log": "在搜索输入框中输入测试文字，验证输入框可以正常输入",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [\n    {\n      \"type\": \"Input\",\n      \"thought\": \"在搜索输入框中输入测试文字，验证输入框可以正常输入\",\n      \"param\": {\n        \"value\": \"测试输入\"\n      },\n      \"locate\": {\n        \"id\": \"djeld\",\n        \"prompt\": \"搜索输入框\"\n      }\n    }\n  ],\n  \"log\": \"在搜索输入框中输入测试文字，验证输入框可以正常输入\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 4400,
+              "completion_tokens": 118,
+              "total_tokens": 4518,
+              "prompt_tokens_details": {
+                "cached_tokens": 4352
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        },
+        {
+          "type": "locate",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "搜索输入框",
+          "response": {
+            "elements": [
+              {
+                "id": "djeld"
+              }
+            ]
+          },
+          "element": {
+            "id": "djeld",
+            "indexId": 14,
+            "center": [
+              635,
+              209
+            ],
+            "rect": {
+              "left": 250,
+              "top": 195,
+              "width": 770,
+              "height": 28,
+              "zoom": 1
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

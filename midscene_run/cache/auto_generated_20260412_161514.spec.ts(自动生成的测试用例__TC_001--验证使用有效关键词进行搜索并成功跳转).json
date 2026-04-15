@@ -1,0 +1,358 @@
+{
+  "pkgName": "agent-test-platform",
+  "pkgVersion": "1.0.0",
+  "cacheId": "auto_generated_20260412_161514.spec.ts(自动生成的测试用例__TC_001--验证使用有效关键词进行搜索并成功跳转)",
+  "aiTasks": [
+    {
+      "prompt": "等待页面加载完成",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "等待页面加载完成 @ ",
+          "response": {
+            "actions": [
+              {
+                "type": "Sleep",
+                "thought": "等待页面加载完成，确保所有元素都已渲染完毕。",
+                "param": {
+                  "timeMs": 2000
+                }
+              }
+            ],
+            "log": "等待页面加载完成，暂停2秒以确保页面元素稳定。",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [\n    {\n      \"type\": \"Sleep\",\n      \"thought\": \"等待页面加载完成，确保所有元素都已渲染完毕。\",\n      \"param\": {\n        \"timeMs\": 2000\n      }\n    }\n  ],\n  \"log\": \"等待页面加载完成，暂停2秒以确保页面元素稳定。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 4436,
+              "completion_tokens": 85,
+              "total_tokens": 4521,
+              "prompt_tokens_details": {
+                "cached_tokens": 2496
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证: 页面加载完成且稳定",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证: 页面加载完成且稳定 @ ",
+          "response": {
+            "actions": [
+              {
+                "type": "Sleep",
+                "thought": "等待页面加载完成并稳定，确保所有元素都已正确渲染。",
+                "param": {
+                  "timeMs": 2000
+                }
+              }
+            ],
+            "log": "等待页面加载完成并稳定，确保所有元素都已正确渲染。",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [\n    {\n      \"type\": \"Sleep\",\n      \"thought\": \"等待页面加载完成并稳定，确保所有元素都已正确渲染。\",\n      \"param\": {\n        \"timeMs\": 2000\n      }\n    }\n  ],\n  \"log\": \"等待页面加载完成并稳定，确保所有元素都已正确渲染。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 4439,
+              "completion_tokens": 95,
+              "total_tokens": 4534,
+              "prompt_tokens_details": {
+                "cached_tokens": 2496
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "在搜索框中输入 \"软件测试\"",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "在搜索框中输入 \"软件测试\" @ ",
+          "response": {
+            "actions": [
+              {
+                "type": "Input",
+                "thought": "在搜索框中输入'软件测试'，替换当前的文本内容",
+                "param": {
+                  "value": "软件测试"
+                },
+                "locate": {
+                  "id": "onlea",
+                  "prompt": "搜索输入框"
+                }
+              }
+            ],
+            "log": "在搜索框中输入'软件测试'",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [\n    {\n      \"type\": \"Input\",\n      \"thought\": \"在搜索框中输入'软件测试'，替换当前的文本内容\",\n      \"param\": {\n        \"value\": \"软件测试\"\n      },\n      \"locate\": {\n        \"id\": \"onlea\",\n        \"prompt\": \"搜索输入框\"\n      }\n    }\n  ],\n  \"log\": \"在搜索框中输入'软件测试'\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 4437,
+              "completion_tokens": 114,
+              "total_tokens": 4551,
+              "prompt_tokens_details": {
+                "cached_tokens": 2496
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        },
+        {
+          "type": "locate",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "搜索输入框",
+          "response": {
+            "elements": [
+              {
+                "id": "onlea"
+              }
+            ]
+          },
+          "element": {
+            "id": "onlea",
+            "indexId": 14,
+            "center": [
+              635,
+              209
+            ],
+            "rect": {
+              "left": 250,
+              "top": 195,
+              "width": 770,
+              "height": 28,
+              "zoom": 1
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证: 页面显示了相关内容",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证: 页面显示了相关内容 @ ",
+          "response": {
+            "actions": [],
+            "log": "当前页面显示了搜索输入框，内容为'软件测试'，并且下方显示了相关的搜索建议列表（如'软件开发'、'软件商店下载'、'软件商店'等），这表明页面已经显示了与'软件测试'相关的内容。验证任务已完成。",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [],\n  \"log\": \"当前页面显示了搜索输入框，内容为'软件测试'，并且下方显示了相关的搜索建议列表（如'软件开发'、'软件商店下载'、'软件商店'等），这表明页面已经显示了与'软件测试'相关的内容。验证任务已完成。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 3675,
+              "completion_tokens": 89,
+              "total_tokens": 3764,
+              "prompt_tokens_details": {
+                "cached_tokens": 1984
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "点击搜索按钮",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "点击搜索按钮 @ ",
+          "response": {
+            "actions": [
+              {
+                "type": "Tap",
+                "thought": "点击搜索按钮（百度一下按钮）来执行搜索",
+                "param": null,
+                "locate": {
+                  "id": "mbmkd",
+                  "prompt": "百度一下搜索按钮"
+                }
+              }
+            ],
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "log": "点击“百度一下”搜索按钮执行搜索",
+            "rawResponse": "{\n  \"actions\": [\n    {\n      \"type\": \"Tap\",\n      \"thought\": \"点击搜索按钮（百度一下按钮）来执行搜索\",\n      \"param\": null,\n      \"locate\": {\n        \"id\": \"mbmkd\",\n        \"prompt\": \"百度一下搜索按钮\"\n      }\n    }\n  ],\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false,\n  \"log\": \"点击“百度一下”搜索按钮执行搜索\"\n}",
+            "usage": {
+              "prompt_tokens": 3669,
+              "completion_tokens": 101,
+              "total_tokens": 3770,
+              "prompt_tokens_details": {
+                "cached_tokens": 1984
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        },
+        {
+          "type": "locate",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "百度一下搜索按钮",
+          "response": {
+            "elements": [
+              {
+                "id": "mbmkd"
+              }
+            ]
+          },
+          "element": {
+            "id": "mbmkd",
+            "indexId": 9,
+            "center": [
+              820,
+              79
+            ],
+            "rect": {
+              "left": 768,
+              "top": 60,
+              "width": 104,
+              "height": 38,
+              "zoom": 1
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证: 页面URL发生了变化",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E8%BD%AF%E4%BB%B6%E6%B5%8B%E8%AF%95&fenlei=256&rsv_pq=0xb2137cce002df1dc&rsv_t=a68f4sfmAmq9SmVHV%2BYUlKCO35qwlazm58s9DHPyv%2F948qVMqBFZVF1Yh2up&rqlang=en&rsv_enter=1&rsv_dl=tb_click&rsv_sug3=3&rsv_sug1=2&rsv_sug7=100&rsv_btype=i&prefixsug=%25E8%25BD%25AF%25E4%25BB%25B6&rsp=2&inputT=19706&rsv_sug4=19707",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证: 页面URL发生了变化 @ ",
+          "response": {
+            "actions": [],
+            "log": "当前指令是验证页面URL是否发生了变化。由于我无法直接访问或比较URL信息（这是一个状态验证任务，需要对比前后的URL），且当前页面截图和元素描述中没有提供URL信息，因此无法执行此验证操作。",
+            "error": "无法验证页面URL是否发生变化：当前环境未提供URL访问能力或前后URL对比信息。此任务需要在URL变化前后进行状态对比，建议在执行导航操作后由具备URL访问能力的系统进行验证。",
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [],\n  \"log\": \"当前指令是验证页面URL是否发生了变化。由于我无法直接访问或比较URL信息（这是一个状态验证任务，需要对比前后的URL），且当前页面截图和元素描述中没有提供URL信息，因此无法执行此验证操作。\",\n  \"error\": \"无法验证页面URL是否发生变化：当前环境未提供URL访问能力或前后URL对比信息。此任务需要在URL变化前后进行状态对比，建议在执行导航操作后由具备URL访问能力的系统进行验证。\",\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 7183,
+              "completion_tokens": 127,
+              "total_tokens": 7310,
+              "prompt_tokens_details": {
+                "cached_tokens": 3904
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证: 页面上显示了搜索结果列表",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E8%BD%AF%E4%BB%B6%E6%B5%8B%E8%AF%95&fenlei=256&rsv_pq=0xb2137cce002df1dc&rsv_t=a68f4sfmAmq9SmVHV%2BYUlKCO35qwlazm58s9DHPyv%2F948qVMqBFZVF1Yh2up&rqlang=en&rsv_enter=1&rsv_dl=tb_click&rsv_sug3=3&rsv_sug1=2&rsv_sug7=100&rsv_btype=i&prefixsug=%25E8%25BD%25AF%25E4%25BB%25B6&rsp=2&inputT=19706&rsv_sug4=19707",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证: 页面上显示了搜索结果列表 @ ",
+          "response": {
+            "actions": [],
+            "log": "验证页面是否显示了搜索结果列表。通过查看页面元素，可以看到存在多个搜索结果项，例如'51Testing软件测试培训'、'博为峰软件测试'、'卓码软件测评'等，这些元素构成了搜索结果列表。因此，页面确实显示了搜索结果列表，验证通过。",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [],\n  \"log\": \"验证页面是否显示了搜索结果列表。通过查看页面元素，可以看到存在多个搜索结果项，例如'51Testing软件测试培训'、'博为峰软件测试'、'卓码软件测评'等，这些元素构成了搜索结果列表。因此，页面确实显示了搜索结果列表，验证通过。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 7184,
+              "completion_tokens": 97,
+              "total_tokens": 7281,
+              "prompt_tokens_details": {
+                "cached_tokens": 3904
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

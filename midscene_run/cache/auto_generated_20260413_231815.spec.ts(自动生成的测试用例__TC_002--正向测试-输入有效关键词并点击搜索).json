@@ -1,0 +1,317 @@
+{
+  "pkgName": "agent-test-platform",
+  "pkgVersion": "1.0.0",
+  "cacheId": "auto_generated_20260413_231815.spec.ts(自动生成的测试用例__TC_002--正向测试-输入有效关键词并点击搜索)",
+  "aiTasks": [
+    {
+      "prompt": "在搜索框中输入 \"测试工程师\"",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "在搜索框中输入 \"测试工程师\" @ ",
+          "response": {
+            "what_the_user_wants_to_do_next_by_instruction": "在搜索框中输入 '测试工程师'",
+            "log": "我将使用 Input 动作在搜索框中输入 '测试工程师'",
+            "more_actions_needed_by_instruction": false,
+            "action": {
+              "type": "Input",
+              "locate": {
+                "bbox": [
+                  230,
+                  190,
+                  798,
+                  285
+                ],
+                "prompt": "百度搜索框"
+              },
+              "param": {
+                "value": "测试工程师"
+              }
+            },
+            "actions": [
+              {
+                "type": "Input",
+                "locate": {
+                  "bbox": [
+                    230,
+                    190,
+                    798,
+                    285
+                  ],
+                  "prompt": "百度搜索框"
+                },
+                "param": {
+                  "value": "测试工程师"
+                }
+              }
+            ],
+            "rawResponse": "{\n  \"what_the_user_wants_to_do_next_by_instruction\": \"在搜索框中输入 '测试工程师'\",\n  \"log\": \"我将使用 Input 动作在搜索框中输入 '测试工程师'\",\n  \"more_actions_needed_by_instruction\": false,\n  \"action\": {\n    \"type\": \"Input\",\n    \"locate\": {\n      \"bbox\": [\n        230,\n        190,\n        798,\n        285\n      ],\n      \"prompt\": \"百度搜索框\"\n    },\n    \"param\": {\n      \"value\": \"测试工程师\"\n    }\n  }\n}",
+            "usage": {
+              "prompt_tokens": 1898,
+              "completion_tokens": 130,
+              "total_tokens": 2028,
+              "completion_tokens_details": {
+                "text_tokens": 130
+              },
+              "prompt_tokens_details": {
+                "image_tokens": 922,
+                "text_tokens": 976,
+                "cached_tokens": 0
+              }
+            }
+          }
+        },
+        {
+          "type": "locate",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "百度搜索框",
+          "response": {
+            "elements": [
+              {
+                "id": "ilhmi"
+              }
+            ]
+          },
+          "element": {
+            "id": "ilhmi",
+            "center": [
+              514,
+              237
+            ],
+            "rect": {
+              "left": 510,
+              "top": 233,
+              "width": 8,
+              "height": 8
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证: 页面显示了相关内容",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证: 页面显示了相关内容 @ ",
+          "response": {
+            "what_the_user_wants_to_do_next_by_instruction": "验证页面是否显示了相关内容",
+            "log": "页面已显示搜索框和相关搜索建议，内容正常展示，无需进一步操作",
+            "more_actions_needed_by_instruction": false,
+            "action": null,
+            "actions": [],
+            "rawResponse": "{\n  \"what_the_user_wants_to_do_next_by_instruction\": \"验证页面是否显示了相关内容\",\n  \"log\": \"页面已显示搜索框和相关搜索建议，内容正常展示，无需进一步操作\",\n  \"more_actions_needed_by_instruction\": false,\n  \"action\": null\n}",
+            "usage": {
+              "prompt_tokens": 1898,
+              "completion_tokens": 67,
+              "total_tokens": 1965,
+              "completion_tokens_details": {
+                "text_tokens": 67
+              },
+              "prompt_tokens_details": {
+                "image_tokens": 922,
+                "text_tokens": 976,
+                "cached_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "点击搜索按钮",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "点击搜索按钮 @ ",
+          "response": {
+            "what_the_user_wants_to_do_next_by_instruction": "点击搜索按钮",
+            "log": "I will use action Tap to click the '百度一下' search button",
+            "more_actions_needed_by_instruction": false,
+            "action": {
+              "type": "Tap",
+              "locate": {
+                "bbox": [
+                  765,
+                  64,
+                  865,
+                  98
+                ],
+                "prompt": "The '百度一下' search button"
+              }
+            },
+            "actions": [
+              {
+                "type": "Tap",
+                "locate": {
+                  "bbox": [
+                    765,
+                    64,
+                    865,
+                    98
+                  ],
+                  "prompt": "The '百度一下' search button"
+                }
+              }
+            ],
+            "rawResponse": "{\n  \"what_the_user_wants_to_do_next_by_instruction\": \"点击搜索按钮\",\n  \"log\": \"I will use action Tap to click the '百度一下' search button\",\n  \"more_actions_needed_by_instruction\": false,\n  \"action\": {\n    \"type\": \"Tap\",\n    \"locate\": {\n      \"bbox\": [\n        765,\n        64,\n        865,\n        98\n      ],\n      \"prompt\": \"The '百度一下' search button\"\n    }\n  }\n}",
+            "usage": {
+              "prompt_tokens": 1895,
+              "completion_tokens": 111,
+              "total_tokens": 2006,
+              "completion_tokens_details": {
+                "text_tokens": 111
+              },
+              "prompt_tokens_details": {
+                "image_tokens": 922,
+                "text_tokens": 973,
+                "cached_tokens": 0
+              }
+            }
+          }
+        },
+        {
+          "type": "locate",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "The '百度一下' search button",
+          "response": {
+            "elements": [
+              {
+                "id": "mbmkd"
+              }
+            ]
+          },
+          "element": {
+            "id": "mbmkd",
+            "indexId": 9,
+            "center": [
+              820,
+              79
+            ],
+            "rect": {
+              "left": 768,
+              "top": 60,
+              "width": 104,
+              "height": 38,
+              "zoom": 1
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证: 页面上显示了搜索结果列表",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E6%B5%8B%E8%AF%95%E5%B7%A5%E7%A8%8B%E5%B8%88&fenlei=256&rsv_pq=0xd307e25d00302ad3&rsv_t=7a259FkDPXhC9Fo0Pi7DI%2FXeoC1m8Pa5tXovXBbXlzTfSRz2Wi9KlJgXLLIG&rqlang=en&rsv_enter=1&rsv_dl=tb_click&rsv_sug3=2&rsv_sug1=1&rsv_sug7=100&rsv_btype=i&prefixsug=%25E6%25B5%258B&rsp=3&inputT=8380&rsv_sug4=8380",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证: 页面上显示了搜索结果列表 @ ",
+          "response": {
+            "what_the_user_wants_to_do_next_by_instruction": "验证页面上是否显示了搜索结果列表",
+            "log": "我需要检查页面上是否已经显示了搜索结果列表",
+            "more_actions_needed_by_instruction": false,
+            "action": null,
+            "actions": [],
+            "rawResponse": "{\n  \"what_the_user_wants_to_do_next_by_instruction\": \"验证页面上是否显示了搜索结果列表\",\n  \"log\": \"我需要检查页面上是否已经显示了搜索结果列表\",\n  \"more_actions_needed_by_instruction\": false,\n  \"action\": null\n}",
+            "usage": {
+              "prompt_tokens": 1901,
+              "completion_tokens": 65,
+              "total_tokens": 1966,
+              "completion_tokens_details": {
+                "text_tokens": 65
+              },
+              "prompt_tokens_details": {
+                "image_tokens": 922,
+                "text_tokens": 979,
+                "cached_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证: 页面上显示了搜索结果列表",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E6%B5%8B%E8%AF%95%E5%B7%A5%E7%A8%8B%E5%B8%88&fenlei=256&rsv_pq=0xd307e25d00302ad3&rsv_t=7a259FkDPXhC9Fo0Pi7DI%2FXeoC1m8Pa5tXovXBbXlzTfSRz2Wi9KlJgXLLIG&rqlang=en&rsv_enter=1&rsv_dl=tb_click&rsv_sug3=2&rsv_sug1=1&rsv_sug7=100&rsv_btype=i&prefixsug=%25E6%25B5%258B&rsp=3&inputT=8380&rsv_sug4=8380",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证: 页面上显示了搜索结果列表 @ ",
+          "response": {
+            "what_the_user_wants_to_do_next_by_instruction": "验证页面上是否显示了搜索结果列表",
+            "log": "我将检查页面上是否显示了搜索结果列表",
+            "more_actions_needed_by_instruction": false,
+            "action": null,
+            "actions": [],
+            "rawResponse": "{\n  \"what_the_user_wants_to_do_next_by_instruction\": \"验证页面上是否显示了搜索结果列表\",\n  \"log\": \"我将检查页面上是否显示了搜索结果列表\",\n  \"more_actions_needed_by_instruction\": false,\n  \"action\": null\n}",
+            "usage": {
+              "prompt_tokens": 1901,
+              "completion_tokens": 64,
+              "total_tokens": 1965,
+              "completion_tokens_details": {
+                "text_tokens": 64
+              },
+              "prompt_tokens_details": {
+                "image_tokens": 922,
+                "text_tokens": 979,
+                "cached_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

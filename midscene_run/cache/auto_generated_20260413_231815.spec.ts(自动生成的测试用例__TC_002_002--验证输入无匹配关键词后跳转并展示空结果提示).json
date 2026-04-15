@@ -1,0 +1,221 @@
+{
+  "pkgName": "agent-test-platform",
+  "pkgVersion": "1.0.0",
+  "cacheId": "auto_generated_20260413_231815.spec.ts(自动生成的测试用例__TC_002_002--验证输入无匹配关键词后跳转并展示空结果提示)",
+  "aiTasks": [
+    {
+      "prompt": "等待页面加载完成",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "等待页面加载完成 @ ",
+          "response": {
+            "what_the_user_wants_to_do_next_by_instruction": "等待页面加载完成",
+            "log": "页面已经加载完成，无需进一步操作",
+            "more_actions_needed_by_instruction": false,
+            "action": null,
+            "actions": [],
+            "rawResponse": "{\n  \"what_the_user_wants_to_do_next_by_instruction\": \"等待页面加载完成\",\n  \"log\": \"页面已经加载完成，无需进一步操作\",\n  \"more_actions_needed_by_instruction\": false,\n  \"action\": null\n}",
+            "usage": {
+              "prompt_tokens": 1897,
+              "completion_tokens": 52,
+              "total_tokens": 1949,
+              "completion_tokens_details": {
+                "text_tokens": 52
+              },
+              "prompt_tokens_details": {
+                "image_tokens": 922,
+                "text_tokens": 975,
+                "cached_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证: 操作成功完成",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证: 操作成功完成 @ ",
+          "response": {
+            "what_the_user_wants_to_do_next_by_instruction": "验证操作是否成功完成",
+            "log": "当前页面为百度首页，未发现需要执行的操作，无需进一步操作。",
+            "more_actions_needed_by_instruction": false,
+            "action": null,
+            "actions": [],
+            "rawResponse": "{\n  \"what_the_user_wants_to_do_next_by_instruction\": \"验证操作是否成功完成\",\n  \"log\": \"当前页面为百度首页，未发现需要执行的操作，无需进一步操作。\",\n  \"more_actions_needed_by_instruction\": false,\n  \"action\": null\n}",
+            "usage": {
+              "prompt_tokens": 1898,
+              "completion_tokens": 64,
+              "total_tokens": 1962,
+              "completion_tokens_details": {
+                "text_tokens": 64
+              },
+              "prompt_tokens_details": {
+                "image_tokens": 922,
+                "text_tokens": 976,
+                "cached_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "在搜索框中输入 \"特殊随机字符，如'zzzzNotFound999'\"",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "在搜索框中输入 \"特殊随机字符，如'zzzzNotFound999'\" @ ",
+          "response": {
+            "what_the_user_wants_to_do_next_by_instruction": "在搜索框中输入 '特殊随机字符，如'zzzzNotFound999'",
+            "log": "I will use action Input to enter '特殊随机字符，如'zzzzNotFound999' into the search box",
+            "more_actions_needed_by_instruction": false,
+            "action": {
+              "type": "Input",
+              "locate": {
+                "bbox": [
+                  230,
+                  187,
+                  795,
+                  284
+                ],
+                "prompt": "The search input box"
+              },
+              "param": {
+                "value": "特殊随机字符，如'zzzzNotFound999"
+              }
+            },
+            "actions": [
+              {
+                "type": "Input",
+                "locate": {
+                  "bbox": [
+                    230,
+                    187,
+                    795,
+                    284
+                  ],
+                  "prompt": "The search input box"
+                },
+                "param": {
+                  "value": "特殊随机字符，如'zzzzNotFound999"
+                }
+              }
+            ],
+            "rawResponse": "{\n  \"what_the_user_wants_to_do_next_by_instruction\": \"在搜索框中输入 '特殊随机字符，如'zzzzNotFound999'\",\n  \"log\": \"I will use action Input to enter '特殊随机字符，如'zzzzNotFound999' into the search box\",\n  \"more_actions_needed_by_instruction\": false,\n  \"action\": {\n    \"type\": \"Input\",\n    \"locate\": {\n      \"bbox\": [\n        230,\n        187,\n        795,\n        284\n      ],\n      \"prompt\": \"The search input box\"\n    },\n    \"param\": {\n      \"value\": \"特殊随机字符，如'zzzzNotFound999\"\n    }\n  }\n}",
+            "usage": {
+              "prompt_tokens": 1908,
+              "completion_tokens": 157,
+              "total_tokens": 2065,
+              "completion_tokens_details": {
+                "text_tokens": 157
+              },
+              "prompt_tokens_details": {
+                "image_tokens": 922,
+                "text_tokens": 986,
+                "cached_tokens": 0
+              }
+            }
+          }
+        },
+        {
+          "type": "locate",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "The search input box",
+          "response": {
+            "elements": [
+              {
+                "id": "gmaml"
+              }
+            ]
+          },
+          "element": {
+            "id": "gmaml",
+            "center": [
+              512,
+              235
+            ],
+            "rect": {
+              "left": 508,
+              "top": 231,
+              "width": 8,
+              "height": 8
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证: 页面显示了相关内容",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证: 页面显示了相关内容 @ ",
+          "response": {
+            "what_the_user_wants_to_do_next_by_instruction": "验证页面是否显示了相关内容，当前页面已显示搜索框和相关建议内容",
+            "log": "页面已显示相关内容，无需进一步操作",
+            "more_actions_needed_by_instruction": false,
+            "action": null,
+            "actions": [],
+            "rawResponse": "{\n  \"what_the_user_wants_to_do_next_by_instruction\": \"验证页面是否显示了相关内容，当前页面已显示搜索框和相关建议内容\",\n  \"log\": \"页面已显示相关内容，无需进一步操作\",\n  \"more_actions_needed_by_instruction\": false,\n  \"action\": null\n}",
+            "usage": {
+              "prompt_tokens": 1898,
+              "completion_tokens": 69,
+              "total_tokens": 1967,
+              "completion_tokens_details": {
+                "text_tokens": 69
+              },
+              "prompt_tokens_details": {
+                "image_tokens": 922,
+                "text_tokens": 976,
+                "cached_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

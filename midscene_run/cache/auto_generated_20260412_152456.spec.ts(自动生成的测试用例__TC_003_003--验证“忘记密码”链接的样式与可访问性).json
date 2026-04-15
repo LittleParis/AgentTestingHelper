@@ -1,0 +1,260 @@
+{
+  "pkgName": "agent-test-platform",
+  "pkgVersion": "1.0.0",
+  "cacheId": "auto_generated_20260412_152456.spec.ts(自动生成的测试用例__TC_003_003--验证“忘记密码”链接的样式与可访问性)",
+  "aiTasks": [
+    {
+      "prompt": "等待页面加载完成",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://example.com/login",
+            "size": {
+              "width": 1280,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "等待页面加载完成 @ ",
+          "response": {
+            "actions": [
+              {
+                "type": "Sleep",
+                "thought": "等待页面加载完成，确保所有元素都已渲染。",
+                "param": {
+                  "timeMs": 2000
+                }
+              }
+            ],
+            "log": "等待页面加载完成，暂停2秒以确保页面元素完全渲染。",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [\n    {\n      \"type\": \"Sleep\",\n      \"thought\": \"等待页面加载完成，确保所有元素都已渲染。\",\n      \"param\": {\n        \"timeMs\": 2000\n      }\n    }\n  ],\n  \"log\": \"等待页面加载完成，暂停2秒以确保页面元素完全渲染。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 1991,
+              "completion_tokens": 92,
+              "total_tokens": 2083,
+              "prompt_tokens_details": {
+                "cached_tokens": 1984
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证: 验证页面状态",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://example.com/login",
+            "size": {
+              "width": 1280,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证: 验证页面状态 @ ",
+          "response": {
+            "actions": [],
+            "log": "当前页面显示为 'Example Domain' 示例页面，包含标题、说明文字和 'Learn more' 链接。页面状态正常，所有元素均已正确加载和显示。",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [],\n  \"log\": \"当前页面显示为 'Example Domain' 示例页面，包含标题、说明文字和 'Learn more' 链接。页面状态正常，所有元素均已正确加载和显示。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 1993,
+              "completion_tokens": 73,
+              "total_tokens": 2066,
+              "prompt_tokens_details": {
+                "cached_tokens": 1984
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "执行操作",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://example.com/login",
+            "size": {
+              "width": 1280,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "执行操作 @ ",
+          "response": {
+            "actions": [],
+            "log": "用户的指令是'执行操作'，但没有指定具体要执行什么操作。页面上有'Learn more'链接可以点击，但缺乏明确的指示。",
+            "error": "指令不明确：'执行操作'没有指定具体要执行什么操作。请提供更具体的指令，例如'点击Learn more链接'或'滚动页面'等。",
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [],\n  \"log\": \"用户的指令是'执行操作'，但没有指定具体要执行什么操作。页面上有'Learn more'链接可以点击，但缺乏明确的指示。\",\n  \"error\": \"指令不明确：'执行操作'没有指定具体要执行什么操作。请提供更具体的指令，例如'点击Learn more链接'或'滚动页面'等。\",\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 1987,
+              "completion_tokens": 100,
+              "total_tokens": 2087,
+              "prompt_tokens_details": {
+                "cached_tokens": 1920
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证: 验证页面状态",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://example.com/login",
+            "size": {
+              "width": 1280,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证: 验证页面状态 @ ",
+          "response": {
+            "actions": [],
+            "log": "当前页面显示为 'Example Domain' 示例页面，包含标题、说明文字以及 'Learn more' 链接。页面状态正常，已完成验证。",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [],\n  \"log\": \"当前页面显示为 'Example Domain' 示例页面，包含标题、说明文字以及 'Learn more' 链接。页面状态正常，已完成验证。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 1993,
+              "completion_tokens": 68,
+              "total_tokens": 2061,
+              "prompt_tokens_details": {
+                "cached_tokens": 1984
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "检查页面元素",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://example.com/login",
+            "size": {
+              "width": 1280,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "检查页面元素 @ ",
+          "response": {
+            "actions": [],
+            "log": "页面元素检查完成。当前页面包含一个标题 'Example Domain'，一段说明文字 'This domain is for use in documentation examples without needing permission. Avoid use in operations.'，以及一个 'Learn more' 链接。所有元素均已正常显示。",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [],\n  \"log\": \"页面元素检查完成。当前页面包含一个标题 'Example Domain'，一段说明文字 'This domain is for use in documentation examples without needing permission. Avoid use in operations.'，以及一个 'Learn more' 链接。所有元素均已正常显示。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 1990,
+              "completion_tokens": 87,
+              "total_tokens": 2077,
+              "prompt_tokens_details": {
+                "cached_tokens": 1920
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证: 验证页面状态",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://example.com/login",
+            "size": {
+              "width": 1280,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证: 验证页面状态 @ ",
+          "response": {
+            "actions": [],
+            "log": "当前页面显示为 'Example Domain' 示例页面，页面加载正常，文本内容清晰可见，'Learn more' 链接也可访问。页面状态验证通过。",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [],\n  \"log\": \"当前页面显示为 'Example Domain' 示例页面，页面加载正常，文本内容清晰可见，'Learn more' 链接也可访问。页面状态验证通过。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 1993,
+              "completion_tokens": 71,
+              "total_tokens": 2064,
+              "prompt_tokens_details": {
+                "cached_tokens": 1984
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证: 验证页面状态",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://example.com/login",
+            "size": {
+              "width": 1280,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证: 验证页面状态 @ ",
+          "response": {
+            "actions": [],
+            "log": "当前页面显示为 'Example Domain' 示例页面，包含一段说明文字和一个 'Learn more' 链接。页面状态正常，没有发现异常情况。",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [],\n  \"log\": \"当前页面显示为 'Example Domain' 示例页面，包含一段说明文字和一个 'Learn more' 链接。页面状态正常，没有发现异常情况。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 1993,
+              "completion_tokens": 69,
+              "total_tokens": 2062,
+              "prompt_tokens_details": {
+                "cached_tokens": 1984
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

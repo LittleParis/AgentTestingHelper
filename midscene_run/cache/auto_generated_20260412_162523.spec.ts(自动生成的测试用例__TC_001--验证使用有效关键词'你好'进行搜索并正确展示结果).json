@@ -1,0 +1,358 @@
+{
+  "pkgName": "agent-test-platform",
+  "pkgVersion": "1.0.0",
+  "cacheId": "auto_generated_20260412_162523.spec.ts(自动生成的测试用例__TC_001--验证使用有效关键词'你好'进行搜索并正确展示结果)",
+  "aiTasks": [
+    {
+      "prompt": "等待页面加载完成",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "等待页面加载完成 @ ",
+          "response": {
+            "actions": [
+              {
+                "type": "Sleep",
+                "thought": "等待页面加载完成，设置一个短暂的等待时间以确保页面元素都已渲染完毕。",
+                "param": {
+                  "timeMs": 2000
+                }
+              }
+            ],
+            "log": "等待页面加载完成，设置2秒的等待时间。",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [\n    {\n      \"type\": \"Sleep\",\n      \"thought\": \"等待页面加载完成，设置一个短暂的等待时间以确保页面元素都已渲染完毕。\",\n      \"param\": {\n        \"timeMs\": 2000\n      }\n    }\n  ],\n  \"log\": \"等待页面加载完成，设置2秒的等待时间。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 4425,
+              "completion_tokens": 96,
+              "total_tokens": 4521,
+              "prompt_tokens_details": {
+                "cached_tokens": 2496
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证: 页面加载完成且稳定",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证: 页面加载完成且稳定 @ ",
+          "response": {
+            "actions": [
+              {
+                "type": "Sleep",
+                "thought": "等待页面加载完成并保持稳定状态",
+                "param": {
+                  "timeMs": 2000
+                }
+              }
+            ],
+            "log": "等待页面加载完成并保持稳定状态，以便进行后续操作。",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [\n    {\n      \"type\": \"Sleep\",\n      \"thought\": \"等待页面加载完成并保持稳定状态\",\n      \"param\": {\n        \"timeMs\": 2000\n      }\n    }\n  ],\n  \"log\": \"等待页面加载完成并保持稳定状态，以便进行后续操作。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 4428,
+              "completion_tokens": 90,
+              "total_tokens": 4518,
+              "prompt_tokens_details": {
+                "cached_tokens": 2496
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "在搜索框中输入 \"你好\"",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "在搜索框中输入 \"你好\" @ ",
+          "response": {
+            "actions": [
+              {
+                "type": "Input",
+                "thought": "在搜索框中输入'你好'",
+                "param": {
+                  "value": "你好"
+                },
+                "locate": {
+                  "id": "kilfo",
+                  "prompt": "搜索框"
+                }
+              }
+            ],
+            "log": "在搜索框中输入'你好'",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [\n    {\n      \"type\": \"Input\",\n      \"thought\": \"在搜索框中输入'你好'\",\n      \"param\": {\n        \"value\": \"你好\"\n      },\n      \"locate\": {\n        \"id\": \"kilfo\",\n        \"prompt\": \"搜索框\"\n      }\n    }\n  ],\n  \"log\": \"在搜索框中输入'你好'\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 4425,
+              "completion_tokens": 104,
+              "total_tokens": 4529,
+              "prompt_tokens_details": {
+                "cached_tokens": 4352
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        },
+        {
+          "type": "locate",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "搜索框",
+          "response": {
+            "elements": [
+              {
+                "id": "kilfo"
+              }
+            ]
+          },
+          "element": {
+            "id": "kilfo",
+            "indexId": 14,
+            "center": [
+              635,
+              209
+            ],
+            "rect": {
+              "left": 250,
+              "top": 195,
+              "width": 770,
+              "height": 28,
+              "zoom": 1
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证: 页面显示了相关内容",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证: 页面显示了相关内容 @ ",
+          "response": {
+            "actions": [],
+            "log": "页面当前显示了搜索建议列表，输入框中已有文字'你好'，下方显示了多个相关的搜索建议选项。页面内容已正常显示。",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [],\n  \"log\": \"页面当前显示了搜索建议列表，输入框中已有文字'你好'，下方显示了多个相关的搜索建议选项。页面内容已正常显示。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 3686,
+              "completion_tokens": 63,
+              "total_tokens": 3749,
+              "prompt_tokens_details": {
+                "cached_tokens": 1984
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "点击搜索按钮",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "点击搜索按钮 @ ",
+          "response": {
+            "actions": [
+              {
+                "type": "Tap",
+                "thought": "点击搜索按钮（百度一下按钮）来执行搜索。",
+                "param": null,
+                "locate": {
+                  "id": "mbmkd",
+                  "prompt": "百度一下搜索按钮"
+                }
+              }
+            ],
+            "log": "点击“百度一下”搜索按钮执行搜索",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [\n    {\n      \"type\": \"Tap\",\n      \"thought\": \"点击搜索按钮（百度一下按钮）来执行搜索。\",\n      \"param\": null,\n      \"locate\": {\n        \"id\": \"mbmkd\",\n        \"prompt\": \"百度一下搜索按钮\"\n      }\n    }\n  ],\n  \"log\": \"点击“百度一下”搜索按钮执行搜索\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 3680,
+              "completion_tokens": 101,
+              "total_tokens": 3781,
+              "prompt_tokens_details": {
+                "cached_tokens": 1984
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        },
+        {
+          "type": "locate",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "百度一下搜索按钮",
+          "response": {
+            "elements": [
+              {
+                "id": "mbmkd"
+              }
+            ]
+          },
+          "element": {
+            "id": "mbmkd",
+            "indexId": 9,
+            "center": [
+              820,
+              79
+            ],
+            "rect": {
+              "left": 768,
+              "top": 60,
+              "width": 104,
+              "height": 38,
+              "zoom": 1
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证: 页面URL发生了变化",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E4%BD%A0%E5%A5%BD&fenlei=256&rsv_pq=0xd52530e6002f6f68&rsv_t=71b5Oisfe%2BAFJbZUGg8tn9yuLC5awl2RSWgnyzkF3L9oehBSfXULU4pYe6br&rqlang=en&rsv_enter=1&rsv_dl=tb_click&rsv_sug3=2&rsv_sug1=1&rsv_sug7=100&rsv_btype=i&prefixsug=%25E4%25BD%25A0&rsp=2&inputT=11714&rsv_sug4=11715",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证: 页面URL发生了变化 @ ",
+          "response": {
+            "actions": [],
+            "log": "当前任务是验证页面URL是否发生了变化。这需要对比操作前后的URL，但作为当前页面状态，无法仅凭截图和页面描述来验证URL的变化。这需要获取当前URL并与之前的URL进行对比，或者需要执行某些操作后再检查URL。",
+            "error": "无法在当前页面状态下验证URL是否发生变化。验证URL变化需要对比前后的URL值，这通常需要在执行某个导航操作前后分别获取URL进行对比，或者需要访问浏览器的历史记录/地址栏信息。当前页面信息中没有提供URL相关的数据。",
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [],\n  \"log\": \"当前任务是验证页面URL是否发生了变化。这需要对比操作前后的URL，但作为当前页面状态，无法仅凭截图和页面描述来验证URL的变化。这需要获取当前URL并与之前的URL进行对比，或者需要执行某些操作后再检查URL。\",\n  \"error\": \"无法在当前页面状态下验证URL是否发生变化。验证URL变化需要对比前后的URL值，这通常需要在执行某个导航操作前后分别获取URL进行对比，或者需要访问浏览器的历史记录/地址栏信息。当前页面信息中没有提供URL相关的数据。\",\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 3711,
+              "completion_tokens": 141,
+              "total_tokens": 3852,
+              "prompt_tokens_details": {
+                "cached_tokens": 2048
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证: 页面上显示了搜索结果列表",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E4%BD%A0%E5%A5%BD&fenlei=256&rsv_pq=0xd52530e6002f6f68&rsv_t=71b5Oisfe%2BAFJbZUGg8tn9yuLC5awl2RSWgnyzkF3L9oehBSfXULU4pYe6br&rqlang=en&rsv_enter=1&rsv_dl=tb_click&rsv_sug3=2&rsv_sug1=1&rsv_sug7=100&rsv_btype=i&prefixsug=%25E4%25BD%25A0&rsp=2&inputT=11714&rsv_sug4=11715",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证: 页面上显示了搜索结果列表 @ ",
+          "response": {
+            "actions": [],
+            "log": "验证页面上是否显示了搜索结果列表。通过查看页面，可以看到搜索框中包含关键词'你好'，并且页面主体部分显示了多个搜索结果，包括'百度百科'、'哔哩哔哩'等来源的结果，以及右侧的相关搜索和热搜榜。这表明搜索结果列表已经成功显示在页面上。",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [],\n  \"log\": \"验证页面上是否显示了搜索结果列表。通过查看页面，可以看到搜索框中包含关键词'你好'，并且页面主体部分显示了多个搜索结果，包括'百度百科'、'哔哩哔哩'等来源的结果，以及右侧的相关搜索和热搜榜。这表明搜索结果列表已经成功显示在页面上。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 6413,
+              "completion_tokens": 100,
+              "total_tokens": 6513,
+              "prompt_tokens_details": {
+                "cached_tokens": 1984
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

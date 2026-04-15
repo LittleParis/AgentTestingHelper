@@ -1,0 +1,411 @@
+{
+  "pkgName": "agent-test-platform",
+  "pkgVersion": "1.0.0",
+  "cacheId": "ui_layout_test.spec.ts(UI-布局验证测试__验证搜索结果页布局)",
+  "aiTasks": [
+    {
+      "prompt": "等待页面加载完成",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "等待页面加载完成 @ ",
+          "response": {
+            "actions": [
+              {
+                "type": "Sleep",
+                "thought": "等待页面加载完成，确保所有元素都已渲染完毕。",
+                "param": {
+                  "timeMs": 2000
+                }
+              }
+            ],
+            "log": "等待页面加载完成，暂停2秒以确保页面元素完全渲染。",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [\n    {\n      \"type\": \"Sleep\",\n      \"thought\": \"等待页面加载完成，确保所有元素都已渲染完毕。\",\n      \"param\": {\n        \"timeMs\": 2000\n      }\n    }\n  ],\n  \"log\": \"等待页面加载完成，暂停2秒以确保页面元素完全渲染。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 4390,
+              "completion_tokens": 93,
+              "total_tokens": 4483,
+              "prompt_tokens_details": {
+                "cached_tokens": 2432
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "在搜索框中输入 \"Playwright\"",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "在搜索框中输入 \"Playwright\" @ ",
+          "response": {
+            "actions": [
+              {
+                "type": "Input",
+                "thought": "在搜索框中输入 'Playwright'，替换当前的文本内容",
+                "param": {
+                  "value": "Playwright"
+                },
+                "locate": {
+                  "id": "benie",
+                  "prompt": "搜索输入框"
+                }
+              }
+            ],
+            "log": "在搜索框中输入 'Playwright'",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [\n    {\n      \"type\": \"Input\",\n      \"thought\": \"在搜索框中输入 'Playwright'，替换当前的文本内容\",\n      \"param\": {\n        \"value\": \"Playwright\"\n      },\n      \"locate\": {\n        \"id\": \"benie\",\n        \"prompt\": \"搜索输入框\"\n      }\n    }\n  ],\n  \"log\": \"在搜索框中输入 'Playwright'\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 4391,
+              "completion_tokens": 114,
+              "total_tokens": 4505,
+              "prompt_tokens_details": {
+                "cached_tokens": 2432
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        },
+        {
+          "type": "locate",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "搜索输入框",
+          "response": {
+            "elements": [
+              {
+                "id": "benie"
+              }
+            ]
+          },
+          "element": {
+            "id": "benie",
+            "indexId": 14,
+            "center": [
+              635,
+              209
+            ],
+            "rect": {
+              "left": 250,
+              "top": 195,
+              "width": 770,
+              "height": 28,
+              "zoom": 1
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "点击搜索按钮",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "点击搜索按钮 @ ",
+          "response": {
+            "actions": [
+              {
+                "type": "Tap",
+                "thought": "点击搜索按钮（百度一下按钮）来执行搜索。",
+                "param": null,
+                "locate": {
+                  "id": "mbmkd",
+                  "prompt": "百度一下搜索按钮"
+                }
+              }
+            ],
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "log": "点击“百度一下”搜索按钮执行搜索",
+            "rawResponse": "{\n  \"actions\": [\n    {\n      \"type\": \"Tap\",\n      \"thought\": \"点击搜索按钮（百度一下按钮）来执行搜索。\",\n      \"param\": null,\n      \"locate\": {\n        \"id\": \"mbmkd\",\n        \"prompt\": \"百度一下搜索按钮\"\n      }\n    }\n  ],\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false,\n  \"log\": \"点击“百度一下”搜索按钮执行搜索\"\n}",
+            "usage": {
+              "prompt_tokens": 3661,
+              "completion_tokens": 101,
+              "total_tokens": 3762,
+              "prompt_tokens_details": {
+                "cached_tokens": 1984
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        },
+        {
+          "type": "locate",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "百度一下搜索按钮",
+          "response": {
+            "elements": [
+              {
+                "id": "mbmkd"
+              }
+            ]
+          },
+          "element": {
+            "id": "mbmkd",
+            "indexId": 9,
+            "center": [
+              820,
+              79
+            ],
+            "rect": {
+              "left": 768,
+              "top": 60,
+              "width": 104,
+              "height": 38,
+              "zoom": 1
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "等待搜索结果加载完成",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=Playwright&fenlei=256&rsv_pq=0xcbd52114002ad8af&rsv_t=4fbaf7laknfF6kmVksjT%2FO47kxyvw%2FfzH9cMNNUtYmaRCGXvupMMlbganynr&rqlang=en&rsv_enter=1&rsv_dl=tb_click&rsv_sug3=11&rsv_sug1=7&rsv_sug7=100&rsv_btype=i&prefixsug=Playwright&rsp=2&inputT=8008&rsv_sug4=8009",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "等待搜索结果加载完成 @ ",
+          "response": {
+            "actions": [
+              {
+                "type": "KeyboardPress",
+                "thought": "当前页面显示搜索框中已输入内容'Playwright'，并有提示'请按“回车”键发起检索'。需要先按回车键发起搜索，然后才能等待搜索结果加载完成。",
+                "param": {
+                  "value": "Enter"
+                }
+              },
+              {
+                "type": "Sleep",
+                "thought": "等待搜索结果加载完成，给页面足够的时间来响应和加载搜索结果。",
+                "param": {
+                  "timeMs": 2000
+                }
+              }
+            ],
+            "log": "当前搜索框中已有内容，页面提示'请按“回车”键发起检索'。我将按回车键发起搜索，然后等待2秒让搜索结果加载完成。",
+            "error": null,
+            "more_actions_needed_by_instruction": true,
+            "rawResponse": "{\n  \"actions\": [\n    {\n      \"type\": \"KeyboardPress\",\n      \"thought\": \"当前页面显示搜索框中已输入内容'Playwright'，并有提示'请按“回车”键发起检索'。需要先按回车键发起搜索，然后才能等待搜索结果加载完成。\",\n      \"param\": {\n        \"value\": \"Enter\"\n      }\n    },\n    {\n      \"type\": \"Sleep\",\n      \"thought\": \"等待搜索结果加载完成，给页面足够的时间来响应和加载搜索结果。\",\n      \"param\": {\n        \"timeMs\": 2000\n      }\n    }\n  ],\n  \"log\": \"当前搜索框中已有内容，页面提示'请按“回车”键发起检索'。我将按回车键发起搜索，然后等待2秒让搜索结果加载完成。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": true\n}",
+            "usage": {
+              "prompt_tokens": 2920,
+              "completion_tokens": 199,
+              "total_tokens": 3119,
+              "prompt_tokens_details": {
+                "cached_tokens": 1984
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        },
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=Playwright&fenlei=256&rsv_pq=0xcbd52114002ad8af&rsv_t=4fbaf7laknfF6kmVksjT%2FO47kxyvw%2FfzH9cMNNUtYmaRCGXvupMMlbganynr&rqlang=en&rsv_enter=1&rsv_dl=tb_click&rsv_sug3=11&rsv_sug1=7&rsv_sug7=100&rsv_btype=i&prefixsug=Playwright&rsp=2&inputT=8008&rsv_sug4=8009",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "等待搜索结果加载完成 @ - 当前搜索框中已有内容，页面提示'请按“回车”键发起检索'。我将按回车键发起搜索，然后等待2秒让搜索结果加载完成。",
+          "response": {
+            "actions": [],
+            "log": "搜索结果已加载完成，页面显示了playwright的翻译结果、例句、相关搜索和百科信息等内容。",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [],\n  \"log\": \"搜索结果已加载完成，页面显示了playwright的翻译结果、例句、相关搜索和百科信息等内容。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 8572,
+              "completion_tokens": 121,
+              "total_tokens": 8693,
+              "prompt_tokens_details": {
+                "cached_tokens": 1792
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证搜索结果列表存在",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=Playwright&fenlei=256&rsv_pq=0xcbd52114002ad8af&rsv_t=4fbaf7laknfF6kmVksjT%2FO47kxyvw%2FfzH9cMNNUtYmaRCGXvupMMlbganynr&rqlang=en&rsv_enter=1&rsv_dl=tb_click&rsv_sug3=11&rsv_sug1=7&rsv_sug7=100&rsv_btype=i&prefixsug=Playwright&rsp=2&inputT=8008&rsv_sug4=8009",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证搜索结果列表存在 @ ",
+          "response": {
+            "actions": [
+              {
+                "type": "ExpectedFalsyCondition",
+                "thought": "验证搜索结果列表是否存在。根据截图和页面描述，当前页面显示的是“Playwright”的翻译结果和百度百科信息，没有显示传统的搜索结果列表（如网页链接列表）。因此，搜索结果列表不存在。",
+                "param": {
+                  "reason": "当前页面未显示搜索结果列表，仅显示翻译结果和百度百科信息。"
+                }
+              }
+            ],
+            "log": "验证搜索结果列表是否存在。当前页面显示的是“Playwright”的翻译结果和百度百科信息，未发现传统的搜索结果列表。",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [\n    {\n      \"type\": \"ExpectedFalsyCondition\",\n      \"thought\": \"验证搜索结果列表是否存在。根据截图和页面描述，当前页面显示的是“Playwright”的翻译结果和百度百科信息，没有显示传统的搜索结果列表（如网页链接列表）。因此，搜索结果列表不存在。\",\n      \"param\": {\n        \"reason\": \"当前页面未显示搜索结果列表，仅显示翻译结果和百度百科信息。\"\n      }\n    }\n  ],\n  \"log\": \"验证搜索结果列表是否存在。当前页面显示的是“Playwright”的翻译结果和百度百科信息，未发现传统的搜索结果列表。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 8499,
+              "completion_tokens": 152,
+              "total_tokens": 8651,
+              "prompt_tokens_details": {
+                "cached_tokens": 8448
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证每个搜索结果都有标题和描述",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=Playwright&fenlei=256&rsv_pq=0xcbd52114002ad8af&rsv_t=4fbaf7laknfF6kmVksjT%2FO47kxyvw%2FfzH9cMNNUtYmaRCGXvupMMlbganynr&rqlang=en&rsv_enter=1&rsv_dl=tb_click&rsv_sug3=11&rsv_sug1=7&rsv_sug7=100&rsv_btype=i&prefixsug=Playwright&rsp=2&inputT=8008&rsv_sug4=8009",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证每个搜索结果都有标题和描述 @ ",
+          "response": {
+            "actions": [
+              {
+                "type": "ExpectedFalsyCondition",
+                "thought": "验证搜索结果是否都有标题和描述。观察页面，发现有一个搜索结果（playwright - 百度百科）只有标题（markerId 137, 138），但描述部分为空（markerId 141, 143的内容是百度百科的摘要，不是搜索结果的描述）。因此，条件语句'每个搜索结果都有标题和描述'是错误的。",
+                "param": {
+                  "reason": "并非每个搜索结果都有标题和描述。例如，'playwright (英语单词) - 百度百科'这个搜索结果只有标题，没有描述。"
+                }
+              }
+            ],
+            "log": "验证搜索结果是否有标题和描述。发现'playwright (英语单词) - 百度百科'这个搜索结果只有标题，没有描述，因此条件不成立。",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [\n    {\n      \"type\": \"ExpectedFalsyCondition\",\n      \"thought\": \"验证搜索结果是否都有标题和描述。观察页面，发现有一个搜索结果（playwright - 百度百科）只有标题（markerId 137, 138），但描述部分为空（markerId 141, 143的内容是百度百科的摘要，不是搜索结果的描述）。因此，条件语句'每个搜索结果都有标题和描述'是错误的。\",\n      \"param\": {\n        \"reason\": \"并非每个搜索结果都有标题和描述。例如，'playwright (英语单词) - 百度百科'这个搜索结果只有标题，没有描述。\"\n      }\n    }\n  ],\n  \"log\": \"验证搜索结果是否有标题和描述。发现'playwright (英语单词) - 百度百科'这个搜索结果只有标题，没有描述，因此条件不成立。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 8502,
+              "completion_tokens": 202,
+              "total_tokens": 8704,
+              "prompt_tokens_details": {
+                "cached_tokens": 1792
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证搜索结果从上到下排列",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=Playwright&fenlei=256&rsv_pq=0xcbd52114002ad8af&rsv_t=4fbaf7laknfF6kmVksjT%2FO47kxyvw%2FfzH9cMNNUtYmaRCGXvupMMlbganynr&rqlang=en&rsv_enter=1&rsv_dl=tb_click&rsv_sug3=11&rsv_sug1=7&rsv_sug7=100&rsv_btype=i&prefixsug=Playwright&rsp=2&inputT=8008&rsv_sug4=8009",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证搜索结果从上到下排列 @ ",
+          "response": {
+            "actions": [],
+            "log": "当前页面显示的是关键词“Playwright”的搜索结果页面。页面布局清晰，从上到下依次为：1. 顶部导航栏（百度首页、设置、登录）；2. 搜索框区域；3. 搜索类型标签（网页、图片、资讯等）；4. 翻译卡片（展示“playwright”的翻译和例句）；5. “大家还在搜”推荐区域；6. 百科词条摘要。内容按照从上到下的顺序依次排列，符合常规搜索结果页面的布局逻辑，验证通过。",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [],\n  \"log\": \"当前页面显示的是关键词“Playwright”的搜索结果页面。页面布局清晰，从上到下依次为：1. 顶部导航栏（百度首页、设置、登录）；2. 搜索框区域；3. 搜索类型标签（网页、图片、资讯等）；4. 翻译卡片（展示“playwright”的翻译和例句）；5. “大家还在搜”推荐区域；6. 百科词条摘要。内容按照从上到下的顺序依次排列，符合常规搜索结果页面的布局逻辑，验证通过。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 8502,
+              "completion_tokens": 151,
+              "total_tokens": 8653,
+              "prompt_tokens_details": {
+                "cached_tokens": 1792
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

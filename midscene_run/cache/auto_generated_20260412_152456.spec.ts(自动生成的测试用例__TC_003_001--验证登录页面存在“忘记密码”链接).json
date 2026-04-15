@@ -1,0 +1,190 @@
+{
+  "pkgName": "agent-test-platform",
+  "pkgVersion": "1.0.0",
+  "cacheId": "auto_generated_20260412_152456.spec.ts(自动生成的测试用例__TC_003_001--验证登录页面存在“忘记密码”链接)",
+  "aiTasks": [
+    {
+      "prompt": "等待页面加载完成",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://example.com/login",
+            "size": {
+              "width": 1280,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "等待页面加载完成 @ ",
+          "response": {
+            "actions": [
+              {
+                "type": "Sleep",
+                "thought": "等待页面加载完成，暂停1秒以确保页面元素稳定显示。",
+                "param": {
+                  "timeMs": 1000
+                }
+              }
+            ],
+            "log": "等待页面加载完成，暂停1秒。",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [\n    {\n      \"type\": \"Sleep\",\n      \"thought\": \"等待页面加载完成，暂停1秒以确保页面元素稳定显示。\",\n      \"param\": {\n        \"timeMs\": 1000\n      }\n    }\n  ],\n  \"log\": \"等待页面加载完成，暂停1秒。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 1991,
+              "completion_tokens": 90,
+              "total_tokens": 2081,
+              "prompt_tokens_details": {
+                "cached_tokens": 0
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证: 验证页面状态",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://example.com/login",
+            "size": {
+              "width": 1280,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证: 验证页面状态 @ ",
+          "response": {
+            "actions": [],
+            "log": "当前页面显示为 'Example Domain' 示例页面，包含标题、说明文字和 'Learn more' 链接。页面状态正常，已完成验证。",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [],\n  \"log\": \"当前页面显示为 'Example Domain' 示例页面，包含标题、说明文字和 'Learn more' 链接。页面状态正常，已完成验证。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 1993,
+              "completion_tokens": 68,
+              "total_tokens": 2061,
+              "prompt_tokens_details": {
+                "cached_tokens": 1920
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "在密码输入框中输入内容",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://example.com/login",
+            "size": {
+              "width": 1280,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "在密码输入框中输入内容 @ ",
+          "response": {
+            "actions": [],
+            "log": "当前页面是一个简单的文档示例页面，只包含标题、描述文本和一个'Learn more'链接，没有找到任何密码输入框。",
+            "error": "当前页面上不存在密码输入框，无法执行输入操作。",
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [],\n  \"log\": \"当前页面是一个简单的文档示例页面，只包含标题、描述文本和一个'Learn more'链接，没有找到任何密码输入框。\",\n  \"error\": \"当前页面上不存在密码输入框，无法执行输入操作。\",\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 1991,
+              "completion_tokens": 73,
+              "total_tokens": 2064,
+              "prompt_tokens_details": {
+                "cached_tokens": 1920
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证: 验证页面状态",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://example.com/login",
+            "size": {
+              "width": 1280,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证: 验证页面状态 @ ",
+          "response": {
+            "actions": [],
+            "log": "当前页面是 'Example Domain' 示例页面，包含标题、说明文字和 'Learn more' 链接。页面已正常加载，状态良好，无需执行额外操作。",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [],\n  \"log\": \"当前页面是 'Example Domain' 示例页面，包含标题、说明文字和 'Learn more' 链接。页面已正常加载，状态良好，无需执行额外操作。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 1993,
+              "completion_tokens": 73,
+              "total_tokens": 2066,
+              "prompt_tokens_details": {
+                "cached_tokens": 1920
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证: 操作成功",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://example.com/login",
+            "size": {
+              "width": 1280,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证: 操作成功 @ ",
+          "response": {
+            "actions": [],
+            "log": "当前页面显示 'Example Domain'，这是一个用于文档示例的域名页面。根据指令 '验证: 操作成功'，页面已成功加载并显示了预期的内容，没有出现错误信息，因此可以判断操作已成功完成。",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [],\n  \"log\": \"当前页面显示 'Example Domain'，这是一个用于文档示例的域名页面。根据指令 '验证: 操作成功'，页面已成功加载并显示了预期的内容，没有出现错误信息，因此可以判断操作已成功完成。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 1990,
+              "completion_tokens": 80,
+              "total_tokens": 2070,
+              "prompt_tokens_details": {
+                "cached_tokens": 1920
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(.venv/Scripts/python.exe main_v2.py)",
+      "Bash(npm -v)",
+      "Bash(npm list:*)",
+      "Bash(.venv/Scripts/python -c \"import playwright; print\\(playwright.__version__\\)\")",
+      "Bash(python -m pytest tests/test_executor.py -v -k \"parse\")",
+      "Bash(rm -rf tests/generated/*.spec.ts output/*.json allure-results/* allure-report/*)",
+      "Bash(python main_v2.py)",
+      "Bash(npx playwright:*)",
+      "Bash(grep -r \"screenshot\\\\|image\" node_modules/@midscene/web/dist/types/*.d.ts)",
+      "Bash(grep -r \"MIDSCENE\" node_modules/@midscene/core/dist/*.js)",
+      "Bash(grep -r \"process.env\" node_modules/@midscene/core/dist/lib/*.js)",
+      "Bash(grep -r \"OPENAI\\\\|apiKey\\\\|baseURL\" node_modules/@midscene/core/dist/*.js)",
+      "Bash(grep -r \"env\\\\.\" node_modules/@midscene/*/dist/lib/*.js)"
+    ]
+  }
+}

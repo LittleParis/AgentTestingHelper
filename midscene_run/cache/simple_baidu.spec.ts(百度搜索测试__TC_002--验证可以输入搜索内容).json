@@ -1,0 +1,296 @@
+{
+  "pkgName": "agent-test-platform",
+  "pkgVersion": "1.0.0",
+  "cacheId": "simple_baidu.spec.ts(百度搜索测试__TC_002--验证可以输入搜索内容)",
+  "aiTasks": [
+    {
+      "prompt": "等待页面加载完成",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "等待页面加载完成 @ ",
+          "response": {
+            "actions": [
+              {
+                "type": "Sleep",
+                "thought": "等待页面加载完成，确保所有元素都已渲染完毕。",
+                "param": {
+                  "timeMs": 2000
+                }
+              }
+            ],
+            "log": "等待页面加载完成，暂停2秒以确保页面元素稳定。",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [\n    {\n      \"type\": \"Sleep\",\n      \"thought\": \"等待页面加载完成，确保所有元素都已渲染完毕。\",\n      \"param\": {\n        \"timeMs\": 2000\n      }\n    }\n  ],\n  \"log\": \"等待页面加载完成，暂停2秒以确保页面元素稳定。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 4391,
+              "completion_tokens": 85,
+              "total_tokens": 4476,
+              "prompt_tokens_details": {
+                "cached_tokens": 1728
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "在搜索框中输入 \"Playwright\"",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "在搜索框中输入 \"Playwright\" @ ",
+          "response": {
+            "actions": [
+              {
+                "type": "Input",
+                "thought": "在搜索框中输入 'Playwright'，替换当前的文本内容",
+                "param": {
+                  "value": "Playwright"
+                },
+                "locate": {
+                  "id": "fhjfd",
+                  "prompt": "搜索输入框"
+                }
+              }
+            ],
+            "log": "在搜索框中输入 'Playwright'",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [\n    {\n      \"type\": \"Input\",\n      \"thought\": \"在搜索框中输入 'Playwright'，替换当前的文本内容\",\n      \"param\": {\n        \"value\": \"Playwright\"\n      },\n      \"locate\": {\n        \"id\": \"fhjfd\",\n        \"prompt\": \"搜索输入框\"\n      }\n    }\n  ],\n  \"log\": \"在搜索框中输入 'Playwright'\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 4392,
+              "completion_tokens": 115,
+              "total_tokens": 4507,
+              "prompt_tokens_details": {
+                "cached_tokens": 1728
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        },
+        {
+          "type": "locate",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "搜索输入框",
+          "response": {
+            "elements": [
+              {
+                "id": "fhjfd"
+              }
+            ]
+          },
+          "element": {
+            "id": "fhjfd",
+            "indexId": 14,
+            "center": [
+              635,
+              209
+            ],
+            "rect": {
+              "left": 250,
+              "top": 195,
+              "width": 770,
+              "height": 28,
+              "zoom": 1
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "点击搜索按钮",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "点击搜索按钮 @ ",
+          "response": {
+            "actions": [
+              {
+                "type": "Tap",
+                "thought": "点击搜索按钮（百度一下）来执行搜索。",
+                "param": null,
+                "locate": {
+                  "id": "mbmkd",
+                  "prompt": "百度一下搜索按钮"
+                }
+              }
+            ],
+            "log": "点击“百度一下”搜索按钮执行搜索。",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [\n    {\n      \"type\": \"Tap\",\n      \"thought\": \"点击搜索按钮（百度一下）来执行搜索。\",\n      \"param\": null,\n      \"locate\": {\n        \"id\": \"mbmkd\",\n        \"prompt\": \"百度一下搜索按钮\"\n      }\n    }\n  ],\n  \"log\": \"点击“百度一下”搜索按钮执行搜索。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 3663,
+              "completion_tokens": 104,
+              "total_tokens": 3767,
+              "prompt_tokens_details": {
+                "cached_tokens": 1792
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        },
+        {
+          "type": "locate",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "百度一下搜索按钮",
+          "response": {
+            "elements": [
+              {
+                "id": "mbmkd"
+              }
+            ]
+          },
+          "element": {
+            "id": "mbmkd",
+            "indexId": 9,
+            "center": [
+              820,
+              79
+            ],
+            "rect": {
+              "left": 768,
+              "top": 60,
+              "width": 104,
+              "height": 38,
+              "zoom": 1
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "等待搜索结果加载完成",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=Playwright&fenlei=256&rsv_pq=0x914eac400029c80b&rsv_t=f078Z1WTWY180XO6yts4txTGVBoLKJviD2ouBevhwbhTcSdJVukAH%2BBdM%2FMy&rqlang=en&rsv_enter=1&rsv_dl=tb_click&rsv_sug3=11&rsv_sug1=1&rsv_sug7=100&rsv_btype=i&prefixsug=Playwright&rsp=2&inputT=10023&rsv_sug4=10023",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "等待搜索结果加载完成 @ ",
+          "response": {
+            "actions": [
+              {
+                "type": "Tap",
+                "thought": "点击“百度一下”按钮发起搜索",
+                "param": null,
+                "locate": {
+                  "id": "lmgec",
+                  "prompt": "百度一下按钮"
+                }
+              },
+              {
+                "type": "Sleep",
+                "thought": "等待搜索结果加载完成",
+                "param": {
+                  "timeMs": 2000
+                }
+              }
+            ],
+            "log": "点击“百度一下”按钮发起搜索，然后等待2秒让搜索结果加载完成",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [\n    {\n      \"type\": \"Tap\",\n      \"thought\": \"点击“百度一下”按钮发起搜索\",\n      \"param\": null,\n      \"locate\": {\n        \"id\": \"lmgec\",\n        \"prompt\": \"百度一下按钮\"\n      }\n    },\n    {\n      \"type\": \"Sleep\",\n      \"thought\": \"等待搜索结果加载完成\",\n      \"param\": {\n        \"timeMs\": 2000\n      }\n    }\n  ],\n  \"log\": \"点击“百度一下”按钮发起搜索，然后等待2秒让搜索结果加载完成\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 2922,
+              "completion_tokens": 148,
+              "total_tokens": 3070,
+              "prompt_tokens_details": {
+                "cached_tokens": 1792
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        },
+        {
+          "type": "locate",
+          "pageContext": {
+            "url": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=Playwright&fenlei=256&rsv_pq=0x914eac400029c80b&rsv_t=f078Z1WTWY180XO6yts4txTGVBoLKJviD2ouBevhwbhTcSdJVukAH%2BBdM%2FMy&rqlang=en&rsv_enter=1&rsv_dl=tb_click&rsv_sug3=11&rsv_sug1=1&rsv_sug7=100&rsv_btype=i&prefixsug=Playwright&rsp=2&inputT=10023&rsv_sug4=10023",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "百度一下按钮",
+          "response": {
+            "elements": [
+              {
+                "id": "lmgec"
+              }
+            ]
+          },
+          "element": {
+            "id": "lmgec",
+            "indexId": 9,
+            "center": [
+              826,
+              38
+            ],
+            "rect": {
+              "left": 774,
+              "top": 19,
+              "width": 104,
+              "height": 38,
+              "zoom": 1
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

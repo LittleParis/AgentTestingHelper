@@ -1,0 +1,245 @@
+{
+  "pkgName": "agent-test-platform",
+  "pkgVersion": "1.0.0",
+  "cacheId": "auto_generated_20260413_231815.spec.ts(自动生成的测试用例__TC_003--正向测试-使用回车键触发搜索)",
+  "aiTasks": [
+    {
+      "prompt": "在搜索框中输入 \"Selenium自动化\"",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "在搜索框中输入 \"Selenium自动化\" @ ",
+          "response": {
+            "what_the_user_wants_to_do_next_by_instruction": "在搜索框中输入 'Selenium自动化'",
+            "log": "我将使用 Input 动作在搜索框中输入 'Selenium自动化'",
+            "more_actions_needed_by_instruction": false,
+            "action": {
+              "type": "Input",
+              "locate": {
+                "bbox": [
+                  230,
+                  190,
+                  785,
+                  284
+                ],
+                "prompt": "百度搜索框"
+              },
+              "param": {
+                "value": "Selenium自动化"
+              }
+            },
+            "actions": [
+              {
+                "type": "Input",
+                "locate": {
+                  "bbox": [
+                    230,
+                    190,
+                    785,
+                    284
+                  ],
+                  "prompt": "百度搜索框"
+                },
+                "param": {
+                  "value": "Selenium自动化"
+                }
+              }
+            ],
+            "rawResponse": "{\n  \"what_the_user_wants_to_do_next_by_instruction\": \"在搜索框中输入 'Selenium自动化'\",\n  \"log\": \"我将使用 Input 动作在搜索框中输入 'Selenium自动化'\",\n  \"more_actions_needed_by_instruction\": false,\n  \"action\": {\n    \"type\": \"Input\",\n    \"locate\": {\n      \"bbox\": [\n        230,\n        190,\n        785,\n        284\n      ],\n      \"prompt\": \"百度搜索框\"\n    },\n    \"param\": {\n      \"value\": \"Selenium自动化\"\n    }\n  }\n}",
+            "usage": {
+              "prompt_tokens": 1899,
+              "completion_tokens": 133,
+              "total_tokens": 2032,
+              "completion_tokens_details": {
+                "text_tokens": 133
+              },
+              "prompt_tokens_details": {
+                "image_tokens": 922,
+                "text_tokens": 977,
+                "cached_tokens": 0
+              }
+            }
+          }
+        },
+        {
+          "type": "locate",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "百度搜索框",
+          "response": {
+            "elements": [
+              {
+                "id": "jnpnm"
+              }
+            ]
+          },
+          "element": {
+            "id": "jnpnm",
+            "center": [
+              507,
+              237
+            ],
+            "rect": {
+              "left": 503,
+              "top": 233,
+              "width": 8,
+              "height": 8
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证: 页面显示了相关内容",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证: 页面显示了相关内容 @ ",
+          "response": {
+            "what_the_user_wants_to_do_next_by_instruction": "验证页面是否显示了与搜索关键词相关的内容",
+            "log": "我需要检查页面是否已经显示了与搜索关键词相关的搜索结果或内容",
+            "more_actions_needed_by_instruction": false,
+            "action": null,
+            "actions": [],
+            "rawResponse": "{\n  \"what_the_user_wants_to_do_next_by_instruction\": \"验证页面是否显示了与搜索关键词相关的内容\",\n  \"log\": \"我需要检查页面是否已经显示了与搜索关键词相关的搜索结果或内容\",\n  \"more_actions_needed_by_instruction\": false,\n  \"action\": null\n}",
+            "usage": {
+              "prompt_tokens": 1898,
+              "completion_tokens": 70,
+              "total_tokens": 1968,
+              "completion_tokens_details": {
+                "text_tokens": 70
+              },
+              "prompt_tokens_details": {
+                "image_tokens": 922,
+                "text_tokens": 976,
+                "cached_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "在输入框中输入 \"Keys.ENTER\"",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "在输入框中输入 \"Keys.ENTER\" @ ",
+          "response": {
+            "what_the_user_wants_to_do_next_by_instruction": "在输入框中输入 'Keys.ENTER'",
+            "log": "我将使用 Input 动作在输入框中输入 'Keys.ENTER'",
+            "more_actions_needed_by_instruction": false,
+            "action": {
+              "type": "Input",
+              "locate": {
+                "bbox": [
+                  145,
+                  28,
+                  620,
+                  57
+                ],
+                "prompt": "搜索输入框"
+              },
+              "param": {
+                "value": "Keys.ENTER"
+              }
+            },
+            "actions": [
+              {
+                "type": "Input",
+                "locate": {
+                  "bbox": [
+                    145,
+                    28,
+                    620,
+                    57
+                  ],
+                  "prompt": "搜索输入框"
+                },
+                "param": {
+                  "value": "Keys.ENTER"
+                }
+              }
+            ],
+            "rawResponse": "{\n  \"what_the_user_wants_to_do_next_by_instruction\": \"在输入框中输入 'Keys.ENTER'\",\n  \"log\": \"我将使用 Input 动作在输入框中输入 'Keys.ENTER'\",\n  \"more_actions_needed_by_instruction\": false,\n  \"action\": {\n    \"type\": \"Input\",\n    \"locate\": {\n      \"bbox\": [\n        145,\n        28,\n        620,\n        57\n      ],\n      \"prompt\": \"搜索输入框\"\n    },\n    \"param\": {\n      \"value\": \"Keys.ENTER\"\n    }\n  }\n}",
+            "usage": {
+              "prompt_tokens": 1898,
+              "completion_tokens": 124,
+              "total_tokens": 2022,
+              "completion_tokens_details": {
+                "text_tokens": 124
+              },
+              "prompt_tokens_details": {
+                "image_tokens": 922,
+                "text_tokens": 976,
+                "cached_tokens": 0
+              }
+            }
+          }
+        },
+        {
+          "type": "locate",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "搜索输入框",
+          "response": {
+            "elements": [
+              {
+                "id": "ciflc"
+              }
+            ]
+          },
+          "element": {
+            "id": "ciflc",
+            "center": [
+              382,
+              42
+            ],
+            "rect": {
+              "left": 378,
+              "top": 38,
+              "width": 8,
+              "height": 8
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

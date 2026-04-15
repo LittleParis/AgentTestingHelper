@@ -1,0 +1,366 @@
+{
+  "pkgName": "agent-test-platform",
+  "pkgVersion": "1.0.0",
+  "cacheId": "auto_generated_20260412_160320.spec.ts(自动生成的测试用例__TC_002--验证搜索输入框为空时点击搜索按钮（负向-边界）)",
+  "aiTasks": [
+    {
+      "prompt": "等待页面加载完成",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "等待页面加载完成 @ ",
+          "response": {
+            "actions": [
+              {
+                "type": "Sleep",
+                "thought": "等待页面加载完成，确保所有元素都已渲染。",
+                "param": {
+                  "timeMs": 2000
+                }
+              }
+            ],
+            "log": "等待页面加载完成，暂停2秒以确保页面元素完全渲染。",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [\n    {\n      \"type\": \"Sleep\",\n      \"thought\": \"等待页面加载完成，确保所有元素都已渲染。\",\n      \"param\": {\n        \"timeMs\": 2000\n      }\n    }\n  ],\n  \"log\": \"等待页面加载完成，暂停2秒以确保页面元素完全渲染。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 4481,
+              "completion_tokens": 89,
+              "total_tokens": 4570,
+              "prompt_tokens_details": {
+                "cached_tokens": 2432
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证: 验证页面状态",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证: 验证页面状态 @ ",
+          "response": {
+            "actions": [],
+            "log": "当前页面是百度首页，页面加载正常，显示了百度Logo、搜索框、热搜榜等核心元素，页面状态正常。",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [],\n  \"log\": \"当前页面是百度首页，页面加载正常，显示了百度Logo、搜索框、热搜榜等核心元素，页面状态正常。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 4483,
+              "completion_tokens": 60,
+              "total_tokens": 4543,
+              "prompt_tokens_details": {
+                "cached_tokens": 4416
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "在输入框中输入内容",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "在输入框中输入内容 @ ",
+          "response": {
+            "actions": [
+              {
+                "type": "Input",
+                "thought": "在输入框中输入指定内容",
+                "param": {
+                  "value": "测试内容"
+                },
+                "locate": {
+                  "id": "lpnoh",
+                  "prompt": "搜索输入框"
+                }
+              }
+            ],
+            "log": "在搜索输入框中输入内容'测试内容'",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [\n    {\n      \"type\": \"Input\",\n      \"thought\": \"在输入框中输入指定内容\",\n      \"param\": {\n        \"value\": \"测试内容\"\n      },\n      \"locate\": {\n        \"id\": \"lpnoh\",\n        \"prompt\": \"搜索输入框\"\n      }\n    }\n  ],\n  \"log\": \"在搜索输入框中输入内容'测试内容'\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 4480,
+              "completion_tokens": 106,
+              "total_tokens": 4586,
+              "prompt_tokens_details": {
+                "cached_tokens": 2496
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        },
+        {
+          "type": "locate",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "搜索输入框",
+          "response": {
+            "elements": [
+              {
+                "id": "lpnoh"
+              }
+            ]
+          },
+          "element": {
+            "id": "lpnoh",
+            "indexId": 14,
+            "center": [
+              635,
+              209
+            ],
+            "rect": {
+              "left": 250,
+              "top": 195,
+              "width": 770,
+              "height": 28,
+              "zoom": 1
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证: 验证页面状态",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证: 验证页面状态 @ ",
+          "response": {
+            "actions": [],
+            "log": "当前页面为百度首页，搜索框中已输入内容“测试内容”，并且下方显示了相关的搜索建议列表（如“测试infp人格”、“测试MBTI人格免费”等）。页面状态正常，符合预期。",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [],\n  \"log\": \"当前页面为百度首页，搜索框中已输入内容“测试内容”，并且下方显示了相关的搜索建议列表（如“测试infp人格”、“测试MBTI人格免费”等）。页面状态正常，符合预期。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 3690,
+              "completion_tokens": 79,
+              "total_tokens": 3769,
+              "prompt_tokens_details": {
+                "cached_tokens": 1792
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "点击按钮",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "点击按钮 @ ",
+          "response": {
+            "actions": [
+              {
+                "type": "Tap",
+                "thought": "点击'百度一下'按钮，这是页面上主要的操作按钮。",
+                "param": null,
+                "locate": {
+                  "id": "mbmkd",
+                  "prompt": "百度一下按钮"
+                }
+              }
+            ],
+            "log": "点击'百度一下'按钮",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [\n    {\n      \"type\": \"Tap\",\n      \"thought\": \"点击'百度一下'按钮，这是页面上主要的操作按钮。\",\n      \"param\": null,\n      \"locate\": {\n        \"id\": \"mbmkd\",\n        \"prompt\": \"百度一下按钮\"\n      }\n    }\n  ],\n  \"log\": \"点击'百度一下'按钮\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 3683,
+              "completion_tokens": 103,
+              "total_tokens": 3786,
+              "prompt_tokens_details": {
+                "cached_tokens": 1920
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        },
+        {
+          "type": "locate",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "百度一下按钮",
+          "response": {
+            "elements": [
+              {
+                "id": "mbmkd"
+              }
+            ]
+          },
+          "element": {
+            "id": "mbmkd",
+            "indexId": 9,
+            "center": [
+              820,
+              79
+            ],
+            "rect": {
+              "left": 768,
+              "top": 60,
+              "width": 104,
+              "height": 38,
+              "zoom": 1
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证: 页面发生跳转",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E6%B5%8B%E8%AF%95%E5%86%85%E5%AE%B9&fenlei=256&rsv_pq=0xd9382044002af68f&rsv_t=1a01Du3F9BykoMtBcBctStSjwt8mYb4u7EewCqmlf4zbBkkgyudzubfG2BQH&rqlang=en&rsv_enter=1&rsv_dl=tb_click&rsv_sug3=3&rsv_sug1=2&rsv_sug7=100&rsv_btype=i&prefixsug=%25E6%25B5%258B%25E8%25AF%2595&rsp=2&inputT=14116&rsv_sug4=14118",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证: 页面发生跳转 @ ",
+          "response": {
+            "actions": [
+              {
+                "type": "Tap",
+                "thought": "点击'百度一下'按钮进行搜索，触发页面跳转",
+                "param": null,
+                "locate": {
+                  "id": "lmgec",
+                  "prompt": "百度一下按钮"
+                }
+              },
+              {
+                "type": "Sleep",
+                "thought": "等待页面跳转完成",
+                "param": {
+                  "timeMs": 2000
+                }
+              }
+            ],
+            "log": "点击'百度一下'按钮进行搜索，触发页面跳转，然后等待页面加载完成",
+            "error": null,
+            "more_actions_needed_by_instruction": true,
+            "rawResponse": "{\n  \"actions\": [\n    {\n      \"type\": \"Tap\",\n      \"thought\": \"点击'百度一下'按钮进行搜索，触发页面跳转\",\n      \"param\": null,\n      \"locate\": {\n        \"id\": \"lmgec\",\n        \"prompt\": \"百度一下按钮\"\n      }\n    },\n    {\n      \"type\": \"Sleep\",\n      \"thought\": \"等待页面跳转完成\",\n      \"param\": {\n        \"timeMs\": 2000\n      }\n    }\n  ],\n  \"log\": \"点击'百度一下'按钮进行搜索，触发页面跳转，然后等待页面加载完成\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": true\n}",
+            "usage": {
+              "prompt_tokens": 3749,
+              "completion_tokens": 154,
+              "total_tokens": 3903,
+              "prompt_tokens_details": {
+                "cached_tokens": 1984
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        },
+        {
+          "type": "locate",
+          "pageContext": {
+            "url": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E6%B5%8B%E8%AF%95%E5%86%85%E5%AE%B9&fenlei=256&rsv_pq=0xd9382044002af68f&rsv_t=1a01Du3F9BykoMtBcBctStSjwt8mYb4u7EewCqmlf4zbBkkgyudzubfG2BQH&rqlang=en&rsv_enter=1&rsv_dl=tb_click&rsv_sug3=3&rsv_sug1=2&rsv_sug7=100&rsv_btype=i&prefixsug=%25E6%25B5%258B%25E8%25AF%2595&rsp=2&inputT=14116&rsv_sug4=14118",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "百度一下按钮",
+          "response": {
+            "elements": [
+              {
+                "id": "lmgec"
+              }
+            ]
+          },
+          "element": {
+            "id": "lmgec",
+            "indexId": 9,
+            "center": [
+              826,
+              38
+            ],
+            "rect": {
+              "left": 774,
+              "top": 19,
+              "width": 104,
+              "height": 38,
+              "zoom": 1
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

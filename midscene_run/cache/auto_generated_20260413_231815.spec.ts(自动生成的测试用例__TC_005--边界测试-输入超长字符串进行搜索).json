@@ -1,0 +1,318 @@
+{
+  "pkgName": "agent-test-platform",
+  "pkgVersion": "1.0.0",
+  "cacheId": "auto_generated_20260413_231815.spec.ts(自动生成的测试用例__TC_005--边界测试-输入超长字符串进行搜索)",
+  "aiTasks": [
+    {
+      "prompt": "在搜索框中输入 \"这是一个非常非常长的测试字符串...（省略，建议长度>100字符）\"",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "在搜索框中输入 \"这是一个非常非常长的测试字符串...（省略，建议长度>100字符）\" @ ",
+          "response": {
+            "what_the_user_wants_to_do_next_by_instruction": "在搜索框中输入一个长度超过100字符的测试字符串",
+            "log": "我将使用Input动作在搜索框中输入指定的长字符串",
+            "more_actions_needed_by_instruction": false,
+            "action": {
+              "type": "Input",
+              "locate": {
+                "bbox": [
+                  230,
+                  187,
+                  795,
+                  284
+                ],
+                "prompt": "百度搜索框"
+              },
+              "param": {
+                "value": "这是一个非常非常长的测试字符串...（省略，建议长度>100字符）"
+              }
+            },
+            "actions": [
+              {
+                "type": "Input",
+                "locate": {
+                  "bbox": [
+                    230,
+                    187,
+                    795,
+                    284
+                  ],
+                  "prompt": "百度搜索框"
+                },
+                "param": {
+                  "value": "这是一个非常非常长的测试字符串...（省略，建议长度>100字符）"
+                }
+              }
+            ],
+            "rawResponse": "{\n  \"what_the_user_wants_to_do_next_by_instruction\": \"在搜索框中输入一个长度超过100字符的测试字符串\",\n  \"log\": \"我将使用Input动作在搜索框中输入指定的长字符串\",\n  \"more_actions_needed_by_instruction\": false,\n  \"action\": {\n    \"type\": \"Input\",\n    \"locate\": {\n      \"bbox\": [\n        230,\n        187,\n        795,\n        284\n      ],\n      \"prompt\": \"百度搜索框\"\n    },\n    \"param\": {\n      \"value\": \"这是一个非常非常长的测试字符串...（省略，建议长度>100字符）\"\n    }\n  }\n}",
+            "usage": {
+              "prompt_tokens": 1916,
+              "completion_tokens": 154,
+              "total_tokens": 2070,
+              "completion_tokens_details": {
+                "text_tokens": 154
+              },
+              "prompt_tokens_details": {
+                "image_tokens": 922,
+                "text_tokens": 994,
+                "cached_tokens": 0
+              }
+            }
+          }
+        },
+        {
+          "type": "locate",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "百度搜索框",
+          "response": {
+            "elements": [
+              {
+                "id": "gmaml"
+              }
+            ]
+          },
+          "element": {
+            "id": "gmaml",
+            "center": [
+              512,
+              235
+            ],
+            "rect": {
+              "left": 508,
+              "top": 231,
+              "width": 8,
+              "height": 8
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证: 页面显示了相关内容",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证: 页面显示了相关内容 @ ",
+          "response": {
+            "what_the_user_wants_to_do_next_by_instruction": "验证页面是否显示了相关内容",
+            "log": "我将检查页面是否显示了相关内容",
+            "more_actions_needed_by_instruction": false,
+            "action": null,
+            "actions": [],
+            "rawResponse": "{\n  \"what_the_user_wants_to_do_next_by_instruction\": \"验证页面是否显示了相关内容\",\n  \"log\": \"我将检查页面是否显示了相关内容\",\n  \"more_actions_needed_by_instruction\": false,\n  \"action\": null\n}",
+            "usage": {
+              "prompt_tokens": 1898,
+              "completion_tokens": 58,
+              "total_tokens": 1956,
+              "completion_tokens_details": {
+                "text_tokens": 58
+              },
+              "prompt_tokens_details": {
+                "image_tokens": 922,
+                "text_tokens": 976,
+                "cached_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "点击搜索按钮",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "点击搜索按钮 @ ",
+          "response": {
+            "what_the_user_wants_to_do_next_by_instruction": "点击搜索按钮",
+            "log": "I will use action Tap to click the search button",
+            "more_actions_needed_by_instruction": false,
+            "action": {
+              "type": "Tap",
+              "locate": {
+                "bbox": [
+                  765,
+                  64,
+                  863,
+                  95
+                ],
+                "prompt": "The search button"
+              }
+            },
+            "actions": [
+              {
+                "type": "Tap",
+                "locate": {
+                  "bbox": [
+                    765,
+                    64,
+                    863,
+                    95
+                  ],
+                  "prompt": "The search button"
+                }
+              }
+            ],
+            "rawResponse": "{\n  \"what_the_user_wants_to_do_next_by_instruction\": \"点击搜索按钮\",\n  \"log\": \"I will use action Tap to click the search button\",\n  \"more_actions_needed_by_instruction\": false,\n  \"action\": {\n    \"type\": \"Tap\",\n    \"locate\": {\n      \"bbox\": [\n        765,\n        64,\n        863,\n        95\n      ],\n      \"prompt\": \"The search button\"\n    }\n  }\n}",
+            "usage": {
+              "prompt_tokens": 1895,
+              "completion_tokens": 99,
+              "total_tokens": 1994,
+              "completion_tokens_details": {
+                "text_tokens": 99
+              },
+              "prompt_tokens_details": {
+                "image_tokens": 922,
+                "text_tokens": 973,
+                "cached_tokens": 0
+              }
+            }
+          }
+        },
+        {
+          "type": "locate",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "The search button",
+          "response": {
+            "elements": [
+              {
+                "id": "mbmkd"
+              }
+            ]
+          },
+          "element": {
+            "id": "mbmkd",
+            "indexId": 9,
+            "center": [
+              820,
+              79
+            ],
+            "rect": {
+              "left": 768,
+              "top": 60,
+              "width": 104,
+              "height": 38,
+              "zoom": 1
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证: 页面上显示了搜索结果列表",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E8%BF%99%E6%98%AF%E4%B8%80%E4%B8%AA%E9%9D%9E%E5%B8%B8%E9%9D%9E%E5%B8%B8%E9%95%BF%E7%9A%84%E6%B5%8B%E8%AF%95%E5%AD%97%E7%AC%A6%E4%B8%B2...%EF%BC%88%E7%9C%81%E7%95%A5%EF%BC%8C%E5%BB%BA%E8%AE%AE%E9%95%BF%E5%BA%A6%3E100%E5%AD%97%E7%AC%A6%EF%BC%89&fenlei=256&rsv_pq=0xdaac53ee0059111b&rsv_t=7aa8MvoVCrH3YAVunnuyNyU3oJlxnZPRQysHshPm0WKqnVgVsrFPLC3OsZI&rqlang=en&rsv_enter=1&rsv_dl=tb_click&rsv_sug3=1&rsv_btype=i&inputT=10490&rsv_sug4=10492",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证: 页面上显示了搜索结果列表 @ ",
+          "response": {
+            "what_the_user_wants_to_do_next_by_instruction": "验证页面上是否显示了搜索结果列表",
+            "log": "页面上已经显示了搜索结果列表，无需进一步操作",
+            "more_actions_needed_by_instruction": false,
+            "action": null,
+            "actions": [],
+            "rawResponse": "{\n  \"what_the_user_wants_to_do_next_by_instruction\": \"验证页面上是否显示了搜索结果列表\",\n  \"log\": \"页面上已经显示了搜索结果列表，无需进一步操作\",\n  \"more_actions_needed_by_instruction\": false,\n  \"action\": null\n}",
+            "usage": {
+              "prompt_tokens": 1901,
+              "completion_tokens": 65,
+              "total_tokens": 1966,
+              "completion_tokens_details": {
+                "text_tokens": 65
+              },
+              "prompt_tokens_details": {
+                "image_tokens": 922,
+                "text_tokens": 979,
+                "cached_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证: 页面URL发生了变化",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E8%BF%99%E6%98%AF%E4%B8%80%E4%B8%AA%E9%9D%9E%E5%B8%B8%E9%9D%9E%E5%B8%B8%E9%95%BF%E7%9A%84%E6%B5%8B%E8%AF%95%E5%AD%97%E7%AC%A6%E4%B8%B2...%EF%BC%88%E7%9C%81%E7%95%A5%EF%BC%8C%E5%BB%BA%E8%AE%AE%E9%95%BF%E5%BA%A6%3E100%E5%AD%97%E7%AC%A6%EF%BC%89&fenlei=256&rsv_pq=0xdaac53ee0059111b&rsv_t=7aa8MvoVCrH3YAVunnuyNyU3oJlxnZPRQysHshPm0WKqnVgVsrFPLC3OsZI&rqlang=en&rsv_enter=1&rsv_dl=tb_click&rsv_sug3=1&rsv_btype=i&inputT=10490&rsv_sug4=10492",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证: 页面URL发生了变化 @ ",
+          "response": {
+            "what_the_user_wants_to_do_next_by_instruction": "验证页面URL是否发生了变化",
+            "log": "我需要检查当前页面的URL是否与之前不同，以验证URL是否发生变化。",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "action": null,
+            "actions": [],
+            "rawResponse": "{\n  \"what_the_user_wants_to_do_next_by_instruction\": \"验证页面URL是否发生了变化\",\n  \"log\": \"我需要检查当前页面的URL是否与之前不同，以验证URL是否发生变化。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false,\n  \"action\": null\n}",
+            "usage": {
+              "prompt_tokens": 1898,
+              "completion_tokens": 73,
+              "total_tokens": 1971,
+              "completion_tokens_details": {
+                "text_tokens": 73
+              },
+              "prompt_tokens_details": {
+                "image_tokens": 922,
+                "text_tokens": 976,
+                "cached_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

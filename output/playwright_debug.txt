@@ -1,0 +1,137 @@
+returncode: 1
+stdout length: 12274
+stderr length: 228
+cwd: G:\桌面\AgentTest
+script exists: True
+--- stdout ---
+◇ injected env (2) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+
+Running 3 tests using 3 workers
+
+◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
+◇ injected env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+
+  x  1 [chromium] › midscene_run\generated\auto_generated_20260415_223226.spec.ts:24:3 › 自动生成的测试用例 › TC_001: 验证使用有效关键词进行正常搜索 (4.0s)
+  x  2 [chromium] › midscene_run\generated\auto_generated_20260415_223226.spec.ts:46:3 › 自动生成的测试用例 › TC_002: 验证搜索输入框为空时的系统处理 (4.1s)
+  x  3 [chromium] › midscene_run\generated\auto_generated_20260415_223226.spec.ts:68:3 › 自动生成的测试用例 › TC_003: 验证搜索特殊字符及URL编码跳转 (4.2s)
+
+
+  1) [chromium] › midscene_run\generated\auto_generated_20260415_223226.spec.ts:24:3 › 自动生成的测试用例 › TC_001: 验证使用有效关键词进行正常搜索 
+
+    Error: failed to call AI model service: 400 Access denied, please make sure your account is in good standing. For details, see: https://help.aliyun.com/zh/model-studio/error-code#overdue-payment. Trouble shooting: https://midscenejs.com/model-provider.html
+    Error: failed to call AI model service: 400 Access denied, please make sure your account is in good standing. For details, see: https://help.aliyun.com/zh/model-studio/error-code#overdue-payment. Trouble shooting: https://midscenejs.com/model-provider.html
+        at call (G:\桌面\AgentTest\node_modules\@midscene\core\src\ai-model\service-caller\index.ts:268:24)
+        at processTicksAndRejections (node:internal/process/task_queues:105:5)
+        at callToGetJSONObject (G:\桌面\AgentTest\node_modules\@midscene\core\src\ai-model\service-caller\index.ts:367:20)
+        at callAiFn (G:\桌面\AgentTest\node_modules\@midscene\core\src\ai-model\common.ts:48:30)
+        at plan (G:\桌面\AgentTest\node_modules\@midscene\core\src\ai-model\llm-planning.ts:84:30)
+        at Object.executor (G:\桌面\AgentTest\node_modules\@midscene\web\src\common\tasks.ts:607:24)
+        at Executor.flush (G:\桌面\AgentTest\node_modules\@midscene\core\src\ai-model\action-executor.ts:132:25)
+        at PageTaskExecutor.action (G:\桌面\AgentTest\node_modules\@midscene\web\src\common\tasks.ts:847:46)
+        at PlaywrightAgent.aiAction (G:\桌面\AgentTest\node_modules\@midscene\web\src\common\agent.ts:307:34)
+        at G:\桌面\AgentTest\node_modules\@midscene\web\src\playwright\ai-fixture.ts:107:28
+        at TestStepInfoImpl._runStepBody (G:\桌面\AgentTest\node_modules\playwright\lib\worker\testInfo.js:502:14)
+        at G:\桌面\AgentTest\node_modules\playwright\lib\common\testType.js:246:20
+        at G:\桌面\AgentTest\node_modules\playwright\lib\common\testType.js:244:18
+        at TestTypeImpl._step (G:\桌面\AgentTest\node_modules\playwright\lib\common\testType.js:241:12)
+        at call (G:\桌面\AgentTest\node_modules\@midscene\core\src\ai-model\service-caller\index.ts:268:24)
+        at callToGetJSONObject (G:\桌面\AgentTest\node_modules\@midscene\core\src\ai-model\service-caller\index.ts:367:20)
+        at callAiFn (G:\桌面\AgentTest\node_modules\@midscene\core\src\ai-model\common.ts:48:30)
+        at plan (G:\桌面\AgentTest\node_modules\@midscene\core\src\ai-model\llm-planning.ts:84:30)
+        at Object.executor (G:\桌面\AgentTest\node_modules\@midscene\web\src\common\tasks.ts:607:24)
+        at Executor.flush (G:\桌面\AgentTest\node_modules\@midscene\core\src\ai-model\action-executor.ts:132:25)
+        at PageTaskExecutor.action (G:\桌面\AgentTest\node_modules\@midscene\web\src\common\tasks.ts:847:46)
+        at PlaywrightAgent.aiAction (G:\桌面\AgentTest\node_modules\@midscene\web\src\common\agent.ts:307:34)
+        at G:\桌面\AgentTest\node_modules\@midscene\web\src\playwright\ai-fixture.ts:107:28
+        at PlaywrightAgent.afterTaskRunning (G:\桌面\AgentTest\node_modules\@midscene\web\src\common\agent.ts:200:13)
+        at PlaywrightAgent.aiAction (G:\桌面\AgentTest\node_modules\@midscene\web\src\common\agent.ts:311:10)
+        at G:\桌面\AgentTest\node_modules\@midscene\web\src\playwright\ai-fixture.ts:107:28
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\auto_generated_20260415_22-49718-测试用例-TC-001-验证使用有效关键词进行正常搜索-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\auto_generated_20260415_22-49718-测试用例-TC-001-验证使用有效关键词进行正常搜索-chromium\error-context.md
+
+  2) [chromium] › midscene_run\generated\auto_generated_20260415_223226.spec.ts:46:3 › 自动生成的测试用例 › TC_002: 验证搜索输入框为空时的系统处理 
+
+    Error: failed to call AI model service: 400 Access denied, please make sure your account is in good standing. For details, see: https://help.aliyun.com/zh/model-studio/error-code#overdue-payment. Trouble shooting: https://midscenejs.com/model-provider.html
+    Error: failed to call AI model service: 400 Access denied, please make sure your account is in good standing. For details, see: https://help.aliyun.com/zh/model-studio/error-code#overdue-payment. Trouble shooting: https://midscenejs.com/model-provider.html
+        at call (G:\桌面\AgentTest\node_modules\@midscene\core\src\ai-model\service-caller\index.ts:268:24)
+        at processTicksAndRejections (node:internal/process/task_queues:105:5)
+        at callToGetJSONObject (G:\桌面\AgentTest\node_modules\@midscene\core\src\ai-model\service-caller\index.ts:367:20)
+        at callAiFn (G:\桌面\AgentTest\node_modules\@midscene\core\src\ai-model\common.ts:48:30)
+        at plan (G:\桌面\AgentTest\node_modules\@midscene\core\src\ai-model\llm-planning.ts:84:30)
+        at Object.executor (G:\桌面\AgentTest\node_modules\@midscene\web\src\common\tasks.ts:607:24)
+        at Executor.flush (G:\桌面\AgentTest\node_modules\@midscene\core\src\ai-model\action-executor.ts:132:25)
+        at PageTaskExecutor.action (G:\桌面\AgentTest\node_modules\@midscene\web\src\common\tasks.ts:847:46)
+        at PlaywrightAgent.aiAction (G:\桌面\AgentTest\node_modules\@midscene\web\src\common\agent.ts:307:34)
+        at G:\桌面\AgentTest\node_modules\@midscene\web\src\playwright\ai-fixture.ts:107:28
+        at TestStepInfoImpl._runStepBody (G:\桌面\AgentTest\node_modules\playwright\lib\worker\testInfo.js:502:14)
+        at G:\桌面\AgentTest\node_modules\playwright\lib\common\testType.js:246:20
+        at G:\桌面\AgentTest\node_modules\playwright\lib\common\testType.js:244:18
+        at TestTypeImpl._step (G:\桌面\AgentTest\node_modules\playwright\lib\common\testType.js:241:12)
+        at call (G:\桌面\AgentTest\node_modules\@midscene\core\src\ai-model\service-caller\index.ts:268:24)
+        at callToGetJSONObject (G:\桌面\AgentTest\node_modules\@midscene\core\src\ai-model\service-caller\index.ts:367:20)
+        at callAiFn (G:\桌面\AgentTest\node_modules\@midscene\core\src\ai-model\common.ts:48:30)
+        at plan (G:\桌面\AgentTest\node_modules\@midscene\core\src\ai-model\llm-planning.ts:84:30)
+        at Object.executor (G:\桌面\AgentTest\node_modules\@midscene\web\src\common\tasks.ts:607:24)
+        at Executor.flush (G:\桌面\AgentTest\node_modules\@midscene\core\src\ai-model\action-executor.ts:132:25)
+        at PageTaskExecutor.action (G:\桌面\AgentTest\node_modules\@midscene\web\src\common\tasks.ts:847:46)
+        at PlaywrightAgent.aiAction (G:\桌面\AgentTest\node_modules\@midscene\web\src\common\agent.ts:307:34)
+        at G:\桌面\AgentTest\node_modules\@midscene\web\src\playwright\ai-fixture.ts:107:28
+        at PlaywrightAgent.afterTaskRunning (G:\桌面\AgentTest\node_modules\@midscene\web\src\common\agent.ts:200:13)
+        at PlaywrightAgent.aiAction (G:\桌面\AgentTest\node_modules\@midscene\web\src\common\agent.ts:311:10)
+        at G:\桌面\AgentTest\node_modules\@midscene\web\src\playwright\ai-fixture.ts:107:28
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\auto_generated_20260415_22-743f2-测试用例-TC-002-验证搜索输入框为空时的系统处理-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\auto_generated_20260415_22-743f2-测试用例-TC-002-验证搜索输入框为空时的系统处理-chromium\error-context.md
+
+  3) [chromium] › midscene_run\generated\auto_generated_20260415_223226.spec.ts:68:3 › 自动生成的测试用例 › TC_003: 验证搜索特殊字符及URL编码跳转 
+
+    Error: failed to call AI model service: 400 Access denied, please make sure your account is in good standing. For details, see: https://help.aliyun.com/zh/model-studio/error-code#overdue-payment. Trouble shooting: https://midscenejs.com/model-provider.html
+    Error: failed to call AI model service: 400 Access denied, please make sure your account is in good standing. For details, see: https://help.aliyun.com/zh/model-studio/error-code#overdue-payment. Trouble shooting: https://midscenejs.com/model-provider.html
+        at call (G:\桌面\AgentTest\node_modules\@midscene\core\src\ai-model\service-caller\index.ts:268:24)
+        at processTicksAndRejections (node:internal/process/task_queues:105:5)
+        at callToGetJSONObject (G:\桌面\AgentTest\node_modules\@midscene\core\src\ai-model\service-caller\index.ts:367:20)
+        at callAiFn (G:\桌面\AgentTest\node_modules\@midscene\core\src\ai-model\common.ts:48:30)
+        at plan (G:\桌面\AgentTest\node_modules\@midscene\core\src\ai-model\llm-planning.ts:84:30)
+        at Object.executor (G:\桌面\AgentTest\node_modules\@midscene\web\src\common\tasks.ts:607:24)
+        at Executor.flush (G:\桌面\AgentTest\node_modules\@midscene\core\src\ai-model\action-executor.ts:132:25)
+        at PageTaskExecutor.action (G:\桌面\AgentTest\node_modules\@midscene\web\src\common\tasks.ts:847:46)
+        at PlaywrightAgent.aiAction (G:\桌面\AgentTest\node_modules\@midscene\web\src\common\agent.ts:307:34)
+        at G:\桌面\AgentTest\node_modules\@midscene\web\src\playwright\ai-fixture.ts:107:28
+        at TestStepInfoImpl._runStepBody (G:\桌面\AgentTest\node_modules\playwright\lib\worker\testInfo.js:502:14)
+        at G:\桌面\AgentTest\node_modules\playwright\lib\common\testType.js:246:20
+        at G:\桌面\AgentTest\node_modules\playwright\lib\common\testType.js:244:18
+        at TestTypeImpl._step (G:\桌面\AgentTest\node_modules\playwright\lib\common\testType.js:241:12)
+        at call (G:\桌面\AgentTest\node_modules\@midscene\core\src\ai-model\service-caller\index.ts:268:24)
+        at callToGetJSONObject (G:\桌面\AgentTest\node_modules\@midscene\core\src\ai-model\service-caller\index.ts:367:20)
+        at callAiFn (G:\桌面\AgentTest\node_modules\@midscene\core\src\ai-model\common.ts:48:30)
+        at plan (G:\桌面\AgentTest\node_modules\@midscene\core\src\ai-model\llm-planning.ts:84:30)
+        at Object.executor (G:\桌面\AgentTest\node_modules\@midscene\web\src\common\tasks.ts:607:24)
+        at Executor.flush (G:\桌面\AgentTest\node_modules\@midscene\core\src\ai-model\action-executor.ts:132:25)
+        at PageTaskExecutor.action (G:\桌面\AgentTest\node_modules\@midscene\web\src\common\tasks.ts:847:46)
+        at PlaywrightAgent.aiAction (G:\桌面\AgentTest\node_modules\@midscene\web\src\common\agent.ts:307:34)
+        at G:\桌面\AgentTest\node_modules\@midscene\web\src\playwright\ai-fixture.ts:107:28
+        at PlaywrightAgent.afterTaskRunning (G:\桌面\AgentTest\node_modules\@midscene\web\src\common\agent.ts:200:13)
+        at PlaywrightAgent.aiAction (G:\桌面\AgentTest\node_modules\@midscene\web\src\common\agent.ts:311:10)
+        at G:\桌面\AgentTest\node_modules\@midscene\web\src\playwright\ai-fixture.ts:107:28
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\auto_generated_20260415_22-7c2a5-试用例-TC-003-验证搜索特殊字符及URL编码跳转-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\auto_generated_20260415_22-7c2a5-试用例-TC-003-验证搜索特殊字符及URL编码跳转-chromium\error-context.md
+
+  3 failed
+    [chromium] › midscene_run\generated\auto_generated_20260415_223226.spec.ts:24:3 › 自动生成的测试用例 › TC_001: 验证使用有效关键词进行正常搜索 
+    [chromium] › midscene_run\generated\auto_generated_20260415_223226.spec.ts:46:3 › 自动生成的测试用例 › TC_002: 验证搜索输入框为空时的系统处理 
+    [chromium] › midscene_run\generated\auto_generated_20260415_223226.spec.ts:68:3 › 自动生成的测试用例 › TC_003: 验证搜索特殊字符及URL编码跳转 
+
+--- stderr ---
+[midscene:warning] Waiting for network idle has timed out, but Midscene will continue execution. Please check https://midscenejs.com/faq.html#customize-the-network-timeout for more information on customizing the network timeout

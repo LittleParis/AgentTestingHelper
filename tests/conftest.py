@@ -7,13 +7,15 @@ from pathlib import Path
 from datetime import datetime
 from playwright.async_api import async_playwright
 
+from utils.project_paths import OUTPUT_DIR, GENERATED_TESTS_DIR
+
 
 # 项目根目录
 PROJECT_ROOT = Path(__file__).parent.parent
 
 # 需要清理的目录
-OUTPUT_DIR = PROJECT_ROOT / "output"
-GENERATED_TESTS_DIR = PROJECT_ROOT / "tests" / "generated"
+OUTPUT_DIR = PROJECT_ROOT / OUTPUT_DIR
+GENERATED_TESTS_DIR = PROJECT_ROOT / GENERATED_TESTS_DIR
 
 # 时间戳正则模式: (2026-04-03_12-30-45)
 TIMESTAMP_PATTERN = re.compile(r"\(\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\)")
@@ -103,13 +105,13 @@ def clean_output():
 @pytest.fixture(scope="session")
 def clean_generated_tests():
     """
-    清理 tests/generated 目录的历史文件 fixture
+    清理生成脚本目录的历史文件 fixture
 
     功能:
         - 删除不带时间戳的旧文件
         - 只保留最新版本的带时间戳文件
     """
-    print("\n[Fixture] 清理 tests/generated 目录历史文件...")
+    print(f"\n[Fixture] 清理 {GENERATED_TESTS_DIR} 目录历史文件...")
     clean_old_files(GENERATED_TESTS_DIR, keep_latest=1)
 
     if not GENERATED_TESTS_DIR.exists():
@@ -125,7 +127,7 @@ def clean_all(clean_output, clean_generated_tests):
 
     同时清理:
     - output/
-    - tests/generated/
+    - 生成脚本目录
     """
     yield {
         "output": clean_output,
@@ -152,11 +154,11 @@ def clean_output_function():
 @pytest.fixture(scope="function")
 def clean_generated_tests_function():
     """
-    函数级别的 tests/generated 清理 fixture
+    函数级别的生成脚本目录清理 fixture
 
     每个测试函数前清理历史文件
     """
-    print("\n[Fixture] 清理 tests/generated 目录历史文件 (function级)...")
+    print(f"\n[Fixture] 清理 {GENERATED_TESTS_DIR} 目录历史文件 (function级)...")
     clean_old_files(GENERATED_TESTS_DIR, keep_latest=1)
 
     if not GENERATED_TESTS_DIR.exists():
@@ -217,7 +219,7 @@ def pytest_configure(config):
         "markers", "clean_output: 清理 output 目录"
     )
     config.addinivalue_line(
-        "markers", "clean_generated: 清理 tests/generated 目录"
+        "markers", "clean_generated: 清理生成脚本目录"
     )
     config.addinivalue_line(
         "markers", "clean_all: 清理所有生成的文件"

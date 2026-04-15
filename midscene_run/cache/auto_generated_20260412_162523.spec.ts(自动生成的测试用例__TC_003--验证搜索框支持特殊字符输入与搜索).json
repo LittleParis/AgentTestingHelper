@@ -1,0 +1,366 @@
+{
+  "pkgName": "agent-test-platform",
+  "pkgVersion": "1.0.0",
+  "cacheId": "auto_generated_20260412_162523.spec.ts(自动生成的测试用例__TC_003--验证搜索框支持特殊字符输入与搜索)",
+  "aiTasks": [
+    {
+      "prompt": "等待页面加载完成",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "等待页面加载完成 @ ",
+          "response": {
+            "actions": [
+              {
+                "type": "Sleep",
+                "thought": "等待页面加载完成，确保所有元素都已渲染完毕。",
+                "param": {
+                  "timeMs": 2000
+                }
+              }
+            ],
+            "log": "等待页面加载完成，休眠2秒。",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [\n    {\n      \"type\": \"Sleep\",\n      \"thought\": \"等待页面加载完成，确保所有元素都已渲染完毕。\",\n      \"param\": {\n        \"timeMs\": 2000\n      }\n    }\n  ],\n  \"log\": \"等待页面加载完成，休眠2秒。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 4423,
+              "completion_tokens": 82,
+              "total_tokens": 4505,
+              "prompt_tokens_details": {
+                "cached_tokens": 2496
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证: 页面加载完成且稳定",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证: 页面加载完成且稳定 @ ",
+          "response": {
+            "actions": [],
+            "log": "页面已加载完成且稳定，百度首页已正常显示，包含搜索框、热搜榜等内容。",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [],\n  \"log\": \"页面已加载完成且稳定，百度首页已正常显示，包含搜索框、热搜榜等内容。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 4426,
+              "completion_tokens": 54,
+              "total_tokens": 4480,
+              "prompt_tokens_details": {
+                "cached_tokens": 4352
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "在搜索框中输入 \"@#￥%\"",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "在搜索框中输入 \"@#￥%\" @ ",
+          "response": {
+            "actions": [
+              {
+                "type": "Input",
+                "thought": "在搜索框中输入用户指定的内容",
+                "param": {
+                  "value": "@#￥%"
+                },
+                "locate": {
+                  "id": "kilfo",
+                  "prompt": "搜索框"
+                }
+              }
+            ],
+            "log": "在搜索框中输入 \"@#￥%\"",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [\n    {\n      \"type\": \"Input\",\n      \"thought\": \"在搜索框中输入用户指定的内容\",\n      \"param\": {\n        \"value\": \"@#￥%\"\n      },\n      \"locate\": {\n        \"id\": \"kilfo\",\n        \"prompt\": \"搜索框\"\n      }\n    }\n  ],\n  \"log\": \"在搜索框中输入 \\\"@#￥%\\\"\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 4424,
+              "completion_tokens": 105,
+              "total_tokens": 4529,
+              "prompt_tokens_details": {
+                "cached_tokens": 2432
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        },
+        {
+          "type": "locate",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "搜索框",
+          "response": {
+            "elements": [
+              {
+                "id": "kilfo"
+              }
+            ]
+          },
+          "element": {
+            "id": "kilfo",
+            "indexId": 14,
+            "center": [
+              635,
+              209
+            ],
+            "rect": {
+              "left": 250,
+              "top": 195,
+              "width": 770,
+              "height": 28,
+              "zoom": 1
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证: 页面显示了相关内容",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证: 页面显示了相关内容 @ ",
+          "response": {
+            "actions": [
+              {
+                "type": "ExpectedFalsyCondition",
+                "thought": "根据指令，需要验证页面是否显示了相关内容。当前页面显示的是百度搜索首页，搜索框中有内容'@#￥%'，并且显示了搜索建议列表。这表明页面确实显示了相关内容，验证条件成立。",
+                "param": {
+                  "reason": "页面已显示相关内容：搜索框中有输入内容'@#￥%'，并且下方显示了多个搜索建议选项（如'jⅰn的汉字怎么写'、'ⅱαn在字典上有多少'等）。"
+                }
+              }
+            ],
+            "log": "验证页面显示了相关内容。当前页面是百度搜索首页，搜索框中有内容'@#￥%'，并且显示了搜索建议列表，包含多个相关搜索建议。页面确实显示了相关内容。",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [\n    {\n      \"type\": \"ExpectedFalsyCondition\",\n      \"thought\": \"根据指令，需要验证页面是否显示了相关内容。当前页面显示的是百度搜索首页，搜索框中有内容'@#￥%'，并且显示了搜索建议列表。这表明页面确实显示了相关内容，验证条件成立。\",\n      \"param\": {\n        \"reason\": \"页面已显示相关内容：搜索框中有输入内容'@#￥%'，并且下方显示了多个搜索建议选项（如'jⅰn的汉字怎么写'、'ⅱαn在字典上有多少'等）。\"\n      }\n    }\n  ],\n  \"log\": \"验证页面显示了相关内容。当前页面是百度搜索首页，搜索框中有内容'@#￥%'，并且显示了搜索建议列表，包含多个相关搜索建议。页面确实显示了相关内容。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 3251,
+              "completion_tokens": 203,
+              "total_tokens": 3454,
+              "prompt_tokens_details": {
+                "cached_tokens": 1984
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "点击搜索按钮",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "点击搜索按钮 @ ",
+          "response": {
+            "actions": [
+              {
+                "type": "Tap",
+                "thought": "点击搜索按钮（百度一下）来执行搜索操作",
+                "param": null,
+                "locate": {
+                  "id": "mbmkd",
+                  "prompt": "百度一下搜索按钮"
+                }
+              }
+            ],
+            "log": "点击“百度一下”搜索按钮执行搜索",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [\n    {\n      \"type\": \"Tap\",\n      \"thought\": \"点击搜索按钮（百度一下）来执行搜索操作\",\n      \"param\": null,\n      \"locate\": {\n        \"id\": \"mbmkd\",\n        \"prompt\": \"百度一下搜索按钮\"\n      }\n    }\n  ],\n  \"log\": \"点击“百度一下”搜索按钮执行搜索\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 3245,
+              "completion_tokens": 105,
+              "total_tokens": 3350,
+              "prompt_tokens_details": {
+                "cached_tokens": 1984
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        },
+        {
+          "type": "locate",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "百度一下搜索按钮",
+          "response": {
+            "elements": [
+              {
+                "id": "mbmkd"
+              }
+            ]
+          },
+          "element": {
+            "id": "mbmkd",
+            "indexId": 9,
+            "center": [
+              820,
+              79
+            ],
+            "rect": {
+              "left": 768,
+              "top": 60,
+              "width": 104,
+              "height": 38,
+              "zoom": 1
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证: 页面上显示了搜索结果列表",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%40%23%EF%BF%A5%25&fenlei=256&rsv_pq=0x8a61488b005585e0&rsv_t=e98bf1yDCRUm3SS5F80VqlgIBbmzKtp%2B9YrFgaYUscwjI1nZzqUJnoQJ72Pj&rqlang=en&rsv_enter=1&rsv_dl=tb_click&rsv_sug3=5&rsv_sug1=2&rsv_sug7=100&rsv_btype=i&prefixsug=%2540%2523%25EF%25BF%25A5%2526lt%253B&rsp=2&inputT=18067&rsv_sug4=18067",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证: 页面上显示了搜索结果列表 @ ",
+          "response": {
+            "actions": [
+              {
+                "type": "ExpectedFalsyCondition",
+                "thought": "The instruction asks to verify if the search results list is displayed on the page. Based on the screenshot and page description, this is the Baidu homepage with a search input field containing '@#￥%', but no search has been executed yet. There are no search results displayed - only the search interface with navigation tabs (网页, 图片, 资讯, etc.) and the search box. The condition 'search results list is displayed' is falsy.",
+                "param": {
+                  "reason": "当前页面是百度首页，搜索框中虽有内容'@#￥%'，但尚未执行搜索。页面上没有显示搜索结果列表，只显示了搜索界面和导航标签（网页、图片、资讯等）。需要先点击'百度一下'按钮执行搜索，才能显示搜索结果列表。"
+                }
+              }
+            ],
+            "log": "验证页面是否显示搜索结果列表。当前页面为百度首页，搜索框中有内容但未执行搜索，页面上没有搜索结果列表，因此条件不成立。",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [\n    {\n      \"type\": \"ExpectedFalsyCondition\",\n      \"thought\": \"The instruction asks to verify if the search results list is displayed on the page. Based on the screenshot and page description, this is the Baidu homepage with a search input field containing '@#￥%', but no search has been executed yet. There are no search results displayed - only the search interface with navigation tabs (网页, 图片, 资讯, etc.) and the search box. The condition 'search results list is displayed' is falsy.\",\n      \"param\": {\n        \"reason\": \"当前页面是百度首页，搜索框中虽有内容'@#￥%'，但尚未执行搜索。页面上没有显示搜索结果列表，只显示了搜索界面和导航标签（网页、图片、资讯等）。需要先点击'百度一下'按钮执行搜索，才能显示搜索结果列表。\"\n      }\n    }\n  ],\n  \"log\": \"验证页面是否显示搜索结果列表。当前页面为百度首页，搜索框中有内容但未执行搜索，页面上没有搜索结果列表，因此条件不成立。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 2919,
+              "completion_tokens": 251,
+              "total_tokens": 3170,
+              "prompt_tokens_details": {
+                "cached_tokens": 1984
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证: 页面上显示了搜索结果列表",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%40%23%EF%BF%A5%25&fenlei=256&rsv_pq=0x8a61488b005585e0&rsv_t=e98bf1yDCRUm3SS5F80VqlgIBbmzKtp%2B9YrFgaYUscwjI1nZzqUJnoQJ72Pj&rqlang=en&rsv_enter=1&rsv_dl=tb_click&rsv_sug3=5&rsv_sug1=2&rsv_sug7=100&rsv_btype=i&prefixsug=%2540%2523%25EF%25BF%25A5%2526lt%253B&rsp=2&inputT=18067&rsv_sug4=18067",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证: 页面上显示了搜索结果列表 @ ",
+          "response": {
+            "actions": [],
+            "log": "验证页面内容：页面上显示了搜索结果列表。可以看到搜索关键词'@#￥%'的相关结果，包括'#@的具体含义是什么? - 百度知道'的搜索结果项，以及下方的回答预览内容。搜索结果列表已正确显示在页面上。",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [],\n  \"log\": \"验证页面内容：页面上显示了搜索结果列表。可以看到搜索关键词'@#￥%'的相关结果，包括'#@的具体含义是什么? - 百度知道'的搜索结果项，以及下方的回答预览内容。搜索结果列表已正确显示在页面上。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 7466,
+              "completion_tokens": 90,
+              "total_tokens": 7556,
+              "prompt_tokens_details": {
+                "cached_tokens": 1984
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

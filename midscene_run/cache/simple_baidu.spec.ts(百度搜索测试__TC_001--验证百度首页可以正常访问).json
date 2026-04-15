@@ -1,0 +1,93 @@
+{
+  "pkgName": "agent-test-platform",
+  "pkgVersion": "1.0.0",
+  "cacheId": "simple_baidu.spec.ts(百度搜索测试__TC_001--验证百度首页可以正常访问)",
+  "aiTasks": [
+    {
+      "prompt": "等待页面加载完成",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "等待页面加载完成 @ ",
+          "response": {
+            "actions": [
+              {
+                "type": "Sleep",
+                "thought": "等待页面加载完成，确保所有元素都已渲染完毕。",
+                "param": {
+                  "timeMs": 2000
+                }
+              }
+            ],
+            "log": "等待页面加载完成，暂停2秒以确保页面元素完全渲染。",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [\n    {\n      \"type\": \"Sleep\",\n      \"thought\": \"等待页面加载完成，确保所有元素都已渲染完毕。\",\n      \"param\": {\n        \"timeMs\": 2000\n      }\n    }\n  ],\n  \"log\": \"等待页面加载完成，暂停2秒以确保页面元素完全渲染。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 4391,
+              "completion_tokens": 86,
+              "total_tokens": 4477,
+              "prompt_tokens_details": {
+                "cached_tokens": 1728
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证页面上有一个搜索输入框",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证页面上有一个搜索输入框 @ ",
+          "response": {
+            "actions": [
+              {
+                "type": "ExpectedFalsyCondition",
+                "thought": "验证页面上是否存在搜索输入框。根据页面元素树，存在一个textarea元素（id为fhjfd），其placeholder属性包含搜索相关内容，且下方有'百度一下'按钮，这确认了搜索输入框的存在。因此条件为真，不应使用ExpectedFalsyCondition。",
+                "param": {
+                  "reason": "页面上存在搜索输入框"
+                }
+              }
+            ],
+            "log": "验证页面上是否存在搜索输入框。通过查看页面元素树，发现存在一个textarea元素（id为fhjfd），位于页面中部，具有placeholder属性'伊朗回应美伊会议室内冲突'，且下方有'百度一下'提交按钮，确认这是一个搜索输入框。验证完成。",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [\n    {\n      \"type\": \"ExpectedFalsyCondition\",\n      \"thought\": \"验证页面上是否存在搜索输入框。根据页面元素树，存在一个textarea元素（id为fhjfd），其placeholder属性包含搜索相关内容，且下方有'百度一下'按钮，这确认了搜索输入框的存在。因此条件为真，不应使用ExpectedFalsyCondition。\",\n      \"param\": {\n        \"reason\": \"页面上存在搜索输入框\"\n      }\n    }\n  ],\n  \"log\": \"验证页面上是否存在搜索输入框。通过查看页面元素树，发现存在一个textarea元素（id为fhjfd），位于页面中部，具有placeholder属性'伊朗回应美伊会议室内冲突'，且下方有'百度一下'提交按钮，确认这是一个搜索输入框。验证完成。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 4393,
+              "completion_tokens": 190,
+              "total_tokens": 4583,
+              "prompt_tokens_details": {
+                "cached_tokens": 1728
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

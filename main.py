@@ -9,6 +9,14 @@ from parsers.markdown_parser import parse_markdown
 from agents.requirement_analyzer import RequirementAnalyzer
 from agents.test_case_generator import TestCaseGenerator
 from automation.midscene_generator import MidsceneScriptGenerator
+from utils.project_paths import (
+    OUTPUT_DIR,
+    GENERATED_TESTS_DIR,
+    LEGACY_GENERATED_TESTS_DIR,
+    ALLURE_RESULTS_DIR,
+    ALLURE_REPORT_DIR,
+    PLAYWRIGHT_RESULTS_DIR,
+)
 
 
 def get_timestamp() -> str:
@@ -20,10 +28,13 @@ def clean_history_data():
     """
     清理历史数据
 
-    在执行新任务前，清理 output 和 tests/generated 目录中的所有旧文件
+    在执行新任务前，清理 output 和生成脚本目录中的所有旧文件
     """
-    output_dir = Path("output")
-    tests_dir = Path("tests/generated")
+    output_dir = OUTPUT_DIR
+    tests_dir = GENERATED_TESTS_DIR
+    allure_results_dir = ALLURE_RESULTS_DIR
+    allure_report_dir = ALLURE_REPORT_DIR
+    test_results_dir = PLAYWRIGHT_RESULTS_DIR
 
     # 清理 output 目录
     if output_dir.exists():
@@ -33,12 +44,31 @@ def clean_history_data():
                 file.unlink()
                 print(f"    - 删除: {file.name}")
 
-    # 清理 tests/generated 目录
+    # 清理新的生成脚本目录
     if tests_dir.exists():
-        print("  [清理] tests/generated 目录...")
+        print(f"  [清理] {tests_dir} 目录...")
         for file in tests_dir.glob("*.spec.ts"):
             file.unlink()
             print(f"    - 删除: {file.name}")
+
+    # 兼容清理旧目录，避免误读历史脚本
+    if LEGACY_GENERATED_TESTS_DIR.exists():
+        print("  [清理] tests/generated 旧目录...")
+        for file in LEGACY_GENERATED_TESTS_DIR.glob("*.spec.ts"):
+            file.unlink()
+            print(f"    - 删除: {file.name}")
+
+    # 清理历史执行产物，避免报告累计旧数据
+    for directory in [allure_results_dir, allure_report_dir, test_results_dir]:
+        if directory.exists():
+            print(f"  [清理] {directory} 目录...")
+            for item in directory.iterdir():
+                if item.is_file():
+                    item.unlink()
+                else:
+                    import shutil
+                    shutil.rmtree(item)
+                print(f"    - 删除: {item.name}")
 
 
 def main():
@@ -78,8 +108,8 @@ def main():
         print(f"[OK] 需求分析完成，识别到 {len(requirements['requirements'])} 个需求")
 
         # 保存分析结果
-        output_dir = Path("output")
-        output_dir.mkdir(exist_ok=True)
+        output_dir = OUTPUT_DIR
+        output_dir.mkdir(parents=True, exist_ok=True)
 
         requirements_file = output_dir / f"requirements{timestamp}.json"
         with open(requirements_file, "w", encoding="utf-8") as f:
@@ -113,7 +143,7 @@ def main():
 
     # 4. 生成测试脚本 (使用 Midscene)
     print("\n[步骤4] 生成测试脚本...")
-    script_gen = MidsceneScriptGenerator(output_dir="tests/generated")
+    script_gen = MidsceneScriptGenerator(output_dir=str(GENERATED_TESTS_DIR))
 
     # 使用 Midscene 生成 TypeScript 测试脚本
     script_file = script_gen.generate(all_test_cases, page_url="https://example.com/login")
@@ -129,7 +159,7 @@ def main():
     print("\n下一步操作：")
     print(f"1. 查看生成的测试用例: {test_cases_file}")
     print(f"2. 查看生成的测试脚本: {script_file}")
-    print("3. 运行测试: npx playwright test tests/generated/ --headed")
+    print(f"3. 运行测试: npx playwright test {GENERATED_TESTS_DIR.as_posix()}/ --headed")
     print("\n注意: 使用 Midscene AI 进行元素定位，无需手动调整选择器")
 
 

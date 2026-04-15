@@ -1,0 +1,174 @@
+{
+  "pkgName": "agent-test-platform",
+  "pkgVersion": "1.0.0",
+  "cacheId": "midscene-demo.spec.ts(Midscene-Demo---登录功能__AI定位演示--用户登录流程)",
+  "aiTasks": [
+    {
+      "prompt": "在输入框中输入 \"学习 Midscene\"",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://demo.playwright.dev/todomvc/#/",
+            "size": {
+              "width": 1280,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "在输入框中输入 \"学习 Midscene\" @ ",
+          "response": {
+            "actions": [
+              {
+                "type": "Input",
+                "thought": "在输入框中输入 '学习 Midscene'",
+                "param": {
+                  "value": "学习 Midscene"
+                },
+                "locate": {
+                  "id": "pbheg",
+                  "prompt": "输入框，placeholder 为 'What needs to be done?'"
+                }
+              }
+            ],
+            "log": "在输入框中输入 '学习 Midscene'",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [\n    {\n      \"type\": \"Input\",\n      \"thought\": \"在输入框中输入 '学习 Midscene'\",\n      \"param\": {\n        \"value\": \"学习 Midscene\"\n      },\n      \"locate\": {\n        \"id\": \"pbheg\",\n        \"prompt\": \"输入框，placeholder 为 'What needs to be done?'\"\n      }\n    }\n  ],\n  \"log\": \"在输入框中输入 '学习 Midscene'\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 2283,
+              "completion_tokens": 117,
+              "total_tokens": 2400,
+              "prompt_tokens_details": {
+                "cached_tokens": 1984
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        },
+        {
+          "type": "locate",
+          "pageContext": {
+            "url": "https://demo.playwright.dev/todomvc/#/",
+            "size": {
+              "width": 1280,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "输入框，placeholder 为 'What needs to be done?'",
+          "response": {
+            "elements": [
+              {
+                "id": "pbheg"
+              }
+            ]
+          },
+          "element": {
+            "id": "pbheg",
+            "indexId": 3,
+            "center": [
+              640,
+              207
+            ],
+            "rect": {
+              "left": 365,
+              "top": 174,
+              "width": 550,
+              "height": 66,
+              "zoom": 1
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "按下 Enter 键添加待办事项",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://demo.playwright.dev/todomvc/#/",
+            "size": {
+              "width": 1280,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "按下 Enter 键添加待办事项 @ ",
+          "response": {
+            "actions": [
+              {
+                "type": "KeyboardPress",
+                "thought": "按下 Enter 键以添加当前输入框中的待办事项'学习 Midscene'",
+                "param": {
+                  "value": "Enter"
+                }
+              }
+            ],
+            "log": "按下 Enter 键添加待办事项'学习 Midscene'",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [\n    {\n      \"type\": \"KeyboardPress\",\n      \"thought\": \"按下 Enter 键以添加当前输入框中的待办事项'学习 Midscene'\",\n      \"param\": {\n        \"value\": \"Enter\"\n      }\n    }\n  ],\n  \"log\": \"按下 Enter 键添加待办事项'学习 Midscene'\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 2283,
+              "completion_tokens": 93,
+              "total_tokens": 2376,
+              "prompt_tokens_details": {
+                "cached_tokens": 1984
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证列表中显示 \"学习 Midscene\"",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://demo.playwright.dev/todomvc/#/",
+            "size": {
+              "width": 1280,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证列表中显示 \"学习 Midscene\" @ ",
+          "response": {
+            "actions": [
+              {
+                "type": "ExpectedFalsyCondition",
+                "thought": "验证列表中是否显示 '学习 Midscene'。根据页面描述，可以看到 label 元素 (id: plhmd) 的文本内容正是 '学习 Midscene'，说明该项已存在于列表中，验证通过。",
+                "param": {
+                  "reason": "列表中已显示 '学习 Midscene'"
+                }
+              }
+            ],
+            "log": "验证列表中是否显示 '学习 Midscene'。通过查看页面，可以看到列表中存在一个 label 元素，其文本内容为 '学习 Midscene'，验证通过。",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [\n    {\n      \"type\": \"ExpectedFalsyCondition\",\n      \"thought\": \"验证列表中是否显示 '学习 Midscene'。根据页面描述，可以看到 label 元素 (id: plhmd) 的文本内容正是 '学习 Midscene'，说明该项已存在于列表中，验证通过。\",\n      \"param\": {\n        \"reason\": \"列表中已显示 '学习 Midscene'\"\n      }\n    }\n  ],\n  \"log\": \"验证列表中是否显示 '学习 Midscene'。通过查看页面，可以看到列表中存在一个 label 元素，其文本内容为 '学习 Midscene'，验证通过。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 2516,
+              "completion_tokens": 153,
+              "total_tokens": 2669,
+              "prompt_tokens_details": {
+                "cached_tokens": 0
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

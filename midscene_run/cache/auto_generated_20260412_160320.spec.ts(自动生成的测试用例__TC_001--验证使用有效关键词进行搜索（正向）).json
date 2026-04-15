@@ -1,0 +1,357 @@
+{
+  "pkgName": "agent-test-platform",
+  "pkgVersion": "1.0.0",
+  "cacheId": "auto_generated_20260412_160320.spec.ts(自动生成的测试用例__TC_001--验证使用有效关键词进行搜索（正向）)",
+  "aiTasks": [
+    {
+      "prompt": "等待页面加载完成",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "等待页面加载完成 @ ",
+          "response": {
+            "actions": [
+              {
+                "type": "Sleep",
+                "thought": "等待页面加载完成，确保所有元素都已渲染完毕。",
+                "param": {
+                  "timeMs": 2000
+                }
+              }
+            ],
+            "log": "等待页面加载完成，暂停2秒以确保页面元素完全渲染。",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [\n    {\n      \"type\": \"Sleep\",\n      \"thought\": \"等待页面加载完成，确保所有元素都已渲染完毕。\",\n      \"param\": {\n        \"timeMs\": 2000\n      }\n    }\n  ],\n  \"log\": \"等待页面加载完成，暂停2秒以确保页面元素完全渲染。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 4476,
+              "completion_tokens": 86,
+              "total_tokens": 4562,
+              "prompt_tokens_details": {
+                "cached_tokens": 2432
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证: 页面显示相关内容",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证: 页面显示相关内容 @ ",
+          "response": {
+            "actions": [],
+            "log": "页面已显示相关内容，包括百度搜索框、热搜榜、导航栏等内容，验证通过。",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [],\n  \"log\": \"页面已显示相关内容，包括百度搜索框、热搜榜、导航栏等内容，验证通过。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 4478,
+              "completion_tokens": 54,
+              "total_tokens": 4532,
+              "prompt_tokens_details": {
+                "cached_tokens": 2432
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "在输入框中输入 \"软件测试\"",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "在输入框中输入 \"软件测试\" @ ",
+          "response": {
+            "actions": [
+              {
+                "type": "Input",
+                "thought": "在输入框中输入'软件测试'，替换当前的文本内容",
+                "param": {
+                  "value": "软件测试"
+                },
+                "locate": {
+                  "id": "onlea",
+                  "prompt": "搜索输入框"
+                }
+              }
+            ],
+            "log": "在输入框中输入'软件测试'",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [\n    {\n      \"type\": \"Input\",\n      \"thought\": \"在输入框中输入'软件测试'，替换当前的文本内容\",\n      \"param\": {\n        \"value\": \"软件测试\"\n      },\n      \"locate\": {\n        \"id\": \"onlea\",\n        \"prompt\": \"搜索输入框\"\n      }\n    }\n  ],\n  \"log\": \"在输入框中输入'软件测试'\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 4477,
+              "completion_tokens": 114,
+              "total_tokens": 4591,
+              "prompt_tokens_details": {
+                "cached_tokens": 2432
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        },
+        {
+          "type": "locate",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "搜索输入框",
+          "response": {
+            "elements": [
+              {
+                "id": "onlea"
+              }
+            ]
+          },
+          "element": {
+            "id": "onlea",
+            "indexId": 14,
+            "center": [
+              635,
+              209
+            ],
+            "rect": {
+              "left": 250,
+              "top": 195,
+              "width": 770,
+              "height": 28,
+              "zoom": 1
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证: 页面显示相关内容",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证: 页面显示相关内容 @ ",
+          "response": {
+            "actions": [
+              {
+                "type": "Tap",
+                "thought": "点击'百度一下'按钮进行搜索，以验证页面是否能显示与'软件测试'相关的内容。",
+                "param": null,
+                "locate": {
+                  "id": "mbmkd",
+                  "prompt": "百度一下按钮"
+                }
+              }
+            ],
+            "log": "点击'百度一下'按钮进行搜索，验证页面是否能显示相关内容。",
+            "error": null,
+            "more_actions_needed_by_instruction": true,
+            "rawResponse": "{\n  \"actions\": [\n    {\n      \"type\": \"Tap\",\n      \"thought\": \"点击'百度一下'按钮进行搜索，以验证页面是否能显示与'软件测试'相关的内容。\",\n      \"param\": null,\n      \"locate\": {\n        \"id\": \"mbmkd\",\n        \"prompt\": \"百度一下按钮\"\n      }\n    }\n  ],\n  \"log\": \"点击'百度一下'按钮进行搜索，验证页面是否能显示相关内容。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": true\n}",
+            "usage": {
+              "prompt_tokens": 3671,
+              "completion_tokens": 120,
+              "total_tokens": 3791,
+              "prompt_tokens_details": {
+                "cached_tokens": 1792
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        },
+        {
+          "type": "locate",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "百度一下按钮",
+          "response": {
+            "elements": [
+              {
+                "id": "mbmkd"
+              }
+            ]
+          },
+          "element": {
+            "id": "mbmkd",
+            "indexId": 9,
+            "center": [
+              820,
+              79
+            ],
+            "rect": {
+              "left": 768,
+              "top": 60,
+              "width": 104,
+              "height": 38,
+              "zoom": 1
+            }
+          }
+        },
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E8%BD%AF%E4%BB%B6%E6%B5%8B%E8%AF%95&fenlei=256&rsv_pq=0x944a4a31004a567a&rsv_t=d8d1ceUvq%2BPxpPjYT%2BJBoqaMAmzn77Ji0rqckqxx5YYrZv2y%2BldlhpUMUQja&rqlang=en&rsv_enter=1&rsv_dl=tb_click&rsv_sug3=3&rsv_sug1=2&rsv_sug7=100&rsv_btype=i&prefixsug=%25E8%25BD%25AF%25E4%25BB%25B6&rsp=2&inputT=8323&rsv_sug4=8324",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证: 页面显示相关内容 @ - 点击'百度一下'按钮进行搜索，验证页面是否能显示相关内容。",
+          "response": {
+            "actions": [
+              {
+                "type": "Tap",
+                "thought": "点击'百度一下'按钮进行搜索，验证页面是否能显示相关内容。",
+                "param": null,
+                "locate": {
+                  "id": "lmgec",
+                  "prompt": "百度一下按钮"
+                }
+              }
+            ],
+            "log": "点击'百度一下'按钮进行搜索，验证页面是否能显示相关内容。",
+            "error": null,
+            "more_actions_needed_by_instruction": true,
+            "rawResponse": "{\n  \"actions\": [\n    {\n      \"type\": \"Tap\",\n      \"thought\": \"点击'百度一下'按钮进行搜索，验证页面是否能显示相关内容。\",\n      \"param\": null,\n      \"locate\": {\n        \"id\": \"lmgec\",\n        \"prompt\": \"百度一下按钮\"\n      }\n    }\n  ],\n  \"log\": \"点击'百度一下'按钮进行搜索，验证页面是否能显示相关内容。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": true\n}",
+            "usage": {
+              "prompt_tokens": 3805,
+              "completion_tokens": 114,
+              "total_tokens": 3919,
+              "prompt_tokens_details": {
+                "cached_tokens": 1984
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        },
+        {
+          "type": "locate",
+          "pageContext": {
+            "url": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E8%BD%AF%E4%BB%B6%E6%B5%8B%E8%AF%95&fenlei=256&rsv_pq=0x944a4a31004a567a&rsv_t=d8d1ceUvq%2BPxpPjYT%2BJBoqaMAmzn77Ji0rqckqxx5YYrZv2y%2BldlhpUMUQja&rqlang=en&rsv_enter=1&rsv_dl=tb_click&rsv_sug3=3&rsv_sug1=2&rsv_sug7=100&rsv_btype=i&prefixsug=%25E8%25BD%25AF%25E4%25BB%25B6&rsp=2&inputT=8323&rsv_sug4=8324",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "百度一下按钮",
+          "response": {
+            "elements": [
+              {
+                "id": "lmgec"
+              }
+            ]
+          },
+          "element": {
+            "id": "lmgec",
+            "indexId": 9,
+            "center": [
+              826,
+              38
+            ],
+            "rect": {
+              "left": 774,
+              "top": 19,
+              "width": 104,
+              "height": 38,
+              "zoom": 1
+            }
+          }
+        },
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E8%BD%AF%E4%BB%B6%E6%B5%8B%E8%AF%95&fenlei=256&rsv_pq=0x944a4a31004a567a&rsv_t=d8d1ceUvq%2BPxpPjYT%2BJBoqaMAmzn77Ji0rqckqxx5YYrZv2y%2BldlhpUMUQja&rqlang=en&rsv_enter=1&rsv_dl=tb_click&rsv_sug3=3&rsv_sug1=2&rsv_sug7=100&rsv_btype=i&prefixsug=%25E8%25BD%25AF%25E4%25BB%25B6&rsp=2&inputT=8323&rsv_sug4=8324",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证: 页面显示相关内容 @ - 点击'百度一下'按钮进行搜索，验证页面是否能显示相关内容。\n- 点击'百度一下'按钮进行搜索，验证页面是否能显示相关内容。",
+          "response": {
+            "actions": [
+              {
+                "type": "ExpectedFalsyCondition",
+                "thought": "根据指令要求验证页面是否显示相关内容。当前页面已经显示了与'软件测试'相关的搜索结果，包括培训课程、第三方测试服务、相关搜索推荐等内容，验证通过。",
+                "param": {
+                  "reason": "页面已成功显示与'软件测试'相关的搜索结果内容，包括：培训课程信息（51Testing等）、第三方测试服务（中科软测、卓码软件测评等）、相关搜索推荐（软件测试工资、工作内容等），验证通过。"
+                }
+              }
+            ],
+            "log": "验证页面显示相关内容：当前页面已显示与'软件测试'相关的搜索结果，包括培训课程、第三方测试服务、相关搜索推荐等内容，验证通过。",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [\n    {\n      \"type\": \"ExpectedFalsyCondition\",\n      \"thought\": \"根据指令要求验证页面是否显示相关内容。当前页面已经显示了与'软件测试'相关的搜索结果，包括培训课程、第三方测试服务、相关搜索推荐等内容，验证通过。\",\n      \"param\": {\n        \"reason\": \"页面已成功显示与'软件测试'相关的搜索结果内容，包括：培训课程信息（51Testing等）、第三方测试服务（中科软测、卓码软件测评等）、相关搜索推荐（软件测试工资、工作内容等），验证通过。\"\n      }\n    }\n  ],\n  \"log\": \"验证页面显示相关内容：当前页面已显示与'软件测试'相关的搜索结果，包括培训课程、第三方测试服务、相关搜索推荐等内容，验证通过。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 7228,
+              "completion_tokens": 194,
+              "total_tokens": 7422,
+              "prompt_tokens_details": {
+                "cached_tokens": 1792
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

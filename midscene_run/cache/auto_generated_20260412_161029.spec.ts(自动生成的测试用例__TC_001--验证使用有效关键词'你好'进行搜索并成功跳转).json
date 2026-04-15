@@ -1,0 +1,350 @@
+{
+  "pkgName": "agent-test-platform",
+  "pkgVersion": "1.0.0",
+  "cacheId": "auto_generated_20260412_161029.spec.ts(自动生成的测试用例__TC_001--验证使用有效关键词'你好'进行搜索并成功跳转)",
+  "aiTasks": [
+    {
+      "prompt": "等待页面加载完成",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "等待页面加载完成 @ ",
+          "response": {
+            "actions": [
+              {
+                "type": "Sleep",
+                "thought": "等待页面加载完成，确保所有元素都已渲染完毕。",
+                "param": {
+                  "timeMs": 2000
+                }
+              }
+            ],
+            "log": "等待页面加载完成，暂停2秒以确保页面元素完全渲染。",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [\n    {\n      \"type\": \"Sleep\",\n      \"thought\": \"等待页面加载完成，确保所有元素都已渲染完毕。\",\n      \"param\": {\n        \"timeMs\": 2000\n      }\n    }\n  ],\n  \"log\": \"等待页面加载完成，暂停2秒以确保页面元素完全渲染。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 4487,
+              "completion_tokens": 89,
+              "total_tokens": 4576,
+              "prompt_tokens_details": {
+                "cached_tokens": 2432
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证: 页面显示了相关内容",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证: 页面显示了相关内容 @ ",
+          "response": {
+            "actions": [],
+            "log": "页面已成功加载并显示了相关内容。可以看到百度首页的完整界面，包括顶部导航栏（新闻、hao123、地图、贴吧、视频、图片、网盘、文库、文心、更多等链接）、百度Logo、搜索框（显示占位符文本'宋宁峰出轨张婉婷发长文回应'）、'百度一下'搜索按钮、以及下方的热搜榜（显示了多个热搜条目如'飞絮的杨柳树能不能都砍了'、'超一亿元！珠峰南坡发生骗保大案'等）。页面内容完整，验证通过。",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [],\n  \"log\": \"页面已成功加载并显示了相关内容。可以看到百度首页的完整界面，包括顶部导航栏（新闻、hao123、地图、贴吧、视频、图片、网盘、文库、文心、更多等链接）、百度Logo、搜索框（显示占位符文本'宋宁峰出轨张婉婷发长文回应'）、'百度一下'搜索按钮、以及下方的热搜榜（显示了多个热搜条目如'飞絮的杨柳树能不能都砍了'、'超一亿元！珠峰南坡发生骗保大案'等）。页面内容完整，验证通过。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 4489,
+              "completion_tokens": 160,
+              "total_tokens": 4649,
+              "prompt_tokens_details": {
+                "cached_tokens": 1792
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "在搜索框中输入 \"你好\"",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "在搜索框中输入 \"你好\" @ ",
+          "response": {
+            "actions": [
+              {
+                "type": "Input",
+                "thought": "在搜索框中输入'你好'",
+                "param": {
+                  "value": "你好"
+                },
+                "locate": {
+                  "id": "lpnoh",
+                  "prompt": "搜索框"
+                }
+              }
+            ],
+            "log": "在搜索框中输入'你好'",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [\n    {\n      \"type\": \"Input\",\n      \"thought\": \"在搜索框中输入'你好'\",\n      \"param\": {\n        \"value\": \"你好\"\n      },\n      \"locate\": {\n        \"id\": \"lpnoh\",\n        \"prompt\": \"搜索框\"\n      }\n    }\n  ],\n  \"log\": \"在搜索框中输入'你好'\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 4487,
+              "completion_tokens": 105,
+              "total_tokens": 4592,
+              "prompt_tokens_details": {
+                "cached_tokens": 4416
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        },
+        {
+          "type": "locate",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "搜索框",
+          "response": {
+            "elements": [
+              {
+                "id": "lpnoh"
+              }
+            ]
+          },
+          "element": {
+            "id": "lpnoh",
+            "indexId": 14,
+            "center": [
+              635,
+              209
+            ],
+            "rect": {
+              "left": 250,
+              "top": 195,
+              "width": 770,
+              "height": 28,
+              "zoom": 1
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证: 页面显示了相关内容",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证: 页面显示了相关内容 @ ",
+          "response": {
+            "actions": [],
+            "log": "验证页面是否显示了相关内容。当前页面显示了搜索建议列表，包含多个与'你好'相关的搜索建议项，如'你好星期六2025免费观看完整版'、'你好星期六2026'、'你好星期六免费观看2025最新一期'等。页面已成功显示相关内容，验证通过。",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [],\n  \"log\": \"验证页面是否显示了相关内容。当前页面显示了搜索建议列表，包含多个与'你好'相关的搜索建议项，如'你好星期六2025免费观看完整版'、'你好星期六2026'、'你好星期六免费观看2025最新一期'等。页面已成功显示相关内容，验证通过。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 3693,
+              "completion_tokens": 102,
+              "total_tokens": 3795,
+              "prompt_tokens_details": {
+                "cached_tokens": 1792
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "点击搜索按钮",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "点击搜索按钮 @ ",
+          "response": {
+            "actions": [
+              {
+                "type": "Tap",
+                "thought": "点击搜索按钮（百度一下按钮）来执行搜索。",
+                "param": null,
+                "locate": {
+                  "id": "mbmkd",
+                  "prompt": "百度一下搜索按钮"
+                }
+              }
+            ],
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "log": "点击百度一下搜索按钮执行搜索",
+            "rawResponse": "{\n  \"actions\": [\n    {\n      \"type\": \"Tap\",\n      \"thought\": \"点击搜索按钮（百度一下按钮）来执行搜索。\",\n      \"param\": null,\n      \"locate\": {\n        \"id\": \"mbmkd\",\n        \"prompt\": \"百度一下搜索按钮\"\n      }\n    }\n  ],\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false,\n  \"log\": \"点击百度一下搜索按钮执行搜索\"\n}",
+            "usage": {
+              "prompt_tokens": 3687,
+              "completion_tokens": 103,
+              "total_tokens": 3790,
+              "prompt_tokens_details": {
+                "cached_tokens": 3648
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        },
+        {
+          "type": "locate",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "百度一下搜索按钮",
+          "response": {
+            "elements": [
+              {
+                "id": "mbmkd"
+              }
+            ]
+          },
+          "element": {
+            "id": "mbmkd",
+            "indexId": 9,
+            "center": [
+              820,
+              79
+            ],
+            "rect": {
+              "left": 768,
+              "top": 60,
+              "width": 104,
+              "height": 38,
+              "zoom": 1
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证: 页面URL发生了变化",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E4%BD%A0%E5%A5%BD&fenlei=256&rsv_pq=0xcce0f9c400576023&rsv_t=7af7NRV02NSHPTBohpl4otGkCi2limjUQgXXU2tkXCVBBfWBU5TbEtyZp8k%2F&rqlang=en&rsv_enter=1&rsv_dl=tb_click&rsv_sug3=3&rsv_sug1=2&rsv_sug7=100&rsv_btype=i&prefixsug=%25E4%25BD%25A0%25E5%25A5%25BD&rsp=2&inputT=13710&rsv_sug4=13712",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证: 页面URL发生了变化 @ ",
+          "response": {
+            "actions": [],
+            "log": "当前指令是验证页面URL是否发生了变化。作为一个UI自动化操作，我无法直接获取或验证页面的URL信息，这需要通过浏览器API或测试框架的上下文信息来完成。页面上没有显示任何URL相关的元素可供验证。",
+            "error": "无法通过UI操作验证页面URL变化，这需要访问浏览器地址栏或页面上下文信息，当前仅凭截图和页面元素无法完成此验证。",
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [],\n  \"log\": \"当前指令是验证页面URL是否发生了变化。作为一个UI自动化操作，我无法直接获取或验证页面的URL信息，这需要通过浏览器API或测试框架的上下文信息来完成。页面上没有显示任何URL相关的元素可供验证。\",\n  \"error\": \"无法通过UI操作验证页面URL变化，这需要访问浏览器地址栏或页面上下文信息，当前仅凭截图和页面元素无法完成此验证。\",\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 2935,
+              "completion_tokens": 116,
+              "total_tokens": 3051,
+              "prompt_tokens_details": {
+                "cached_tokens": 1920
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证: 页面上显示了搜索结果列表",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=%E4%BD%A0%E5%A5%BD&fenlei=256&rsv_pq=0xcce0f9c400576023&rsv_t=7af7NRV02NSHPTBohpl4otGkCi2limjUQgXXU2tkXCVBBfWBU5TbEtyZp8k%2F&rqlang=en&rsv_enter=1&rsv_dl=tb_click&rsv_sug3=3&rsv_sug1=2&rsv_sug7=100&rsv_btype=i&prefixsug=%25E4%25BD%25A0%25E5%25A5%25BD&rsp=2&inputT=13710&rsv_sug4=13712",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证: 页面上显示了搜索结果列表 @ ",
+          "response": {
+            "actions": [],
+            "log": "页面上已经显示了搜索结果列表。可以看到搜索词'你好'的多个搜索结果，包括百度百科条目、综艺视频结果、哔哩哔哩相关内容等，以及右侧的相关搜索和热搜榜。验证条件已满足。",
+            "error": null,
+            "more_actions_needed_by_instruction": false,
+            "rawResponse": "{\n  \"actions\": [],\n  \"log\": \"页面上已经显示了搜索结果列表。可以看到搜索词'你好'的多个搜索结果，包括百度百科条目、综艺视频结果、哔哩哔哩相关内容等，以及右侧的相关搜索和热搜榜。验证条件已满足。\",\n  \"error\": null,\n  \"more_actions_needed_by_instruction\": false\n}",
+            "usage": {
+              "prompt_tokens": 6456,
+              "completion_tokens": 78,
+              "total_tokens": 6534,
+              "prompt_tokens_details": {
+                "cached_tokens": 1792
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

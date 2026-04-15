@@ -1,0 +1,159 @@
+{
+  "pkgName": "agent-test-platform",
+  "pkgVersion": "1.0.0",
+  "cacheId": "auto_generated_20260413_231815.spec.ts(自动生成的测试用例__TC_002_003--验证搜索框为空时点击搜索的限制处理)",
+  "aiTasks": [
+    {
+      "prompt": "等待页面加载完成",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "等待页面加载完成 @ ",
+          "response": {
+            "what_the_user_wants_to_do_next_by_instruction": "等待页面加载完成",
+            "log": "页面已经加载完成，无需进一步操作",
+            "more_actions_needed_by_instruction": false,
+            "action": null,
+            "actions": [],
+            "rawResponse": "{\n  \"what_the_user_wants_to_do_next_by_instruction\": \"等待页面加载完成\",\n  \"log\": \"页面已经加载完成，无需进一步操作\",\n  \"more_actions_needed_by_instruction\": false,\n  \"action\": null\n}",
+            "usage": {
+              "prompt_tokens": 1897,
+              "completion_tokens": 52,
+              "total_tokens": 1949,
+              "completion_tokens_details": {
+                "text_tokens": 52
+              },
+              "prompt_tokens_details": {
+                "image_tokens": 922,
+                "text_tokens": 975,
+                "cached_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证: 操作成功完成",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证: 操作成功完成 @ ",
+          "response": {
+            "what_the_user_wants_to_do_next_by_instruction": "验证操作是否成功完成",
+            "log": "当前页面为百度首页，未发现需要执行的操作，无需进一步操作。",
+            "more_actions_needed_by_instruction": false,
+            "action": null,
+            "actions": [],
+            "rawResponse": "{\n  \"what_the_user_wants_to_do_next_by_instruction\": \"验证操作是否成功完成\",\n  \"log\": \"当前页面为百度首页，未发现需要执行的操作，无需进一步操作。\",\n  \"more_actions_needed_by_instruction\": false,\n  \"action\": null\n}",
+            "usage": {
+              "prompt_tokens": 1898,
+              "completion_tokens": 64,
+              "total_tokens": 1962,
+              "completion_tokens_details": {
+                "text_tokens": 64
+              },
+              "prompt_tokens_details": {
+                "image_tokens": 922,
+                "text_tokens": 976,
+                "cached_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "等待页面稳定",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "等待页面稳定 @ ",
+          "response": {
+            "what_the_user_wants_to_do_next_by_instruction": "等待页面稳定，无需执行任何操作",
+            "log": "页面正在加载中，等待页面稳定，暂无操作",
+            "more_actions_needed_by_instruction": false,
+            "action": null,
+            "actions": [],
+            "rawResponse": "{\n  \"what_the_user_wants_to_do_next_by_instruction\": \"等待页面稳定，无需执行任何操作\",\n  \"log\": \"页面正在加载中，等待页面稳定，暂无操作\",\n  \"more_actions_needed_by_instruction\": false,\n  \"action\": null\n}",
+            "usage": {
+              "prompt_tokens": 1896,
+              "completion_tokens": 60,
+              "total_tokens": 1956,
+              "completion_tokens_details": {
+                "text_tokens": 60
+              },
+              "prompt_tokens_details": {
+                "image_tokens": 922,
+                "text_tokens": 974,
+                "cached_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "验证: 页面加载完成且稳定",
+      "tasks": [
+        {
+          "type": "plan",
+          "pageContext": {
+            "url": "https://www.baidu.com/",
+            "size": {
+              "width": 1265,
+              "height": 720,
+              "dpr": 0.9999999706707285
+            }
+          },
+          "prompt": "验证: 页面加载完成且稳定 @ ",
+          "response": {
+            "what_the_user_wants_to_do_next_by_instruction": "验证页面是否已加载完成且稳定",
+            "log": "页面已加载完成且稳定，无需进一步操作",
+            "more_actions_needed_by_instruction": false,
+            "action": null,
+            "actions": [],
+            "rawResponse": "{\n  \"what_the_user_wants_to_do_next_by_instruction\": \"验证页面是否已加载完成且稳定\",\n  \"log\": \"页面已加载完成且稳定，无需进一步操作\",\n  \"more_actions_needed_by_instruction\": false,\n  \"action\": null\n}",
+            "usage": {
+              "prompt_tokens": 1899,
+              "completion_tokens": 62,
+              "total_tokens": 1961,
+              "completion_tokens_details": {
+                "text_tokens": 62
+              },
+              "prompt_tokens_details": {
+                "image_tokens": 922,
+                "text_tokens": 977,
+                "cached_tokens": 0
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

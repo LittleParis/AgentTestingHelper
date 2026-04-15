@@ -1,0 +1,22 @@
+{
+  "name": "agent-test-platform",
+  "version": "1.0.0",
+  "description": "AI测试自动化平台 - Midscene测试执行环境",
+  "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:debug": "playwright test --debug",
+    "report": "allure serve allure-results"
+  },
+  "dependencies": {
+    "@midscene/web": "^0.15.0",
+    "@playwright/test": "^1.48.0",
+    "playwright": "^1.48.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "allure-playwright": "^3.7.1",
+    "dotenv": "^17.4.1",
+    "typescript": "^5.6.0"
+  }
+}

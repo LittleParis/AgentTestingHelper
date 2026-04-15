@@ -7,7 +7,7 @@ from pathlib import Path
 from datetime import datetime
 from playwright.async_api import async_playwright
 
-from utils.project_paths import OUTPUT_DIR, GENERATED_TESTS_DIR
+from core.utils.project_paths import OUTPUT_DIR, GENERATED_TESTS_DIR
 
 
 # 项目根目录

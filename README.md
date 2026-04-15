@@ -83,35 +83,29 @@ allure serve allure-results
 ## 项目结构
 
 ```
-.
-├── agents/              # Agent模块
-│   ├── requirement_analyzer.py    # 需求分析Agent
-│   ├── test_case_generator.py    # 测试用例生成Agent
-│   ├── case_reviewer.py          # 测试用例评审Agent（LLM智能评审）
-│   └── workflow.py               # LangGraph工作流编排
-├── parsers/            # 文档解析
-│   └── markdown_parser.py
-├── automation/         # 自动化执行
-│   └── script_generator.py
-├── utils/              # 工具模块
-│   └── llm_client.py             # LLM客户端封装（LangChain）
-├── examples/           # 示例需求文档
-│   └── requirement_login.md
-├── output/             # 输出目录
-│   ├── requirements*.json        # 需求分析结果
-│   ├── test_cases*.json          # 生成的测试用例
-│   └── review*.json              # 评审结果
-├── tests/              # 测试目录
-│   ├── test_main_flow.py         # 主流程测试
-│   ├── test_workflow.py          # LangGraph工作流测试
-│   └── generated/                # 生成的测试脚本
-├── docs/               # 文档
-│   └── LANGGRAPH_GUIDE.md        # LangGraph学习指南
-├── main.py             # 阶段1主程序
-├── main_v2.py          # 阶段2主程序（LangGraph工作流）
-├── config.yaml         # 配置文件
-└── requirements.txt    # 依赖列表
+AI测试自动化平台/
+├── 📁 core/                    # 核心模块
+│   ├── agents/                 # Agent模块
+│   │   ├── requirement_analyzer.py     # 需求分析Agent (已集成Pydantic)
+│   │   ├── test_case_generator.py      # 测试用例生成Agent
+│   │   ├── case_reviewer.py            # 测试用例评审Agent
+│   │   └── workflow.py                 # LangGraph工作流编排
+│   ├── models/                 # 数据模型 (Pydantic)
+│   ├── parsers/               # 文档解析
+│   ├── automation/            # 自动化执行
+│   └── utils/                 # 工具模块
+├── 📁 tests/                   # 测试目录
+│   ├── unit/                  # 单元测试
+│   ├── integration/           # 集成测试
+│   └── fixtures/              # 测试数据
+├── 📁 docs/                    # 文档目录
+├── 📁 examples/               # 示例文件
+├── 📁 config/                 # 配置文件
+├── 📄 main_v2.py              # 主程序 (推荐)
+└── 📄 requirements.txt        # Python依赖
 ```
+
+详细结构说明请查看 [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md)
 
 ## 学习路线
 

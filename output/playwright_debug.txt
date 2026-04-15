@@ -1,23 +1,21 @@
 returncode: 1
-stdout length: 12274
-stderr length: 228
+stdout length: 10906
+stderr length: 0
 cwd: G:\桌面\AgentTest
 script exists: True
 --- stdout ---
-◇ injected env (2) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
 
-Running 3 tests using 3 workers
-
-◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
-◇ injected env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
-◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
-
-  x  1 [chromium] › midscene_run\generated\auto_generated_20260415_223226.spec.ts:24:3 › 自动生成的测试用例 › TC_001: 验证使用有效关键词进行正常搜索 (4.0s)
-  x  2 [chromium] › midscene_run\generated\auto_generated_20260415_223226.spec.ts:46:3 › 自动生成的测试用例 › TC_002: 验证搜索输入框为空时的系统处理 (4.1s)
-  x  3 [chromium] › midscene_run\generated\auto_generated_20260415_223226.spec.ts:68:3 › 自动生成的测试用例 › TC_003: 验证搜索特殊字符及URL编码跳转 (4.2s)
+Running 3 tests using 1 worker
 
 
-  1) [chromium] › midscene_run\generated\auto_generated_20260415_223226.spec.ts:24:3 › 自动生成的测试用例 › TC_001: 验证使用有效关键词进行正常搜索 
+  x  1 midscene_run\generated\auto_generated_20260416_004625.spec.ts:24:3 › 自动生成的测试用例 › TC_001: 验证使用有效关键词进行搜索并成功跳转 (2.7s)
+
+  x  2 midscene_run\generated\auto_generated_20260416_004625.spec.ts:46:3 › 自动生成的测试用例 › TC_002: 验证搜索输入框为空时点击搜索按钮的处理 (2.8s)
+
+  x  3 midscene_run\generated\auto_generated_20260416_004625.spec.ts:68:3 › 自动生成的测试用例 › TC_003: 验证搜索特殊字符能否正常跳转 (3.0s)
+
+
+  1) midscene_run\generated\auto_generated_20260416_004625.spec.ts:24:3 › 自动生成的测试用例 › TC_001: 验证使用有效关键词进行搜索并成功跳转 
 
     Error: failed to call AI model service: 400 Access denied, please make sure your account is in good standing. For details, see: https://help.aliyun.com/zh/model-studio/error-code#overdue-payment. Trouble shooting: https://midscenejs.com/model-provider.html
     Error: failed to call AI model service: 400 Access denied, please make sure your account is in good standing. For details, see: https://help.aliyun.com/zh/model-studio/error-code#overdue-payment. Trouble shooting: https://midscenejs.com/model-provider.html
@@ -48,13 +46,9 @@ Running 3 tests using 3 workers
         at PlaywrightAgent.aiAction (G:\桌面\AgentTest\node_modules\@midscene\web\src\common\agent.ts:311:10)
         at G:\桌面\AgentTest\node_modules\@midscene\web\src\playwright\ai-fixture.ts:107:28
 
-    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    test-results\auto_generated_20260415_22-49718-测试用例-TC-001-验证使用有效关键词进行正常搜索-chromium\test-failed-1.png
-    ────────────────────────────────────────────────────────────────────────────────────────────────
+    Error Context: test-results\midscene_run-generated-aut-9bec5-例-TC-001-验证使用有效关键词进行搜索并成功跳转\error-context.md
 
-    Error Context: test-results\auto_generated_20260415_22-49718-测试用例-TC-001-验证使用有效关键词进行正常搜索-chromium\error-context.md
-
-  2) [chromium] › midscene_run\generated\auto_generated_20260415_223226.spec.ts:46:3 › 自动生成的测试用例 › TC_002: 验证搜索输入框为空时的系统处理 
+  2) midscene_run\generated\auto_generated_20260416_004625.spec.ts:46:3 › 自动生成的测试用例 › TC_002: 验证搜索输入框为空时点击搜索按钮的处理 
 
     Error: failed to call AI model service: 400 Access denied, please make sure your account is in good standing. For details, see: https://help.aliyun.com/zh/model-studio/error-code#overdue-payment. Trouble shooting: https://midscenejs.com/model-provider.html
     Error: failed to call AI model service: 400 Access denied, please make sure your account is in good standing. For details, see: https://help.aliyun.com/zh/model-studio/error-code#overdue-payment. Trouble shooting: https://midscenejs.com/model-provider.html
@@ -85,13 +79,9 @@ Running 3 tests using 3 workers
         at PlaywrightAgent.aiAction (G:\桌面\AgentTest\node_modules\@midscene\web\src\common\agent.ts:311:10)
         at G:\桌面\AgentTest\node_modules\@midscene\web\src\playwright\ai-fixture.ts:107:28
 
-    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    test-results\auto_generated_20260415_22-743f2-测试用例-TC-002-验证搜索输入框为空时的系统处理-chromium\test-failed-1.png
-    ────────────────────────────────────────────────────────────────────────────────────────────────
+    Error Context: test-results\midscene_run-generated-aut-ef7b9--TC-002-验证搜索输入框为空时点击搜索按钮的处理\error-context.md
 
-    Error Context: test-results\auto_generated_20260415_22-743f2-测试用例-TC-002-验证搜索输入框为空时的系统处理-chromium\error-context.md
-
-  3) [chromium] › midscene_run\generated\auto_generated_20260415_223226.spec.ts:68:3 › 自动生成的测试用例 › TC_003: 验证搜索特殊字符及URL编码跳转 
+  3) midscene_run\generated\auto_generated_20260416_004625.spec.ts:68:3 › 自动生成的测试用例 › TC_003: 验证搜索特殊字符能否正常跳转 
 
     Error: failed to call AI model service: 400 Access denied, please make sure your account is in good standing. For details, see: https://help.aliyun.com/zh/model-studio/error-code#overdue-payment. Trouble shooting: https://midscenejs.com/model-provider.html
     Error: failed to call AI model service: 400 Access denied, please make sure your account is in good standing. For details, see: https://help.aliyun.com/zh/model-studio/error-code#overdue-payment. Trouble shooting: https://midscenejs.com/model-provider.html
@@ -122,16 +112,11 @@ Running 3 tests using 3 workers
         at PlaywrightAgent.aiAction (G:\桌面\AgentTest\node_modules\@midscene\web\src\common\agent.ts:311:10)
         at G:\桌面\AgentTest\node_modules\@midscene\web\src\playwright\ai-fixture.ts:107:28
 
-    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    test-results\auto_generated_20260415_22-7c2a5-试用例-TC-003-验证搜索特殊字符及URL编码跳转-chromium\test-failed-1.png
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: test-results\auto_generated_20260415_22-7c2a5-试用例-TC-003-验证搜索特殊字符及URL编码跳转-chromium\error-context.md
+    Error Context: test-results\midscene_run-generated-aut-b05b6-的测试用例-TC-003-验证搜索特殊字符能否正常跳转\error-context.md
 
   3 failed
-    [chromium] › midscene_run\generated\auto_generated_20260415_223226.spec.ts:24:3 › 自动生成的测试用例 › TC_001: 验证使用有效关键词进行正常搜索 
-    [chromium] › midscene_run\generated\auto_generated_20260415_223226.spec.ts:46:3 › 自动生成的测试用例 › TC_002: 验证搜索输入框为空时的系统处理 
-    [chromium] › midscene_run\generated\auto_generated_20260415_223226.spec.ts:68:3 › 自动生成的测试用例 › TC_003: 验证搜索特殊字符及URL编码跳转 
+    midscene_run\generated\auto_generated_20260416_004625.spec.ts:24:3 › 自动生成的测试用例 › TC_001: 验证使用有效关键词进行搜索并成功跳转 
+    midscene_run\generated\auto_generated_20260416_004625.spec.ts:46:3 › 自动生成的测试用例 › TC_002: 验证搜索输入框为空时点击搜索按钮的处理 
+    midscene_run\generated\auto_generated_20260416_004625.spec.ts:68:3 › 自动生成的测试用例 › TC_003: 验证搜索特殊字符能否正常跳转 
 
 --- stderr ---
-[midscene:warning] Waiting for network idle has timed out, but Midscene will continue execution. Please check https://midscenejs.com/faq.html#customize-the-network-timeout for more information on customizing the network timeout

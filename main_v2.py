@@ -20,10 +20,10 @@ for var in ['HTTP_PROXY', 'HTTPS_PROXY', 'http_proxy', 'https_proxy', 'ALL_PROXY
     os.environ.pop(var, None)
 os.environ['NO_PROXY'] = '*'
 
-from parsers.markdown_parser import parse_markdown
-from agents.workflow import run_workflow, AgentState
-from automation.allure_reporter import AllureReporter
-from utils.project_paths import (
+from core.parsers.markdown_parser import parse_markdown
+from core.agents.workflow import run_workflow, AgentState
+from core.automation.allure_reporter import AllureReporter
+from core.utils.project_paths import (
     OUTPUT_DIR,
     GENERATED_TESTS_DIR,
     LEGACY_GENERATED_TESTS_DIR,
@@ -250,9 +250,28 @@ def open_allure_report():
         return
 
     # 检查是否有测试结果
-    if not reporter.results_dir.exists():
-        print("  [WARN] 没有测试结果，无法生成报告")
-        return
+    if not reporter.results_dir.exists() or not list(reporter.results_dir.glob("*")):
+        print("  [WARN] 没有测试结果，尝试从执行结果生成 Allure 数据...")
+        
+        # 尝试使用脚本生成 Allure 结果
+        try:
+            import subprocess
+            result = subprocess.run(
+                ["python", "scripts/generate_allure_from_results.py"],
+                capture_output=True,
+                text=True,
+                encoding='utf-8',
+                errors='replace'  # 忽略编码错误
+            )
+            
+            if result.returncode == 0:
+                print("  [OK] 已从执行结果生成 Allure 数据")
+            else:
+                print(f"  [WARN] 生成 Allure 数据失败: {result.stderr}")
+                return
+        except Exception as e:
+            print(f"  [WARN] 无法生成 Allure 数据: {e}")
+            return
 
     # 生成静态 HTML 报告
     print("  [INFO] 正在生成 Allure HTML 报告...")
@@ -263,6 +282,15 @@ def open_allure_report():
         open_result = reporter.open_report()
         if open_result["status"] == "success":
             print(f"  [OK] 报告服务地址: {open_result['url']}")
+            
+            # 尝试自动打开浏览器
+            try:
+                import webbrowser
+                webbrowser.open(open_result['url'])
+                print("  [OK] 已自动打开浏览器")
+            except Exception as e:
+                print(f"  [WARN] 无法自动打开浏览器: {e}")
+                print(f"  请手动访问: {open_result['url']}")
         else:
             print(f"  [WARN] 报告已生成，但启动本地服务失败: {open_result['error']}")
     else:

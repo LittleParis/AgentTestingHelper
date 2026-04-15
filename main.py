@@ -5,11 +5,11 @@ from pathlib import Path
 from datetime import datetime
 from dotenv import load_dotenv
 
-from parsers.markdown_parser import parse_markdown
-from agents.requirement_analyzer import RequirementAnalyzer
-from agents.test_case_generator import TestCaseGenerator
-from automation.midscene_generator import MidsceneScriptGenerator
-from utils.project_paths import (
+from core.parsers.markdown_parser import parse_markdown
+from core.agents.requirement_analyzer import RequirementAnalyzer
+from core.agents.test_case_generator import TestCaseGenerator
+from core.automation.midscene_generator import MidsceneScriptGenerator
+from core.utils.project_paths import (
     OUTPUT_DIR,
     GENERATED_TESTS_DIR,
     LEGACY_GENERATED_TESTS_DIR,

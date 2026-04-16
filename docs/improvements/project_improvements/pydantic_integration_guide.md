@@ -46,25 +46,19 @@ class Requirement(BaseModel):
     type: RequirementType = Field(default=RequirementType.FUNCTIONAL, description="需求类型")
     acceptance_criteria: List[str] = Field(default_factory=list, description="验收标准")
     ui_elements: List[str] = Field(default_factory=list, description="UI元素")
-    
-    class Config:
-        json_encoders = {
-            Priority: lambda v: v.value,
-            RequirementType: lambda v: v.value
-        }
 
 class RequirementAnalysisResult(BaseModel):
     """需求分析结果"""
     requirements: List[Requirement] = Field(default_factory=list)
     summary: str = Field(..., min_length=10, description="需求摘要")
     total_count: int = Field(ge=0, description="需求总数")
-    
-    @validator('total_count', always=True)
-    def validate_total_count(cls, v, values):
-        requirements = values.get('requirements', [])
-        if v != len(requirements):
-            raise ValueError(f"total_count ({v}) 与实际需求数量 ({len(requirements)}) 不匹配")
-        return v
+
+    @model_validator(mode='after')
+    def validate_total_count(self):
+        requirements = self.requirements
+        if self.total_count != len(requirements):
+            raise ValueError(f"total_count ({self.total_count}) 与实际需求数量 ({len(requirements)}) 不匹配")
+        return self
 ```
 
 #### 1.2 测试用例模型
@@ -99,11 +93,12 @@ class TestCase(BaseModel):
     title: str = Field(..., min_length=5, max_length=200, description="用例标题")
     priority: Priority = Field(default=Priority.MEDIUM, description="优先级")
     type: TestCaseType = Field(default=TestCaseType.FUNCTIONAL, description="用例类型")
-    steps: List[TestStep] = Field(..., min_items=1, description="测试步骤")
+    steps: List[TestStep] = Field(..., min_length=1, description="测试步骤")
     expected: str = Field(..., min_length=5, description="最终预期结果")
     tags: List[str] = Field(default_factory=list, description="标签")
-    
-    @validator('steps')
+
+    @field_validator('steps')
+    @classmethod
     def validate_steps_sequence(cls, v):
         """验证步骤序号连续性"""
         expected_numbers = list(range(1, len(v) + 1))
@@ -196,7 +191,9 @@ class OverallReviewResult(BaseModel):
 
 **Pydantic 改进**:
 ```python
-from pydantic import BaseSettings, validator
+from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic_settings import BaseSettings
+from typing import Optional
 import os
 
 class LLMConfig(BaseModel):
@@ -213,7 +210,7 @@ class TestConfig(BaseModel):
     base_url: str = Field(default="https://example.com", description="测试基础URL")
     timeout: int = Field(default=30000, ge=1000, description="测试超时时间(毫秒)")
     headed: bool = Field(default=False, description="是否有头模式")
-    browser: str = Field(default="chromium", regex=r"^(chromium|firefox|webkit)$")
+    browser: str = Field(default="chromium", pattern=r"^(chromium|firefox|webkit)$")
     viewport_width: int = Field(default=1280, ge=800, le=3840)
     viewport_height: int = Field(default=720, ge=600, le=2160)
 
@@ -227,25 +224,27 @@ class ProjectSettings(BaseSettings):
     """项目配置"""
     # LLM配置
     llm: LLMConfig
-    
+
     # 测试配置
     test: TestConfig = Field(default_factory=TestConfig)
-    
+
     # Allure配置
     allure: AllureConfig = Field(default_factory=AllureConfig)
-    
+
     # 日志配置
-    log_level: str = Field(default="INFO", regex=r"^(DEBUG|INFO|WARN|ERROR)$")
+    log_level: str = Field(default="INFO", pattern=r"^(DEBUG|INFO|WARN|ERROR)$")
     log_file: Optional[str] = Field(None, description="日志文件路径")
-    
+
     # 工作流配置
     max_iterations: int = Field(default=2, ge=1, le=10, description="最大迭代次数")
-    
-    class Config:
-        env_file = ".env"
-        env_nested_delimiter = "__"  # 支持 LLM__API_KEY 格式
-        
-    @validator('llm', pre=True)
+
+    model_config = {
+        "env_file": ".env",
+        "env_nested_delimiter": "__"  # 支持 LLM__API_KEY 格式
+    }
+
+    @field_validator('llm', mode='before')
+    @classmethod
     def build_llm_config(cls, v):
         if isinstance(v, dict):
             return LLMConfig(**v)
@@ -280,15 +279,13 @@ class TokenUsage(BaseModel):
     prompt_tokens: int = Field(ge=0, description="输入token数")
     completion_tokens: int = Field(ge=0, description="输出token数")
     total_tokens: int = Field(ge=0, description="总token数")
-    
-    @validator('total_tokens', always=True)
-    def validate_total(cls, v, values):
-        prompt = values.get('prompt_tokens', 0)
-        completion = values.get('completion_tokens', 0)
-        expected = prompt + completion
-        if v != expected:
-            raise ValueError(f"total_tokens ({v}) != prompt_tokens ({prompt}) + completion_tokens ({completion})")
-        return v
+
+    @model_validator(mode='after')
+    def validate_total(self):
+        expected = self.prompt_tokens + self.completion_tokens
+        if self.total_tokens != expected:
+            raise ValueError(f"total_tokens ({self.total_tokens}) != prompt_tokens ({self.prompt_tokens}) + completion_tokens ({self.completion_tokens})")
+        return self
 
 class FinishReason(str, Enum):
     STOP = "stop"
@@ -342,52 +339,46 @@ class ExecutionResults(BaseModel):
     failed: int = Field(ge=0, description="失败数")
     skipped: int = Field(ge=0, description="跳过数")
     duration: float = Field(ge=0, description="执行时间(秒)")
-    
-    @validator('total', always=True)
-    def validate_total(cls, v, values):
-        passed = values.get('passed', 0)
-        failed = values.get('failed', 0)
-        skipped = values.get('skipped', 0)
-        expected = passed + failed + skipped
-        if v != expected:
-            raise ValueError(f"total ({v}) != passed ({passed}) + failed ({failed}) + skipped ({skipped})")
-        return v
+
+    @model_validator(mode='after')
+    def validate_total(self):
+        expected = self.passed + self.failed + self.skipped
+        if self.total != expected:
+            raise ValueError(f"total ({self.total}) != passed ({self.passed}) + failed ({self.failed}) + skipped ({self.skipped})")
+        return self
 
 class AgentState(BaseModel):
     """Agent工作流状态"""
     # 输入
     requirement_text: str = Field(..., description="需求文档文本")
-    
+
     # 需求分析结果
     requirements: Optional[List[Requirement]] = Field(None, description="结构化需求")
     requirement_summary: Optional[str] = Field(None, description="需求摘要")
-    
+
     # 测试用例
     test_cases: Optional[List[TestCase]] = Field(None, description="测试用例")
-    
+
     # 评审结果
     review_result: Optional[OverallReviewResult] = Field(None, description="评审结果")
-    
+
     # 迭代控制
     iteration_count: int = Field(default=0, ge=0, description="迭代次数")
     max_iterations: int = Field(default=2, ge=1, description="最大迭代次数")
-    
+
     # 脚本和执行
     generated_script: Optional[str] = Field(None, description="生成的脚本路径")
     page_url: Optional[str] = Field(None, description="目标页面URL")
     execution_results: Optional[ExecutionResults] = Field(None, description="执行结果")
     allure_report_path: Optional[str] = Field(None, description="报告路径")
-    
+
     # 状态跟踪
     current_step: WorkflowStep = Field(default=WorkflowStep.INIT, description="当前步骤")
     agent_messages: List[AgentMessage] = Field(default_factory=list, description="Agent消息")
-    
-    class Config:
-        use_enum_values = True
-        json_encoders = {
-            datetime: lambda v: v.isoformat(),
-            WorkflowStep: lambda v: v.value
-        }
+
+    model_config = {
+        "use_enum_values": True
+    }
 ```
 
 ## 实施计划

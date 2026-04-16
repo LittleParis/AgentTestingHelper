@@ -10,6 +10,8 @@
 | 2.2 | [project-restructure.md](./project-restructure.md) | ✅ | 项目结构重构 | 导入路径 |
 | 2.3 | [skill-documentation-update.md](./skill-documentation-update.md) | ✅ | 技能文档更新 | 复盘机制建立 |
 | 2.3 | [skill-update-v2.3.md](./skill-update-v2.3.md) | ✅ | 架构管理规范化 | 虚拟环境强制使用 |
+| 3.6 | [phase3.6-agent-pydantic-integration.md](./phase3.6-agent-pydantic-integration.md) | ✅ | Agent全面Pydantic化 | datetime序列化 |
+| 3.7 | [phase3.7-pydantic-config-and-llm-response.md](./phase3.7-pydantic-config-and-llm-response.md) | ✅ | 配置管理与LLM响应模型升级 | 环境变量映射 |
 
 ## 🔧 问题解决记录
 
@@ -41,9 +43,9 @@
 
 | 优先级 | 任务 | 预计时间 | 负责人 |
 |--------|------|----------|--------|
-| P0 | 阶段3.2 测试用例生成Agent Pydantic集成 | 2天 | 开发团队 |
-| P1 | 阶段3.3 评审Agent Pydantic集成 | 1天 | 开发团队 |
-| P2 | 阶段3.4 工作流状态管理优化 | 3天 | 开发团队 |
+| P1 | 阶段4.1 数据库集成 (PostgreSQL) | 3天 | 开发团队 |
+| P2 | 阶段4.2 版本管理 | 2天 | 开发团队 |
+| P2 | 阶段4.3 API接口 | 3天 | 开发团队 |
 
 ## 📖 复盘文档使用指南
 
@@ -66,7 +68,7 @@
 ### 按问题类型查找
 - **环境配置问题**: [environment-setup.md](./environment-setup.md)
 - **依赖管理问题**: [dependency-issues.md](./dependency-issues.md)
-- **Pydantic相关**: [pydantic-integration.md](./pydantic-integration.md)
+- **Pydantic相关**: [pydantic-integration.md](./pydantic-integration.md), [phase3.6-agent-pydantic-integration.md](./phase3.6-agent-pydantic-integration.md)
 - **项目结构**: [project-restructure.md](./project-restructure.md)
 
 ### 按阶段查找
@@ -74,14 +76,15 @@
 - **阶段2**: [phase2-agent-workflow.md](./phase2-agent-workflow.md)
 - **阶段2.1**: [pydantic-integration.md](./pydantic-integration.md)
 - **阶段2.2**: [project-restructure.md](./project-restructure.md)
+- **阶段3.6**: [phase3.6-agent-pydantic-integration.md](./phase3.6-agent-pydantic-integration.md)
 
 ### 按技术栈查找
 - **LangGraph**: [phase2-agent-workflow.md](./phase2-agent-workflow.md)
-- **Pydantic**: [pydantic-integration.md](./pydantic-integration.md)
+- **Pydantic**: [pydantic-integration.md](./pydantic-integration.md), [phase3.6-agent-pydantic-integration.md](./phase3.6-agent-pydantic-integration.md)
 - **项目架构**: [project-restructure.md](./project-restructure.md)
 
 ---
 
-**最后更新**: 2026-04-16  
-**维护人员**: AI开发团队  
-**文档版本**: v2.3
+**最后更新**: 2026-04-16
+**维护人员**: AI开发团队
+**文档版本**: v2.4

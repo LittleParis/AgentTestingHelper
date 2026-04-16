@@ -1,22 +1,21 @@
 
 """调试LLM连接 - 详细版本"""
-import os
-from dotenv import load_dotenv
 from openai import OpenAI
+from core.models import get_settings
 
 
 def test_connection_debug():
     """详细测试LLM连接"""
-    load_dotenv()
 
     print("=" * 60)
     print("LLM 连接调试")
     print("=" * 60)
 
-    # 检查环境变量
-    api_key = os.getenv("LLM_KEY")
-    model = os.getenv("LLM_MODEL", "")
-    base_url = os.getenv("LLM_BASE_URL", "")
+    # 使用统一配置
+    settings = get_settings()
+    api_key = settings.llm_api_key
+    model = settings.llm_model
+    base_url = settings.llm_base_url
 
     print(f"\n[配置信息]")
     print(f"API密钥: {api_key[:15]}...{api_key[-5:] if api_key else 'None'}")

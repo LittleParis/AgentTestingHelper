@@ -1,8 +1,8 @@
 """LLM客户端封装 - 基于LangChain"""
-import os
 from typing import Dict, Any, List, Optional, Union
-from dataclasses import dataclass
 from enum import Enum
+from datetime import datetime
+from pydantic import BaseModel, Field, model_validator
 import httpx
 
 # 临时修复：使用已安装的包
@@ -16,24 +16,28 @@ from langchain_core.messages import HumanMessage, SystemMessage, AIMessage, Base
 from langchain_core.prompts import ChatPromptTemplate
 
 
-class MessageRole(Enum):
+class MessageRole(str, Enum):
     """消息角色枚举"""
     SYSTEM = "system"
     USER = "user"
     ASSISTANT = "assistant"
 
 
-@dataclass
-class Message:
-    """
-    消息类型定义
+class FinishReason(str, Enum):
+    """完成原因枚举"""
+    STOP = "stop"
+    LENGTH = "length"
+    CONTENT_FILTER = "content_filter"
+    FUNCTION_CALL = "function_call"
+    TOOL_CALLS = "tool_calls"
 
-    Attributes:
-        role: 消息角色
-        content: 消息内容
+
+class Message(BaseModel):
     """
-    role: MessageRole
-    content: str
+    消息类型定义 - Pydantic 版本
+    """
+    role: MessageRole = Field(..., description="消息角色")
+    content: str = Field(..., min_length=1, description="消息内容")
 
     def to_dict(self) -> Dict[str, str]:
         """转换为字典格式"""
@@ -64,21 +68,28 @@ class Message:
         return cls(role=MessageRole.ASSISTANT, content=content)
 
 
-@dataclass
-class ChatResponse:
-    """
-    聊天响应类型定义
+class TokenUsage(BaseModel):
+    """Token使用统计"""
+    prompt_tokens: int = Field(default=0, ge=0, description="输入token数")
+    completion_tokens: int = Field(default=0, ge=0, description="输出token数")
+    total_tokens: int = Field(default=0, ge=0, description="总token数")
 
-    Attributes:
-        content: 响应内容
-        model: 使用的模型名称
-        total_tokens: 总token数 (如果可用)
-        finish_reason: 完成原因
+
+class ChatResponse(BaseModel):
     """
-    content: str
-    model: str = ""
-    total_tokens: int = 0
-    finish_reason: str = ""
+    聊天响应类型定义 - Pydantic 版本
+    """
+    content: str = Field(..., description="响应内容")
+    model: str = Field(default="", description="使用的模型名称")
+    usage: Optional[TokenUsage] = Field(default=None, description="Token使用情况")
+    finish_reason: FinishReason = Field(default=FinishReason.STOP, description="完成原因")
+    response_time: float = Field(default=0.0, ge=0, description="响应时间(秒)")
+    created_at: datetime = Field(default_factory=datetime.now, description="创建时间")
+
+    @property
+    def total_tokens(self) -> int:
+        """兼容旧接口：获取总token数"""
+        return self.usage.total_tokens if self.usage else 0
 
 
 class LLMClient:
@@ -89,24 +100,28 @@ class LLMClient:
         api_key: str = None,
         model: str = None,
         base_url: str = None,
-        temperature: float = 0.7,
-        max_tokens: int = 4096
+        temperature: float = None,
+        max_tokens: int = None
     ):
         """
         初始化LLM客户端
 
         Args:
-            api_key: API密钥 (默认从环境变量 LLM_KEY 读取)
-            model: 模型名称 (默认从环境变量 LLM_MODEL 读取)
-            base_url: API端点 (默认从环境变量 LLM_BASE_URL 读取)
+            api_key: API密钥 (默认从配置读取)
+            model: 模型名称 (默认从配置读取)
+            base_url: API端点 (默认从配置读取)
             temperature: 温度参数
             max_tokens: 最大token数
         """
-        self.api_key = api_key or os.getenv("LLM_KEY")
-        self.model = model or os.getenv("LLM_MODEL", "gpt-3.5-turbo")
-        self.base_url = base_url or os.getenv("LLM_BASE_URL")
-        self.temperature = temperature
-        self.max_tokens = max_tokens
+        # 使用统一配置
+        from core.models import get_settings
+        settings = get_settings()
+
+        self.api_key = api_key or settings.llm_api_key
+        self.model = model or settings.llm_model
+        self.base_url = base_url or settings.llm_base_url
+        self.temperature = temperature if temperature is not None else settings.llm_temperature
+        self.max_tokens = max_tokens if max_tokens is not None else settings.llm_max_tokens
 
         # 初始化 LangChain ChatOpenAI
         self._llm = self._create_llm()
@@ -180,16 +195,21 @@ class LLMClient:
 
         if return_response:
             # 构建完整响应
-            total_tokens = 0
+            usage = None
             if hasattr(response, "response_metadata"):
                 token_usage = response.response_metadata.get("token_usage", {})
-                total_tokens = token_usage.get("total_tokens", 0)
+                if token_usage:
+                    usage = TokenUsage(
+                        prompt_tokens=token_usage.get("prompt_tokens", 0),
+                        completion_tokens=token_usage.get("completion_tokens", 0),
+                        total_tokens=token_usage.get("total_tokens", 0)
+                    )
 
             return ChatResponse(
                 content=response.content,
                 model=self.model,
-                total_tokens=total_tokens,
-                finish_reason="stop"
+                usage=usage,
+                finish_reason=FinishReason.STOP
             )
 
         return response.content

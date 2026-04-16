@@ -80,15 +80,32 @@ def clean_history_data():
 
 def save_results(state: AgentState, timestamp: str):
     """保存工作流结果"""
+    from datetime import datetime
+
     output_dir = OUTPUT_DIR
     output_dir.mkdir(parents=True, exist_ok=True)
+
+    # 辅助函数：处理 Pydantic 模型和 datetime 序列化
+    def serialize_value(v):
+        if hasattr(v, 'model_dump'):
+            # Pydantic 模型
+            data = v.model_dump()
+            return serialize_value(data)
+        elif isinstance(v, datetime):
+            # datetime 转换为 ISO 格式字符串
+            return v.isoformat()
+        elif isinstance(v, list):
+            return [serialize_value(item) for item in v]
+        elif isinstance(v, dict):
+            return {k: serialize_value(val) for k, val in v.items()}
+        return v
 
     # 保存需求分析结果
     requirements = state.get("requirements", [])
     if requirements:
         requirements_file = output_dir / f"requirements{timestamp}.json"
         with open(requirements_file, "w", encoding="utf-8") as f:
-            json.dump({"requirements": requirements}, f, ensure_ascii=False, indent=2)
+            json.dump({"requirements": serialize_value(requirements)}, f, ensure_ascii=False, indent=2)
         print(f"  需求分析: {requirements_file}")
 
     # 保存测试用例
@@ -96,7 +113,7 @@ def save_results(state: AgentState, timestamp: str):
     if test_cases:
         test_cases_file = output_dir / f"test_cases{timestamp}.json"
         with open(test_cases_file, "w", encoding="utf-8") as f:
-            json.dump({"test_cases": test_cases}, f, ensure_ascii=False, indent=2)
+            json.dump({"test_cases": serialize_value(test_cases)}, f, ensure_ascii=False, indent=2)
         print(f"  测试用例: {test_cases_file}")
 
     # 保存评审结果
@@ -110,8 +127,8 @@ def save_results(state: AgentState, timestamp: str):
             json.dump({
                 "passed": state.get("review_passed"),
                 "score": review_score,
-                "comments": review_comments,
-                "suggestions": review_suggestions
+                "comments": serialize_value(review_comments),
+                "suggestions": serialize_value(review_suggestions)
             }, f, ensure_ascii=False, indent=2)
         print(f"  评审结果: {review_file}")
 
@@ -120,7 +137,7 @@ def save_results(state: AgentState, timestamp: str):
     if exec_results:
         exec_file = output_dir / f"execution{timestamp}.json"
         with open(exec_file, "w", encoding="utf-8") as f:
-            json.dump(exec_results, f, ensure_ascii=False, indent=2)
+            json.dump(serialize_value(exec_results), f, ensure_ascii=False, indent=2)
         print(f"  执行结果: {exec_file}")
 
 

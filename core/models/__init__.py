@@ -15,10 +15,77 @@ from .requirement import (
     RequirementAnalysisResult
 )
 
+from .test_case import (
+    TestCase,
+    TestCaseType,
+    TestStep,
+    TestCaseGenerationResult
+)
+
+from .review import (
+    ReviewResult,
+    ReviewAllResult,
+    ReviewDimensions,
+    ReviewComment,
+    RequirementReviewDetail,
+    CommentType,
+    CommentSeverity
+)
+
+from .config import (
+    LLMConfig,
+    TestConfig,
+    AllureConfig,
+    LogConfig,
+    WorkflowConfig,
+    ProjectSettings,
+    get_settings
+)
+
+# 从 llm_client 导出（避免循环导入，这里只是重新导出）
+from core.utils.llm_client import (
+    Message,
+    MessageRole,
+    ChatResponse,
+    TokenUsage,
+    FinishReason
+)
+
 __all__ = [
     # 需求模型
     "Requirement",
-    "RequirementType", 
+    "RequirementType",
     "Priority",
     "RequirementAnalysisResult",
+
+    # 测试用例模型
+    "TestCase",
+    "TestCaseType",
+    "TestStep",
+    "TestCaseGenerationResult",
+
+    # 评审模型
+    "ReviewResult",
+    "ReviewAllResult",
+    "ReviewDimensions",
+    "ReviewComment",
+    "RequirementReviewDetail",
+    "CommentType",
+    "CommentSeverity",
+
+    # 配置模型
+    "LLMConfig",
+    "TestConfig",
+    "AllureConfig",
+    "LogConfig",
+    "WorkflowConfig",
+    "ProjectSettings",
+    "get_settings",
+
+    # LLM 响应模型
+    "Message",
+    "MessageRole",
+    "ChatResponse",
+    "TokenUsage",
+    "FinishReason",
 ]

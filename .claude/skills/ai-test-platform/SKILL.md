@@ -18,18 +18,21 @@ compatibility:
 2. **虚拟环境运行**：所有操作必须在虚拟环境 (.venv) 中执行
 3. **完整性验证**：每次更改后必须运行完整主流程确保功能正常
 
-## 📁 项目架构 (当前版本: v2.3)
+## 📁 项目架构 (当前版本: v2.5)
 
 ```
 AI测试自动化平台/ (项目根目录)
 ├── 📁 core/                    # 核心模块 (重构后)
 │   ├── agents/                 # Agent模块
 │   │   ├── requirement_analyzer.py     # 需求分析Agent (已集成Pydantic)
-│   │   ├── test_case_generator.py      # 测试用例生成Agent
-│   │   ├── case_reviewer.py            # 测试用例评审Agent
+│   │   ├── test_case_generator.py      # 测试用例生成Agent (已集成Pydantic)
+│   │   ├── case_reviewer.py            # 测试用例评审Agent (已集成Pydantic)
 │   │   └── workflow.py                 # LangGraph工作流编排
-│   ├── models/                 # 数据模型 (Pydantic)
+│   ├── models/                 # 数据模型 (Pydantic V2)
 │   │   ├── requirement.py              # 需求相关模型
+│   │   ├── test_case.py                # 测试用例模型
+│   │   ├── review.py                   # 评审相关模型
+│   │   ├── config.py                   # 配置管理模型 (V2升级)
 │   │   └── __init__.py
 │   ├── parsers/               # 文档解析
 │   │   └── markdown_parser.py
@@ -38,7 +41,7 @@ AI测试自动化平台/ (项目根目录)
 │   │   ├── test_executor.py            # 测试执行器
 │   │   └── allure_reporter.py          # Allure报告生成 (已优化)
 │   └── utils/                 # 工具模块
-│       ├── llm_client.py               # LLM客户端封装
+│       ├── llm_client.py               # LLM客户端封装 (Pydantic响应模型)
 │       └── project_paths.py            # 项目路径管理
 ├── 📁 tests/                   # 测试目录
 │   ├── unit/                  # 单元测试
@@ -69,6 +72,8 @@ AI测试自动化平台/ (项目根目录)
 - v2.1: 集成 Pydantic 数据验证，增强类型安全
 - v2.2: 项目结构重构，统一导入路径
 - v2.3: 优化 Allure 报告生成，添加降级处理机制
+- v2.4: Agent 全面 Pydantic 化，新增 review.py 模型文件
+- v2.5: 配置管理升级 Pydantic V2，LLM 响应模型 Pydantic 化，统一配置使用
 
 ## 🔄 开发工作流程 (强制要求)
 
@@ -108,6 +113,111 @@ pip install -r requirements.txt
 - [ ] 更改了配置文件结构
 - [ ] 添加了新的依赖
 - [ ] 修改了主流程逻辑
+
+### 2.1 模块/功能新增记录 (强制要求)
+
+**每次新增模块或功能时，必须在复盘文档中详细记录实现方式**：
+
+**记录内容要求**：
+
+1. **功能概述**：新增模块/功能的名称和用途
+2. **实现方式**：
+   - 核心代码结构
+   - 关键类/函数设计
+   - 数据流转过程
+3. **依赖关系**：与其他模块的交互
+4. **配置要求**：环境变量、配置文件等
+5. **使用示例**：代码调用示例
+
+**记录模板**：
+
+```markdown
+## 新增模块：[模块名称]
+
+### 功能概述
+[简要描述模块功能和用途]
+
+### 实现方式
+
+#### 核心代码结构
+- 文件路径：`core/xxx/xxx.py`
+- 主要类/函数：
+  - `ClassName`：[说明]
+  - `function_name()`：[说明]
+
+#### 关键设计
+[代码示例或设计说明]
+
+#### 数据流转
+1. 输入：[输入数据来源和格式]
+2. 处理：[处理逻辑]
+3. 输出：[输出数据格式和去向]
+
+### 依赖关系
+- 依赖模块：[列表]
+- 被依赖：[列表]
+
+### 配置要求
+- 环境变量：[列表]
+- 配置文件：[说明]
+
+### 使用示例
+\`\`\`python
+from core.xxx import ClassName
+
+# 使用示例代码
+instance = ClassName()
+result = instance.method()
+\`\`\`
+```
+
+**示例记录**（参考阶段3.7）：
+
+```markdown
+## 新增模块：统一配置管理
+
+### 功能概述
+提供统一的配置管理入口，支持从 .env 文件读取配置，
+使用 Pydantic V2 进行数据验证，单例模式避免重复读取。
+
+### 实现方式
+
+#### 核心代码结构
+- 文件路径：`core/models/config.py`
+- 主要类：
+  - `LLMConfig`：LLM 配置模型
+  - `ProjectSettings`：项目总配置（继承 BaseSettings）
+  - `get_settings()`：获取配置单例
+
+#### 关键设计
+\`\`\`python
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+class ProjectSettings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        extra="ignore",
+    )
+    llm_api_key: str = Field(validation_alias=AliasChoices('llm_api_key', 'LLM_KEY'))
+
+_settings_instance = None
+
+def get_settings() -> ProjectSettings:
+    global _settings_instance
+    if _settings_instance is None:
+        _settings_instance = ProjectSettings()
+    return _settings_instance
+\`\`\`
+
+### 使用示例
+\`\`\`python
+from core.models import get_settings
+
+settings = get_settings()
+api_key = settings.llm_api_key
+model = settings.llm_model
+\`\`\`
+```
 
 ### 3. 完整性验证流程
 
@@ -189,43 +299,47 @@ class Requirement(BaseModel):
 - 类型安全保证
 - IDE 完整支持
 
-### 阶段 2：测试用例生成
+### 阶段 2：测试用例生成 (已集成 Pydantic)
 
 基于需求分析结果调用测试用例生成 Agent：
 
 1. **为每个需求生成测试用例** - 包含正向和负向测试
-2. **输出格式**:
-```json
-{
-  "test_cases": [
-    {
-      "id": "TC_LOGIN_001",
-      "requirement_id": "REQ_LOGIN_001",
-      "title": "用户正常登录",
-      "priority": "high",
-      "type": "functional",
-      "steps": [
-        {
-          "step_number": 1,
-          "action": "打开登录页面",
-          "data": "https://example.com/login",
-          "expected": "显示登录表单"
-        },
-        {
-          "step_number": 2,
-          "action": "输入用户名",
-          "data": "test@example.com",
-          "expected": "输入框显示输入内容"
-        }
-      ],
-      "expected": "登录成功，跳转到首页",
-      "tags": ["smoke", "login"]
-    }
-  ]
-}
+
+**新的导入路径**:
+```python
+from core.agents.test_case_generator import TestCaseGenerator
+from core.models.test_case import TestCase, TestCaseGenerationResult, TestStep, TestCaseType
 ```
 
-### 阶段 3：测试用例评审
+**测试用例生成 Agent 使用方式**:
+```python
+generator = TestCaseGenerator()
+
+# 向后兼容的字典接口
+test_cases_dict = generator.generate(requirement)
+
+# 新的类型安全接口 (推荐)
+result = generator.generate_structured(requirement)  # requirement 是 Requirement 模型
+
+# 使用便捷方法
+high_priority = result.get_test_cases_by_priority(Priority.HIGH)
+functional_tests = result.get_test_cases_by_type(TestCaseType.FUNCTIONAL)
+```
+
+**Pydantic 测试用例模型**:
+```python
+class TestCase(BaseModel):
+    id: str = Field(pattern=r"^TC_\d{3}$")  # 自动验证ID格式
+    requirement_id: str = Field(pattern=r"^REQ_\d{3}$")
+    title: str = Field(min_length=5, max_length=200)
+    priority: Priority = Field(default=Priority.MEDIUM)
+    type: TestCaseType = Field(default=TestCaseType.FUNCTIONAL)
+    steps: List[TestStep] = Field(min_length=1)  # 至少一个步骤
+    expected: str = Field(min_length=5)
+    tags: List[str] = Field(default_factory=list)
+```
+
+### 阶段 3：测试用例评审 (已集成 Pydantic)
 
 执行自动评审检查：
 
@@ -234,6 +348,49 @@ class Requirement(BaseModel):
 3. **可执行性检查** - 验证步骤描述是否可被自动化执行
 4. **边界值检查** - 确认包含边界条件和异常场景
 5. **优先级合理性** - 审查 P0 用例是否为核心场景
+
+**新的导入路径**:
+```python
+from core.agents.case_reviewer import CaseReviewer
+from core.models.review import (
+    ReviewResult, ReviewAllResult, ReviewDimensions, ReviewComment,
+    RequirementReviewDetail, CommentType, CommentSeverity
+)
+```
+
+**评审 Agent 使用方式**:
+```python
+reviewer = CaseReviewer()
+
+# 向后兼容的字典接口
+result_dict = reviewer.review(requirement, test_cases)
+all_result_dict = reviewer.review_all(requirements, test_cases)
+
+# 新的类型安全接口 (推荐)
+result = reviewer.review_structured(requirement, test_cases)
+all_result = reviewer.review_all_structured(requirements, test_cases)
+
+# 使用便捷方法
+failed_details = all_result.get_failed_details()
+passed_count = all_result.get_passed_count()
+```
+
+**Pydantic 评审模型**:
+```python
+class ReviewDimensions(BaseModel):
+    completeness: int = Field(ge=0, le=20)   # 完整性
+    coverage: int = Field(ge=0, le=20)       # 覆盖率
+    reasonability: int = Field(ge=0, le=20)  # 合理性
+    independence: int = Field(ge=0, le=20)   # 独立性
+    clarity: int = Field(ge=0, le=20)        # 清晰度
+
+class ReviewResult(BaseModel):
+    passed: bool
+    score: int = Field(ge=0, le=100)
+    dimensions: Optional[ReviewDimensions]
+    comments: List[ReviewComment]
+    suggestions: List[str]
+```
 
 **评审报告输出**:
 - 用例总数统计

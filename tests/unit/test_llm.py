@@ -1,20 +1,19 @@
 """测试LLM连接"""
-import os
-from dotenv import load_dotenv
 from core.utils.llm_client import get_llm_client
+from core.models import get_settings
 
 
 def test_connection():
     """测试LLM连接"""
-    load_dotenv()
 
     print("=" * 60)
     print("LLM 连接测试")
     print("=" * 60)
 
-    # 检查环境变量
-    api_key = os.getenv("LLM_KEY")
-    model = os.getenv("LLM_MODEL", "")
+    # 使用统一配置
+    settings = get_settings()
+    api_key = settings.llm_api_key
+    model = settings.llm_model
 
     if not api_key:
         print("❌ 错误: 未找到 LLM_KEY")

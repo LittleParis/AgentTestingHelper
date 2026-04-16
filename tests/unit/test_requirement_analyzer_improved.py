@@ -1,18 +1,15 @@
 """
 测试改进后的需求分析Agent
 """
-import os
 import sys
-from dotenv import load_dotenv
+import os
 
 # 添加项目根目录到路径
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-# 加载环境变量
-load_dotenv()
-
 from core.agents.requirement_analyzer import RequirementAnalyzer
 from core.models.requirement import RequirementAnalysisResult
+from core.models import get_settings
 
 
 def test_basic_functionality():
@@ -167,14 +164,15 @@ def test_error_handling():
 
 
 if __name__ == "__main__":
-    # 检查环境变量
-    if not os.getenv("LLM_KEY"):
+    # 使用统一配置
+    settings = get_settings()
+    if not settings.llm_api_key:
         print("❌ 请设置 LLM_KEY 环境变量")
         sys.exit(1)
-    
+
     # 运行测试
     success = test_basic_functionality()
-    
+
     if success:
         test_error_handling()
         print("\n🎉 所有测试完成！")

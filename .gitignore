@@ -49,3 +49,11 @@ midscene_run/log
 
 # Playwright browsers (本地安装，不提交到 git)
 browsers/
+
+# 个人文档（复盘、面试准备等，不上传）
+docs/retrospectives/
+docs/interview-preparation.md
+docs/interview-review-checklist.md
+*.pdf
+.mcp.json
+.git-credentials

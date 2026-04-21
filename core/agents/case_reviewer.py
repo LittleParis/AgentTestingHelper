@@ -1,5 +1,5 @@
 """
-测试用例评审 Agent - Pydantic 版本
+测试用例评审 Agent - 使用结构化输出
 
 使用 LLM 进行智能评审：
 - 用例完整性检查
@@ -21,7 +21,7 @@ from core.models.review import (
 
 
 class CaseReviewer:
-    """测试用例评审 Agent - Pydantic 版本"""
+    """测试用例评审 Agent - 使用 LangChain 结构化输出"""
 
     def __init__(self):
         self.llm = get_llm_client()
@@ -48,7 +48,7 @@ class CaseReviewer:
 
     def review_structured(self, requirement: Requirement, test_cases: List[TestCase]) -> ReviewResult:
         """
-        评审单个需求的测试用例（新版本，返回 Pydantic 模型）
+        评审单个需求的测试用例（使用结构化输出）
 
         Args:
             requirement: Requirement 模型
@@ -60,24 +60,33 @@ class CaseReviewer:
         prompt = self._build_review_prompt(requirement, test_cases)
 
         try:
-            response = self.llm.chat_simple(prompt)
-            result = self._parse_response(response)
-            return result
+            # 使用结构化输出
+            structured_llm = self.llm.with_structured_output(ReviewResult)
+            result = structured_llm.invoke(prompt)
+
+            # 验证返回的是正确的类型
+            if isinstance(result, ReviewResult):
+                return result
+            else:
+                return self._build_review_result(result)
+
         except ValidationError as e:
             print(f"[Reviewer] 数据验证失败: {e}")
-            return self._fallback_review_result()
+            return self._fallback_invoke(prompt)
         except Exception as e:
-            print(f"[Reviewer] 评审失败: {e}")
-            return ReviewResult(
-                passed=False,
-                score=0,
-                comments=[ReviewComment(
-                    type=CommentType.ERROR,
-                    severity=CommentSeverity.HIGH,
-                    message=str(e)
-                )],
-                suggestions=[]
-            )
+            print(f"[Reviewer] 结构化输出失败: {e}")
+            return self._fallback_invoke(prompt)
+
+    def _fallback_invoke(self, prompt: str) -> ReviewResult:
+        """降级方案：手动解析JSON"""
+        print("[Reviewer] 使用降级解析方案")
+
+        try:
+            response = self.llm.chat_simple(prompt)
+            return self._parse_response(response)
+        except Exception as e:
+            print(f"[Reviewer] 降级解析也失败: {e}")
+            return self._fallback_review_result()
 
     def review_all(self, requirements: List[Union[Dict, Requirement]], all_test_cases: List[Union[Dict, TestCase]]) -> Dict[str, Any]:
         """
@@ -200,7 +209,9 @@ class CaseReviewer:
     def _build_review_prompt(self, requirement: Requirement, test_cases: List[TestCase]) -> str:
         """构建评审提示词"""
         req_json = requirement.model_dump_json(indent=2)
-        cases_json = json.dumps([tc.model_dump() for tc in test_cases], ensure_ascii=False, indent=2)
+        # 使用 model_dump 处理 datetime 序列化
+        cases_data = [tc.model_dump(mode='json') for tc in test_cases]
+        cases_json = json.dumps(cases_data, ensure_ascii=False, indent=2)
 
         return f"""你是一位专业的测试用例评审专家。请评审以下测试用例的质量。
 

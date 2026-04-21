@@ -1,4 +1,4 @@
-"""需求分析Agent - 改进版本（集成Pydantic）"""
+"""需求分析Agent - 使用结构化输出"""
 import json
 import os
 from typing import Dict, Any, Optional
@@ -9,69 +9,78 @@ from core.models.requirement import Requirement, RequirementAnalysisResult, Requ
 
 
 class RequirementAnalyzer:
-    """需求分析Agent - 改进版本"""
-    
+    """需求分析Agent - 使用 LangChain 结构化输出"""
+
     def __init__(self):
         """初始化需求分析Agent"""
         self.llm = get_llm_client()
-    
+
     def analyze(self, requirement_text: str) -> Dict[str, Any]:
         """
         分析需求文档（向后兼容接口）
-        
+
         Args:
             requirement_text: 需求文档内容
-            
+
         Returns:
             结构化的需求JSON（字典格式）
         """
         # 调用新的Pydantic版本
         result = self.analyze_structured(requirement_text)
-        
+
         # 转换为字典格式保持兼容性
         return result.to_dict()
-    
+
     def analyze_structured(self, requirement_text: str) -> RequirementAnalysisResult:
         """
-        分析需求文档（新版本，返回Pydantic模型）
-        
+        分析需求文档（使用结构化输出）
+
         Args:
             requirement_text: 需求文档内容
-            
+
         Returns:
             RequirementAnalysisResult: 结构化的需求分析结果
-            
+
         Raises:
             ValueError: 当输入参数无效时
             ValidationError: 当LLM输出不符合预期格式时
         """
         if not requirement_text or len(requirement_text.strip()) < 10:
             raise ValueError("需求文档内容太短，至少需要10个字符")
-        
+
         prompt = self._build_prompt(requirement_text)
-        
+
         try:
-            # 调用LLM
-            content = self.llm.chat_simple(prompt, temperature=0.7, max_tokens=4096)
-            
-            # 解析JSON响应
-            json_data = self._extract_json(content)
-            
-            # 使用Pydantic验证和解析
-            result = self._parse_llm_response(json_data)
-            
-            return result
-            
+            # 使用结构化输出
+            structured_llm = self.llm.with_structured_output(RequirementAnalysisResult)
+            result = structured_llm.invoke(prompt)
+
+            # 验证返回的是正确的类型
+            if isinstance(result, RequirementAnalysisResult):
+                return result
+            else:
+                # 如果返回的是字典，手动转换
+                return RequirementAnalysisResult.model_validate(result)
+
         except ValidationError as e:
             print(f"[RequirementAnalyzer] 数据验证失败: {e}")
-            # 降级到简单解析
-            return self._fallback_parse(json_data)
-        except json.JSONDecodeError as e:
-            print(f"[RequirementAnalyzer] JSON解析失败: {e}")
-            print(f"原始响应: {content}")
-            raise
+            # 降级到手动解析
+            return self._fallback_invoke(prompt)
         except Exception as e:
-            print(f"[RequirementAnalyzer] 分析失败: {e}")
+            print(f"[RequirementAnalyzer] 结构化输出失败: {e}")
+            # 降级到手动解析
+            return self._fallback_invoke(prompt)
+
+    def _fallback_invoke(self, prompt: str) -> RequirementAnalysisResult:
+        """降级方案：手动解析JSON"""
+        print("[RequirementAnalyzer] 使用降级解析方案")
+
+        try:
+            content = self.llm.chat_simple(prompt, temperature=0.7, max_tokens=4096)
+            json_data = self._extract_json(content)
+            return self._parse_llm_response(json_data)
+        except Exception as e:
+            print(f"[RequirementAnalyzer] 降级解析也失败: {e}")
             raise
     
     def _build_prompt(self, requirement_text: str) -> str:

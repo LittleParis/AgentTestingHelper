@@ -94,7 +94,7 @@ def generate_test_cases_node(state: AgentState) -> dict:
     """
     测试用例生成节点
 
-    输入：requirements
+    输入：requirements, review_suggestions, iteration_count
     输出：test_cases
     """
     print("\n[Agent] 生成测试用例...")
@@ -103,9 +103,20 @@ def generate_test_cases_node(state: AgentState) -> dict:
     all_test_cases = []
 
     requirements = state.get("requirements", [])
+    iteration = state.get("iteration_count", 0)
+    review_suggestions = state.get("review_suggestions", [])
+
+    # 第二次及以后迭代，带上上次的问题
+    improvement_hints = None
+    if iteration > 0 and review_suggestions:
+        # 限制建议数量，避免输出过长导致 JSON 解析失败
+        MAX_HINTS = 5
+        improvement_hints = review_suggestions[:MAX_HINTS]
+        print(f"  [INFO] 第 {iteration + 1} 次迭代，带入 {len(improvement_hints)} 条改进建议（共 {len(review_suggestions)} 条）")
+
     for req in requirements:
         try:
-            test_cases = generator.generate(req)
+            test_cases = generator.generate(req, improvement_hints=improvement_hints)
             all_test_cases.extend(test_cases)
             print(f"  [OK] {req['id']}: 生成 {len(test_cases)} 个用例")
         except Exception as e:

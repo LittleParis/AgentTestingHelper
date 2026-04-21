@@ -1,6 +1,6 @@
-"""测试用例生成Agent - Pydantic 版本"""
+"""测试用例生成Agent - 使用结构化输出"""
 import json
-from typing import Dict, Any, List, Union
+from typing import Dict, Any, List, Union, Optional
 from pydantic import ValidationError
 
 from core.utils.llm_client import get_llm_client
@@ -10,18 +10,23 @@ from core.models.requirement import Priority
 
 
 class TestCaseGenerator:
-    """测试用例生成Agent - Pydantic 版本"""
+    """测试用例生成Agent - 使用 LangChain 结构化输出"""
 
     def __init__(self):
         """初始化测试用例生成Agent"""
         self.llm = get_llm_client()
 
-    def generate(self, requirement: Union[Dict[str, Any], Requirement]) -> List[Dict[str, Any]]:
+    def generate(
+        self,
+        requirement: Union[Dict[str, Any], Requirement],
+        improvement_hints: Optional[List[str]] = None
+    ) -> List[Dict[str, Any]]:
         """
         基于需求生成测试用例（向后兼容接口）
 
         Args:
             requirement: 结构化需求（字典或 Requirement 模型）
+            improvement_hints: 改进提示（来自评审反馈）
 
         Returns:
             测试用例列表（字典格式）
@@ -33,17 +38,22 @@ class TestCaseGenerator:
             req = requirement
 
         # 调用新的 Pydantic 版本
-        result = self.generate_structured(req)
+        result = self.generate_structured(req, improvement_hints)
 
         # 转换为字典格式保持兼容性
         return [tc.model_dump() for tc in result.test_cases]
 
-    def generate_structured(self, requirement: Requirement) -> TestCaseGenerationResult:
+    def generate_structured(
+        self,
+        requirement: Requirement,
+        improvement_hints: Optional[List[str]] = None
+    ) -> TestCaseGenerationResult:
         """
-        基于需求生成测试用例（新版本，返回 Pydantic 模型）
+        基于需求生成测试用例（使用结构化输出）
 
         Args:
             requirement: Requirement 模型
+            improvement_hints: 改进提示（来自评审反馈）
 
         Returns:
             TestCaseGenerationResult: 结构化的测试用例生成结果
@@ -52,30 +62,61 @@ class TestCaseGenerator:
             ValueError: 当输入参数无效时
             ValidationError: 当 LLM 输出不符合预期格式时
         """
-        prompt = self._build_prompt(requirement)
+        prompt = self._build_prompt(requirement, improvement_hints)
 
         try:
-            # 调用 LLM
-            content = self.llm.chat_simple(prompt, temperature=0.7, max_tokens=4096)
+            # 使用结构化输出
+            structured_llm = self.llm.with_structured_output(TestCaseGenerationResult)
+            result = structured_llm.invoke(prompt)
 
-            # 解析 JSON 响应
-            json_data = self._extract_json(content)
-
-            # 使用 Pydantic 验证和解析
-            result = self._parse_llm_response(json_data, requirement.id)
-
-            return result
+            # 验证返回的是正确的类型
+            if isinstance(result, TestCaseGenerationResult):
+                # 确保 requirement_id 正确
+                for tc in result.test_cases:
+                    tc.requirement_id = requirement.id
+                return result
+            else:
+                # 如果返回的是字典，手动转换
+                return self._validate_and_convert(result, requirement.id)
 
         except ValidationError as e:
             print(f"[TestCaseGenerator] 数据验证失败: {e}")
-            # 降级到简单解析
-            return self._fallback_parse(json_data, requirement.id)
-        except json.JSONDecodeError as e:
-            print(f"[TestCaseGenerator] JSON 解析失败: {e}")
-            print(f"原始响应: {content}")
-            raise
+            return self._fallback_invoke(prompt, requirement.id)
         except Exception as e:
-            print(f"[TestCaseGenerator] 生成失败: {e}")
+            print(f"[TestCaseGenerator] 结构化输出失败: {e}")
+            return self._fallback_invoke(prompt, requirement.id)
+
+    def _validate_and_convert(self, data: dict, requirement_id: str) -> TestCaseGenerationResult:
+        """验证并转换字典为 TestCaseGenerationResult"""
+        test_cases = []
+        raw_test_cases = data.get("test_cases", [])
+
+        for i, tc_data in enumerate(raw_test_cases):
+            tc_data = self._ensure_test_case_fields(tc_data, requirement_id, i + 1)
+            try:
+                test_case = TestCase.model_validate(tc_data)
+                test_cases.append(test_case)
+            except ValidationError:
+                fixed_tc = self._fix_test_case_data(tc_data, requirement_id, i + 1)
+                if fixed_tc:
+                    test_cases.append(fixed_tc)
+
+        return TestCaseGenerationResult(
+            test_cases=test_cases,
+            requirement_id=requirement_id,
+            total_count=len(test_cases)
+        )
+
+    def _fallback_invoke(self, prompt: str, requirement_id: str) -> TestCaseGenerationResult:
+        """降级方案：手动解析JSON"""
+        print("[TestCaseGenerator] 使用降级解析方案")
+
+        try:
+            content = self.llm.chat_simple(prompt, temperature=0.7, max_tokens=4096)
+            json_data = self._extract_json(content)
+            return self._parse_llm_response(json_data, requirement_id)
+        except Exception as e:
+            print(f"[TestCaseGenerator] 降级解析也失败: {e}")
             raise
 
     def _dict_to_requirement(self, req_dict: Dict[str, Any]) -> Requirement:
@@ -93,12 +134,24 @@ class TestCaseGenerator:
                 ui_elements=req_dict.get("ui_elements", [])
             )
 
-    def _build_prompt(self, requirement: Requirement) -> str:
+    def _build_prompt(self, requirement: Requirement, improvement_hints: Optional[List[str]] = None) -> str:
         """构建生成 prompt"""
         req_json = requirement.model_dump_json(indent=2)
 
-        return f"""你是一个资深测试工程师。基于以下需求，生成测试用例。
+        # 构建改进提示部分
+        hints_section = ""
+        if improvement_hints:
+            hints_list = "\n".join(f"  - {hint}" for hint in improvement_hints)
+            hints_section = f"""
+## ⚠️ 上次评审发现的问题（本次必须修复）
 
+{hints_list}
+
+**重要**: 本次生成必须解决上述问题，否则评审将再次不通过。
+"""
+
+        return f"""你是一个资深测试工程师。基于以下需求，生成测试用例。
+{hints_section}
 需求信息：
 {req_json}
 

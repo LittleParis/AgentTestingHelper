@@ -250,8 +250,10 @@ class ProjectSettings(BaseSettings):
         description="LLM API端点"
     )
     llm_temperature: float = Field(default=0.7, description="LLM温度")
-    llm_max_tokens: int = Field(default=4096, description="LLM最大tokens")
+    llm_max_tokens: int = Field(default=8192, description="LLM最大tokens")
     llm_timeout: int = Field(default=60, description="LLM超时时间")
+    llm_retry_attempts: int = Field(default=3, description="LLM重试次数")
+    llm_retry_delay: float = Field(default=1.0, description="LLM重试延迟(秒)")
 
     # Midscene AI 配置
     openai_api_key: Optional[str] = Field(

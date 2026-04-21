@@ -4,6 +4,7 @@ from enum import Enum
 from datetime import datetime
 from pydantic import BaseModel, Field, model_validator
 import httpx
+import threading
 
 # 临时修复：使用已安装的包
 try:
@@ -14,6 +15,12 @@ except ImportError:
 
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage, BaseMessage
 from langchain_core.prompts import ChatPromptTemplate
+
+# 重试机制
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type, before_sleep_log
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class MessageRole(str, Enum):
@@ -92,6 +99,104 @@ class ChatResponse(BaseModel):
         return self.usage.total_tokens if self.usage else 0
 
 
+class TokenTracker:
+    """
+    全局 Token 使用追踪器
+
+    线程安全的单例，用于统计整个会话的 Token 消耗。
+    """
+    _instance = None
+    _lock = threading.Lock()
+
+    def __new__(cls):
+        if cls._instance is None:
+            with cls._lock:
+                if cls._instance is None:
+                    cls._instance = super().__new__(cls)
+                    cls._instance._initialized = False
+        return cls._instance
+
+    def __init__(self):
+        if self._initialized:
+            return
+        self._initialized = True
+        self._total_prompt_tokens = 0
+        self._total_completion_tokens = 0
+        self._call_count = 0
+        self._lock = threading.Lock()
+
+    def record(self, usage: TokenUsage) -> None:
+        """记录一次调用的 Token 使用"""
+        with self._lock:
+            self._total_prompt_tokens += usage.prompt_tokens
+            self._total_completion_tokens += usage.completion_tokens
+            self._call_count += 1
+
+    @property
+    def total_prompt_tokens(self) -> int:
+        """总输入 token 数"""
+        with self._lock:
+            return self._total_prompt_tokens
+
+    @property
+    def total_completion_tokens(self) -> int:
+        """总输出 token 数"""
+        with self._lock:
+            return self._total_completion_tokens
+
+    @property
+    def total_tokens(self) -> int:
+        """总 token 数"""
+        return self.total_prompt_tokens + self.total_completion_tokens
+
+    @property
+    def call_count(self) -> int:
+        """调用次数"""
+        with self._lock:
+            return self._call_count
+
+    def get_summary(self) -> Dict[str, Any]:
+        """获取统计摘要"""
+        return {
+            "call_count": self.call_count,
+            "total_prompt_tokens": self.total_prompt_tokens,
+            "total_completion_tokens": self.total_completion_tokens,
+            "total_tokens": self.total_tokens,
+        }
+
+    def reset(self) -> None:
+        """重置统计"""
+        with self._lock:
+            self._total_prompt_tokens = 0
+            self._total_completion_tokens = 0
+            self._call_count = 0
+
+
+# 全局 Token 追踪器实例
+_token_tracker = None
+_token_tracker_lock = threading.Lock()
+
+
+def get_token_tracker() -> TokenTracker:
+    """获取全局 Token 追踪器实例"""
+    global _token_tracker
+    if _token_tracker is None:
+        with _token_tracker_lock:
+            if _token_tracker is None:
+                _token_tracker = TokenTracker()
+    return _token_tracker
+
+
+# 可重试的异常类型
+RETRYABLE_EXCEPTIONS = (
+    httpx.TimeoutException,
+    httpx.ConnectError,
+    httpx.ReadTimeout,
+    httpx.WriteTimeout,
+    ConnectionError,
+)
+
+
 class LLMClient:
     """统一的LLM客户端 - 支持OpenAI兼容API"""
 
@@ -101,7 +206,9 @@ class LLMClient:
         model: str = None,
         base_url: str = None,
         temperature: float = None,
-        max_tokens: int = None
+        max_tokens: int = None,
+        retry_attempts: int = None,
+        retry_delay: float = None
     ):
         """
         初始化LLM客户端
@@ -112,6 +219,8 @@ class LLMClient:
             base_url: API端点 (默认从配置读取)
             temperature: 温度参数
             max_tokens: 最大token数
+            retry_attempts: 重试次数 (默认从配置读取)
+            retry_delay: 重试延迟秒数 (默认从配置读取)
         """
         # 使用统一配置
         from core.models import get_settings
@@ -122,9 +231,14 @@ class LLMClient:
         self.base_url = base_url or settings.llm_base_url
         self.temperature = temperature if temperature is not None else settings.llm_temperature
         self.max_tokens = max_tokens if max_tokens is not None else settings.llm_max_tokens
+        self.retry_attempts = retry_attempts if retry_attempts is not None else settings.llm_retry_attempts
+        self.retry_delay = retry_delay if retry_delay is not None else settings.llm_retry_delay
 
         # 初始化 LangChain ChatOpenAI
         self._llm = self._create_llm()
+
+        # Token 追踪器
+        self._token_tracker = get_token_tracker()
 
     def _create_llm(self) -> ChatOpenAI:
         """创建LangChain LLM实例"""
@@ -148,6 +262,16 @@ class LLMClient:
 
         return ChatOpenAI(**kwargs)
 
+    def _create_retry_decorator(self):
+        """创建重试装饰器"""
+        return retry(
+            stop=stop_after_attempt(self.retry_attempts),
+            wait=wait_exponential(multiplier=1, min=self.retry_delay, max=10),
+            retry=retry_if_exception_type(RETRYABLE_EXCEPTIONS),
+            before_sleep=before_sleep_log(logger, logging.WARNING),
+            reraise=True
+        )
+
     def chat(
         self,
         messages: Union[List[Message], List[Dict[str, str]]],
@@ -156,7 +280,7 @@ class LLMClient:
         return_response: bool = False
     ) -> Union[str, ChatResponse]:
         """
-        调用聊天接口
+        调用聊天接口（带重试机制）
 
         Args:
             messages: 消息列表，支持 Message 对象或字典格式
@@ -190,8 +314,14 @@ class LLMClient:
         if max_tokens is not None:
             invoke_kwargs["max_tokens"] = max_tokens
 
-        # 调用模型
-        response = self._llm.invoke(lc_messages, **invoke_kwargs)
+        # 带重试的调用
+        retry_decorator = self._create_retry_decorator()
+
+        @retry_decorator
+        def _invoke_with_retry():
+            return self._llm.invoke(lc_messages, **invoke_kwargs)
+
+        response = _invoke_with_retry()
 
         if return_response:
             # 构建完整响应
@@ -204,6 +334,8 @@ class LLMClient:
                         completion_tokens=token_usage.get("completion_tokens", 0),
                         total_tokens=token_usage.get("total_tokens", 0)
                     )
+                    # 记录到追踪器
+                    self._token_tracker.record(usage)
 
             return ChatResponse(
                 content=response.content,
@@ -266,13 +398,59 @@ class LLMClient:
         response = chain.invoke(variables)
         return response.content
 
+    def with_structured_output(self, schema):
+        """
+        绑定 Pydantic 模型，让 LLM 直接返回结构化输出
+
+        Args:
+            schema: Pydantic 模型类
+
+        Returns:
+            绑定了 schema 的 LLM 链
+
+        Example:
+            llm = get_llm_client()
+            structured_llm = llm.with_structured_output(RequirementAnalysisResult)
+            result = structured_llm.invoke(prompt)  # 直接返回 Pydantic 对象
+        """
+        return self._llm.with_structured_output(schema)
+
     @property
     def llm(self) -> ChatOpenAI:
         """获取底层LangChain LLM实例，用于LangGraph集成"""
         return self._llm
 
+    @property
+    def token_tracker(self) -> TokenTracker:
+        """获取 Token 追踪器"""
+        return self._token_tracker
 
-# 便捷函数
+
+# 单例 LLMClient
+_client_instance = None
+_client_lock = threading.Lock()
+
+
 def get_llm_client() -> LLMClient:
-    """获取LLM客户端实例"""
-    return LLMClient()
+    """
+    获取LLM客户端实例（单例模式）
+
+    线程安全的单例实现，确保整个应用共享同一个客户端实例。
+    """
+    global _client_instance
+    if _client_instance is None:
+        with _client_lock:
+            if _client_instance is None:
+                _client_instance = LLMClient()
+    return _client_instance
+
+
+def reset_llm_client() -> None:
+    """
+    重置 LLM 客户端单例
+
+    用于测试或需要重新初始化客户端的场景。
+    """
+    global _client_instance
+    with _client_lock:
+        _client_instance = None

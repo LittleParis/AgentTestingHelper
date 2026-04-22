@@ -24,8 +24,8 @@ class Priority(str, Enum):
 class Requirement(BaseModel):
     """需求模型"""
     id: str = Field(
-        pattern=r"^REQ_\d{3}$", 
-        description="需求ID，格式：REQ_001"
+        pattern=r"^REQ_\d{1,6}$",
+        description="需求ID，格式：REQ_001（支持1-6位数字）"
     )
     title: str = Field(
         min_length=1, 

@@ -41,8 +41,8 @@ class TestStep(BaseModel):
 class TestCase(BaseModel):
     """测试用例模型"""
     id: str = Field(
-        pattern=r"^TC_\d{3}$",
-        description="测试用例ID，格式：TC_001"
+        pattern=r"^TC_[\d_]+$",
+        description="测试用例ID，格式：TC_001（支持子用例格式如 TC_001_001）"
     )
     requirement_id: str = Field(
         pattern=r"^REQ_\d{3}$",
@@ -122,15 +122,12 @@ class TestCase(BaseModel):
     @classmethod
     def validate_title_format(cls, v):
         """验证标题格式"""
-        # 确保标题不以数字开头，不包含特殊字符
-        if v[0].isdigit():
-            raise ValueError("测试用例标题不能以数字开头")
-
-        invalid_chars = ['<', '>', '|', ':', '*', '?', '"']
+        v = v.strip()
+        # 只过滤文件系统不允许的字符（用于生成测试文件名）
+        invalid_chars = ['<', '>', '|', '*', '?', '"', '\n', '\r']
         for char in invalid_chars:
             if char in v:
                 raise ValueError(f"测试用例标题不能包含字符: {char}")
-
         return v
 
     def get_step_count(self) -> int:

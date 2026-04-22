@@ -7,15 +7,8 @@ from pathlib import Path
 from datetime import datetime
 from playwright.async_api import async_playwright
 
-from core.utils.project_paths import OUTPUT_DIR, GENERATED_TESTS_DIR
+from core.utils.project_paths import OUTPUT_DIR, GENERATED_TESTS_DIR, PROJECT_ROOT
 
-
-# 项目根目录
-PROJECT_ROOT = Path(__file__).parent.parent
-
-# 需要清理的目录
-OUTPUT_DIR = PROJECT_ROOT / OUTPUT_DIR
-GENERATED_TESTS_DIR = PROJECT_ROOT / GENERATED_TESTS_DIR
 
 # 时间戳正则模式: (2026-04-03_12-30-45)
 TIMESTAMP_PATTERN = re.compile(r"\(\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\)")

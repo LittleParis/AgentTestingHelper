@@ -1,8 +1,9 @@
 """测试执行器 - 执行 Midscene/Playwright 测试脚本"""
+import json
 import os
-import re
 import shutil
 import subprocess
+import tempfile
 import time
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -73,8 +74,6 @@ class TestExecutor:
                 "error": None | "错误信息"
             }
         """
-        # 保持相对路径（避免中文路径问题）
-        # 但验证文件是否存在
         abs_path = str(Path(script_path).absolute())
         if not os.path.exists(abs_path):
             return {
@@ -88,69 +87,50 @@ class TestExecutor:
                 "tests": []
             }
 
-        # 构建并执行命令
-        cmd = self._build_playwright_command(script_path)
         start_time = time.time()
-
-        # 调试：打印执行的命令
-        print(f"  [DEBUG] 执行命令: {cmd}")
+        json_report_path = None
 
         try:
-            # 设置环境变量
             env = os.environ.copy()
             if self.config.get("browsers_path"):
                 env["PLAYWRIGHT_BROWSERS_PATH"] = self.config["browsers_path"]
 
-            # 清除代理设置（解决连接问题）
             for var in ['HTTP_PROXY', 'HTTPS_PROXY', 'http_proxy', 'https_proxy', 'ALL_PROXY', 'all_proxy']:
                 env.pop(var, None)
             env['NO_PROXY'] = '*'
 
-            # 执行 Playwright
-            # 使用 shell=False 和列表参数，更可靠
-            # 让 Playwright 自己加载 .env 文件
-            cmd_list = self._build_playwright_command_args(script_path)
+            with tempfile.NamedTemporaryFile(suffix='.json', delete=False) as f:
+                json_report_path = f.name
+
+            cmd_list = self._build_playwright_command_args(script_path, json_report_path)
+            print(f"  [DEBUG] 执行命令: {' '.join(cmd_list)}")
+
             result = subprocess.run(
                 cmd_list,
                 capture_output=True,
                 timeout=self._calculate_timeout(),
                 shell=False,
                 encoding='utf-8',
-                errors='replace'  # 忽略编码错误
+                errors='replace'
             )
 
-            # 调试：将输出写入文件
-            debug_file = Path("output") / "playwright_debug.txt"
-            debug_file.parent.mkdir(exist_ok=True)
-            with open(debug_file, 'w', encoding='utf-8') as f:
-                f.write(f"returncode: {result.returncode}\n")
-                f.write(f"stdout length: {len(result.stdout)}\n")
-                f.write(f"stderr length: {len(result.stderr)}\n")
-                f.write(f"cwd: {os.getcwd()}\n")
-                f.write(f"script exists: {os.path.exists(script_path)}\n")
-                f.write("--- stdout ---\n")
-                f.write(result.stdout)
-                f.write("\n--- stderr ---\n")
-                f.write(result.stderr)
-
             duration = time.time() - start_time
-
-            # 调试：打印原始输出
             print(f"  [DEBUG] 执行耗时: {duration:.2f}秒")
             print(f"  [DEBUG] returncode: {result.returncode}")
-            print(f"  [DEBUG] stdout长度: {len(result.stdout)}")
 
-            # 解析输出
-            combined_output = result.stdout + result.stderr
-            parsed = self.parse_playwright_output(combined_output)
+            if json_report_path and os.path.exists(json_report_path):
+                parsed = self._parse_json_report(json_report_path)
+            else:
+                combined_output = result.stdout + result.stderr
+                parsed = self._parse_text_output_fallback(combined_output)
+
             parsed["duration"] = round(duration, 2)
             parsed["status"] = self._determine_execution_status(result.returncode, parsed)
-            parsed["raw_output"] = combined_output
+            parsed["raw_output"] = result.stdout + result.stderr
             parsed["stdout"] = result.stdout
             parsed["stderr"] = result.stderr
             parsed["returncode"] = result.returncode
 
-            # 调试：打印解析结果
             print(f"  [DEBUG] 解析结果: total={parsed['total']}, passed={parsed['passed']}, failed={parsed['failed']}")
 
             self._last_results = parsed
@@ -178,6 +158,12 @@ class TestExecutor:
                 "duration": time.time() - start_time,
                 "tests": []
             }
+        finally:
+            if json_report_path and os.path.exists(json_report_path):
+                try:
+                    os.unlink(json_report_path)
+                except OSError:
+                    pass
 
     def run_single_test(self, script_path: str, test_name: str) -> Dict:
         """
@@ -195,12 +181,12 @@ class TestExecutor:
         executor = TestExecutor(config)
         return executor.run_tests(script_path)
 
-    def parse_playwright_output(self, output: str) -> Dict:
+    def _parse_json_report(self, json_path: str) -> Dict:
         """
-        解析 Playwright 执行输出
+        解析 Playwright JSON 报告
 
         Args:
-            output: Playwright CLI 输出
+            json_path: JSON 报告文件路径
 
         Returns:
             解析后的结果字典
@@ -213,74 +199,60 @@ class TestExecutor:
             "tests": []
         }
 
-        # 已匹配的测试名称，避免重复
-        matched_tests = set()
+        try:
+            with open(json_path, 'r', encoding='utf-8') as f:
+                report = json.load(f)
 
-        # 匹配失败的测试: x  1 [chromium] › file:line:col › suite › test_name (duration)
-        # 注意：x 后面有空格和数字，这是 Playwright 的格式
-        failed_pattern = r"(?:x|✘)\s+\d*\s*\[.*?\].*›\s*(.+?)\s*\((\d+\.?\d*)\s*(?:ms|s)?\)"
-        for match in re.finditer(failed_pattern, output):
-            test_name = match.group(1).strip()
-            duration = float(match.group(2))
-            if test_name not in matched_tests:
-                results["tests"].append({
-                    "name": test_name,
-                    "status": "failed",
-                    "duration": duration
-                })
-                matched_tests.add(test_name)
-                results["failed"] += 1
+            stats = report.get("stats", {})
+            results["passed"] = stats.get("expected", 0)
+            results["failed"] = stats.get("unexpected", 0) + stats.get("flaky", 0)
+            results["skipped"] = stats.get("skipped", 0)
+            results["total"] = results["passed"] + results["failed"] + results["skipped"]
 
-        # 匹配通过的测试: ✓ 或 ok
-        # 格式1: ✓  [chromium] › file:line:col › suite › test_name (duration)
-        # 格式2: ok  8 [chromium] › file:line:col › suite › test_name (duration)
-        passed_pattern = r"(?:✓|ok)\s+\d*\s*\[.*?\].*›\s*(.+?)\s*\((\d+\.?\d*)\s*(?:ms|s)?\)"
-        for match in re.finditer(passed_pattern, output):
-            test_name = match.group(1).strip()
-            duration = float(match.group(2))
-            if test_name not in matched_tests:
-                results["tests"].append({
-                    "name": test_name,
-                    "status": "passed",
-                    "duration": duration
-                })
-                matched_tests.add(test_name)
-                results["passed"] += 1
+            for suite in report.get("suites", []):
+                self._extract_tests_from_suite(suite, results["tests"])
 
-        # 匹配跳过的测试: -  [chromium] › file:line:col › test_name
-        skipped_pattern = r"-\s+\[.*?\].*›\s*(.+?)(?:\s*\(\d+\.?\d*\s*(?:ms|s)?\))?"
-        for match in re.finditer(skipped_pattern, output):
-            test_name = match.group(1).strip()
-            if test_name not in matched_tests:
-                results["tests"].append({
-                    "name": test_name,
-                    "status": "skipped",
-                    "duration": 0
-                })
-                matched_tests.add(test_name)
-                results["skipped"] += 1
-
-        # 匹配汇总信息（优先使用汇总数据）
-        summary_passed = re.search(r"(\d+)\s+passed", output)
-        summary_failed = re.search(r"(\d+)\s+failed", output)
-        summary_skipped = re.search(r"(\d+)\s+skipped", output)
-
-        if summary_passed or summary_failed:
-            results["passed"] = int(summary_passed.group(1)) if summary_passed else 0
-            results["failed"] = int(summary_failed.group(1)) if summary_failed else 0
-            results["skipped"] = int(summary_skipped.group(1)) if summary_skipped else 0
-
-        results["total"] = results["passed"] + results["failed"] + results["skipped"]
+        except (json.JSONDecodeError, KeyError, TypeError) as e:
+            print(f"  [DEBUG] JSON 解析失败: {e}")
 
         return results
 
-        # 匹配汇总信息
-        # 格式: "2 passed (10.5s)" 或 "1 failed\n2 passed"
+    def _extract_tests_from_suite(self, suite: Dict, tests_list: List) -> None:
+        """递归提取测试用例信息"""
+        for spec in suite.get("specs", []):
+            for test in spec.get("tests", []):
+                test_name = test.get("title", spec.get("title", "unknown"))
+                status = test.get("status", "unknown")
+                duration = test.get("duration", 0)
+
+                tests_list.append({
+                    "name": test_name,
+                    "status": status,
+                    "duration": duration
+                })
+
+        for child_suite in suite.get("suites", []):
+            self._extract_tests_from_suite(child_suite, tests_list)
+
+    def _parse_text_output_fallback(self, output: str) -> Dict:
+        """
+        降级方案：解析 Playwright 文本输出
+        仅在 JSON 报告不可用时使用
+        """
+        import re
+
+        results = {
+            "total": 0,
+            "passed": 0,
+            "failed": 0,
+            "skipped": 0,
+            "tests": []
+        }
+
         summary_passed = re.search(r"(\d+)\s+passed", output)
         summary_failed = re.search(r"(\d+)\s+failed", output)
         summary_skipped = re.search(r"(\d+)\s+skipped", output)
 
-        # 如果汇总信息存在，使用汇总数据（更准确）
         if summary_passed or summary_failed:
             results["passed"] = int(summary_passed.group(1)) if summary_passed else 0
             results["failed"] = int(summary_failed.group(1)) if summary_failed else 0
@@ -345,40 +317,43 @@ class TestExecutor:
         parts = [
             "npx playwright test",
             f'"{normalized_script_path}"',
-            # 不覆盖 reporter，使用 playwright.config.ts 中的配置（包含 allure-playwright）
             f"--timeout={self.config['timeout']}",
             f"--retries={self.config['retries']}",
         ]
 
-        # 有头模式
         if self.config.get("headed"):
             parts.append("--headed")
 
-        # 项目配置
         if self.config.get("project"):
             parts.append(f"--project={self.config['project']}")
 
-        # grep 过滤
         if self.config.get("grep"):
             parts.append(f'--grep "{self.config["grep"]}"')
 
-        # workers
         if self.config.get("workers", 1) > 1:
             parts.append(f"--workers={self.config['workers']}")
 
         return " ".join(parts)
 
-    def _build_playwright_command_args(self, script_path: str) -> List[str]:
+    def _build_playwright_command_args(self, script_path: str, json_report_path: str) -> List[str]:
         """构建 subprocess 可直接执行的命令参数列表。"""
         npx_executable = self._resolve_npx_executable()
         normalized_script_path = Path(script_path).as_posix()
+
+        # 获取项目根目录，用于定位配置文件
+        project_root = self._get_project_root()
+        config_path = Path(project_root) / "config" / "playwright.config.ts"
+
         parts = [
             npx_executable,
             "playwright",
             "test",
             normalized_script_path,
+            f"--config={config_path.as_posix()}",
             f"--timeout={self.config['timeout']}",
             f"--retries={self.config['retries']}",
+            f"--reporter=json",
+            f"--output={json_report_path}",
         ]
 
         if self.config.get("headed"):

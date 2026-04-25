@@ -51,9 +51,11 @@ class RequirementAnalyzer:
         prompt = self._build_prompt(requirement_text)
 
         try:
-            # 使用结构化输出
-            structured_llm = self.llm.with_structured_output(RequirementAnalysisResult)
-            result = structured_llm.invoke(prompt)
+            result = self.llm.invoke_structured(
+                RequirementAnalysisResult,
+                prompt,
+                operation="requirement_analysis",
+            )
 
             # 验证返回的是正确的类型
             if isinstance(result, RequirementAnalysisResult):

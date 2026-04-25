@@ -60,9 +60,11 @@ class CaseReviewer:
         prompt = self._build_review_prompt(requirement, test_cases)
 
         try:
-            # 使用结构化输出
-            structured_llm = self.llm.with_structured_output(ReviewResult)
-            result = structured_llm.invoke(prompt)
+            result = self.llm.invoke_structured(
+                ReviewResult,
+                prompt,
+                operation=f"case_review_{requirement.id}",
+            )
 
             # 验证返回的是正确的类型
             if isinstance(result, ReviewResult):

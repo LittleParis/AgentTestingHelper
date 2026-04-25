@@ -355,4 +355,11 @@ def get_settings() -> ProjectSettings:
     global _settings_instance
     if _settings_instance is None:
         _settings_instance = ProjectSettings()
+        # 启动时检查关键配置
+        if not _settings_instance.llm_api_key:
+            raise ValueError(
+                "LLM_KEY 未配置，请在 .env 文件中设置：\n"
+                "  LLM_KEY=your_api_key_here\n"
+                "  LLM_MODEL=gpt-3.5-turbo"
+            )
     return _settings_instance

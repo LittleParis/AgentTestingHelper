@@ -1,145 +1,222 @@
-"""
-Agent 工作流 - 基于 LangGraph 的多 Agent 协作
+"""Agent workflow orchestration built on top of LangGraph."""
 
-阶段2核心功能：
-- 状态管理：多个 Agent 共享状态
-- 协作流程：需求分析 → 用例生成 → 用例评审
+from __future__ import annotations
 
-阶段3扩展：
-- 脚本生成：测试用例 → Midscene 脚本
-- 测试执行：执行脚本并收集结果
-- 报告生成：Allure 测试报告
-"""
 import os
+from pathlib import Path
+from typing import Annotated, Any, Dict, List, Optional, TypedDict
 
-# 清除代理设置（解决连接问题）
-for _var in ['HTTP_PROXY', 'HTTPS_PROXY', 'http_proxy', 'https_proxy', 'ALL_PROXY', 'all_proxy']:
-    os.environ.pop(_var, None)
-os.environ['NO_PROXY'] = '*'
+from langgraph.graph import END, StateGraph
+from langgraph.types import Overwrite, Send
 
-from typing import TypedDict, List, Optional
-from langgraph.graph import StateGraph, END
-
+from core.agents.case_reviewer import CaseReviewer
 from core.agents.requirement_analyzer import RequirementAnalyzer
 from core.agents.test_case_generator import TestCaseGenerator
-from core.agents.case_reviewer import CaseReviewer
+from core.automation.allure_reporter import AllureReporter
 from core.automation.midscene_generator import MidsceneScriptGenerator
 from core.automation.test_executor import TestExecutor
-from core.automation.allure_reporter import AllureReporter
 from core.utils.project_paths import GENERATED_TESTS_DIR
 
 
-# ============ 状态定义 ============
-
-class AgentState(TypedDict):
-    """Agent 共享状态
-
-    所有 Agent 都可以读取和修改这个状态
-    """
-    # 输入
-    requirement_text: str                    # 原始需求文档文本
-
-    # 需求分析结果
-    requirements: Optional[List[dict]]       # 结构化需求列表
-    requirement_summary: Optional[str]       # 需求摘要
-
-    # 测试用例
-    test_cases: Optional[List[dict]]         # 生成的测试用例
-
-    # 评审结果
-    review_passed: Optional[bool]            # 评审是否通过
-    review_score: Optional[float]            # 评审分数 (0-100)
-    review_comments: Optional[List[dict]]    # 评审意见
-    review_suggestions: Optional[List[str]]  # 改进建议
-
-    # 反馈与迭代
-    iteration_count: int                     # 迭代次数
-    max_iterations: int                      # 最大迭代次数
-    feedback: Optional[List[str]]            # 反馈信息
-
-    # 阶段3新增：脚本生成与执行
-    generated_script: Optional[str]          # 生成的测试脚本路径
-    page_url: Optional[str]                  # 目标页面 URL
-    execution_results: Optional[dict]        # 测试执行结果
-    allure_report_path: Optional[str]        # Allure 报告路径
-
-    # 执行状态
-    current_step: str                        # 当前步骤
-    agent_messages: List[dict]               # Agent 间消息（自定义格式）
+def _merge_lists(left: Optional[List[dict]], right: Optional[List[dict]]) -> List[dict]:
+    """Reducer used by LangGraph when multiple parallel nodes update the same list field."""
+    return [*(left or []), *(right or [])]
 
 
-# ============ Agent 节点函数 ============
+class AgentState(TypedDict, total=False):
+    """Shared workflow state."""
+
+    requirement_text: str
+    requirements: Optional[List[dict]]
+    requirement_summary: Optional[str]
+    test_cases: Annotated[List[dict], _merge_lists]
+
+    review_passed: Optional[bool]
+    review_score: Optional[float]
+    review_comments: Optional[List[dict]]
+    review_suggestions: Optional[List[str]]
+
+    iteration_count: int
+    max_iterations: int
+    feedback: Optional[List[str]]
+
+    generated_script: Optional[str]
+    page_url: Optional[str]
+    scenario_config: Optional[dict]
+    execution_results: Optional[dict]
+    allure_report_path: Optional[str]
+
+    current_step: str
+    agent_messages: Annotated[List[dict], _merge_lists]
+
+
+class SingleRequirementGenerationState(TypedDict):
+    """Input schema for a single parallel test-case generation task."""
+
+    requirement: dict
+    improvement_hints: Optional[List[str]]
+    iteration_count: int
+
+
+class ScenarioConfig(TypedDict, total=False):
+    """Optional runtime constraints for a workflow execution."""
+
+    scenario_type: str
+    page_url: str
+    credentials: Dict[str, Any]
+    success_signal: Dict[str, Any]
+    manual_wait: bool
+    mfa_mode: str
+    allowed_actions: List[str]
+    forbidden_actions: List[str]
+    manual_wait_timeout_ms: int
+
+
+def _get_improvement_hints(state: AgentState) -> Optional[List[str]]:
+    """Limit review feedback before passing it back into the generator."""
+    iteration = state.get("iteration_count", 0)
+    review_suggestions = state.get("review_suggestions") or []
+
+    if iteration <= 0 or not review_suggestions:
+        return None
+
+    max_hints = 5
+    return review_suggestions[:max_hints]
+
 
 def analyze_requirements_node(state: AgentState) -> dict:
-    """
-    需求分析节点
-
-    输入：requirement_text
-    输出：requirements, requirement_summary
-    """
-    print("\n[Agent] 需求分析中...")
+    """Analyze the requirement document."""
+    print("\n[Agent] Analyzing requirements...")
 
     analyzer = RequirementAnalyzer()
     result = analyzer.analyze(state["requirement_text"])
+    requirements = result.get("requirements", [])
 
     return {
-        "requirements": result.get("requirements", []),
+        "requirements": requirements,
         "requirement_summary": result.get("summary", ""),
         "current_step": "requirement_analyzed",
-        "agent_messages": [{"role": "analyzer", "content": f"识别到 {len(result.get('requirements', []))} 个需求"}]
+        "agent_messages": [
+            {
+                "role": "analyzer",
+                "content": f"Identified {len(requirements)} requirements.",
+            }
+        ],
     }
 
 
 def generate_test_cases_node(state: AgentState) -> dict:
-    """
-    测试用例生成节点
+    """Prepare parallel test-case generation."""
+    print("\n[Agent] Dispatching parallel test-case generation...")
 
-    输入：requirements, review_suggestions, iteration_count
-    输出：test_cases
-    """
-    print("\n[Agent] 生成测试用例...")
+    requirements = state.get("requirements") or []
+    improvement_hints = _get_improvement_hints(state)
 
-    generator = TestCaseGenerator()
-    all_test_cases = []
-
-    requirements = state.get("requirements", [])
-    iteration = state.get("iteration_count", 0)
-    review_suggestions = state.get("review_suggestions", [])
-
-    # 第二次及以后迭代，带上上次的问题
-    improvement_hints = None
-    if iteration > 0 and review_suggestions:
-        # 限制建议数量，避免输出过长导致 JSON 解析失败
-        MAX_HINTS = 5
-        improvement_hints = review_suggestions[:MAX_HINTS]
-        print(f"  [INFO] 第 {iteration + 1} 次迭代，带入 {len(improvement_hints)} 条改进建议（共 {len(review_suggestions)} 条）")
-
-    for req in requirements:
-        try:
-            test_cases = generator.generate(req, improvement_hints=improvement_hints)
-            all_test_cases.extend(test_cases)
-            print(f"  [OK] {req['id']}: 生成 {len(test_cases)} 个用例")
-        except Exception as e:
-            print(f"  [FAIL] {req['id']}: {e}")
+    if improvement_hints:
+        print(
+            "  [INFO] Iteration "
+            f"{state.get('iteration_count', 0) + 1}: injecting {len(improvement_hints)} review hints."
+        )
 
     return {
-        "test_cases": all_test_cases,
+        "test_cases": Overwrite([]),
+        "current_step": "test_case_generation_dispatched",
+        "agent_messages": [
+            {
+                "role": "generator",
+                "content": f"Dispatching {len(requirements)} requirements for parallel generation.",
+            }
+        ],
+    }
+
+
+def fan_out_requirements(state: AgentState):
+    """Fan out test-case generation work across requirements."""
+    requirements = state.get("requirements") or []
+    if not requirements:
+        return "finalize_test_case_generation"
+
+    improvement_hints = _get_improvement_hints(state)
+    iteration_count = state.get("iteration_count", 0)
+
+    return [
+        Send(
+            "generate_test_case_for_requirement",
+            {
+                "requirement": requirement,
+                "improvement_hints": improvement_hints,
+                "iteration_count": iteration_count,
+            },
+        )
+        for requirement in requirements
+    ]
+
+
+def generate_test_case_for_requirement_node(
+    state: SingleRequirementGenerationState,
+) -> dict:
+    """Generate test cases for a single requirement."""
+    requirement = state["requirement"]
+    requirement_id = requirement.get("id", "UNKNOWN_REQ")
+    generator = TestCaseGenerator()
+
+    try:
+        test_cases = generator.generate(
+            requirement,
+            improvement_hints=state.get("improvement_hints"),
+        )
+        print(f"  [OK] {requirement_id}: generated {len(test_cases)} test cases.")
+        return {
+            "test_cases": test_cases,
+            "agent_messages": [
+                {
+                    "role": "generator",
+                    "content": f"{requirement_id}: generated {len(test_cases)} test cases.",
+                }
+            ],
+        }
+    except Exception as exc:  # pragma: no cover - defensive fallback
+        print(f"  [FAIL] {requirement_id}: {exc}")
+        return {
+            "agent_messages": [
+                {
+                    "role": "generator",
+                    "content": f"{requirement_id}: generation failed with {exc}",
+                }
+            ],
+        }
+
+
+def finalize_test_case_generation_node(state: AgentState) -> dict:
+    """Mark the parallel generation step as complete."""
+    test_cases = state.get("test_cases") or []
+    requirements = state.get("requirements") or []
+
+    print(
+        "\n[Agent] Parallel generation complete: "
+        f"{len(requirements)} requirements, {len(test_cases)} test cases."
+    )
+
+    return {
         "current_step": "test_cases_generated",
-        "agent_messages": [{"role": "generator", "content": f"共生成 {len(all_test_cases)} 个测试用例"}]
+        "agent_messages": [
+            {
+                "role": "generator",
+                "content": (
+                    f"Parallel generation complete: {len(requirements)} requirements, "
+                    f"{len(test_cases)} test cases."
+                ),
+            }
+        ],
     }
 
 
 def review_test_cases_node(state: AgentState) -> dict:
-    """
-    测试用例评审节点（使用 LLM 智能评审）
+    """Review generated test cases."""
+    print("\n[Agent] Reviewing generated test cases...")
 
-    输入：requirements, test_cases
-    输出：review_passed, review_score, review_comments, review_suggestions
-    """
-    print("\n[Agent] 评审测试用例（LLM 智能评审）...")
-
-    requirements = state.get("requirements", [])
-    test_cases = state.get("test_cases", [])
+    requirements = state.get("requirements") or []
+    test_cases = state.get("test_cases") or []
 
     try:
         reviewer = CaseReviewer()
@@ -148,27 +225,23 @@ def review_test_cases_node(state: AgentState) -> dict:
         passed = result.get("passed", False)
         score = result.get("total_score", 0)
         details = result.get("details", [])
-        summary = result.get("summary", "")
 
-        # 汇总所有评审意见
-        all_comments = []
-        all_suggestions = []
+        all_comments: List[dict] = []
+        all_suggestions: List[str] = []
 
         for detail in details:
-            req_id = detail.get("requirement_id", "")
+            requirement_id = detail.get("requirement_id", "")
             for comment in detail.get("comments", []):
-                comment["requirement_id"] = req_id
+                comment["requirement_id"] = requirement_id
                 all_comments.append(comment)
-
-            # 收集改进建议
             for suggestion in detail.get("suggestions", []):
-                all_suggestions.append(f"[{req_id}] {suggestion}")
+                all_suggestions.append(f"[{requirement_id}] {suggestion}")
 
         if passed:
-            print(f"  [OK] 评审通过，得分: {score}")
+            print(f"  [OK] Review passed with score {score}.")
         else:
-            print(f"  [WARN] 评审未通过，得分: {score}")
-            print(f"  发现 {len(all_comments)} 个问题")
+            print(f"  [WARN] Review failed with score {score}.")
+            print(f"  Found {len(all_comments)} issues.")
 
         return {
             "review_passed": passed,
@@ -176,338 +249,319 @@ def review_test_cases_node(state: AgentState) -> dict:
             "review_comments": all_comments,
             "review_suggestions": all_suggestions,
             "current_step": "reviewed",
-            "agent_messages": [{
-                "role": "reviewer",
-                "content": f"评审{'通过' if passed else '未通过'}，得分: {score}/100"
-            }]
+            "agent_messages": [
+                {
+                    "role": "reviewer",
+                    "content": f"Review {'passed' if passed else 'failed'} with score {score}/100.",
+                }
+            ],
         }
 
-    except Exception as e:
-        print(f"  [ERROR] LLM 评审失败: {e}")
-        # 降级到简单规则评审
+    except Exception as exc:
+        print(f"  [ERROR] Review failed unexpectedly: {exc}")
         return _simple_review(requirements, test_cases)
 
 
-# ============ 路由函数 ============
-
 def should_regenerate(state: AgentState) -> str:
-    """
-    决定是否需要重新生成测试用例
-
-    Returns:
-        "regenerate": 返回用例生成节点
-        "end": 结束流程
-    """
+    """Decide whether the workflow should iterate again."""
     iteration = state.get("iteration_count", 0)
     max_iterations = state.get("max_iterations", 2)
 
-    # 超过最大迭代次数，强制结束
     if iteration >= max_iterations:
-        print(f"\n[Workflow] 达到最大迭代次数 {max_iterations}，结束流程")
+        print(f"\n[Workflow] Reached max iterations ({max_iterations}).")
         return "end"
 
-    # 评审通过，结束
     if state.get("review_passed", False):
         return "end"
 
-    # 评审未通过，需要重新生成
     return "regenerate"
 
 
 def increment_iteration(state: AgentState) -> dict:
-    """增加迭代计数"""
+    """Increment the iteration counter."""
     return {"iteration_count": state.get("iteration_count", 0) + 1}
 
+
 def _simple_review(requirements: List[dict], test_cases: List[dict]) -> dict:
-    """
-    简单规则评审（降级方案）
-    """
-    print("  [INFO] 使用简单规则评审...")
+    """Fallback review when the LLM-based reviewer is unavailable."""
+    print("  [INFO] Falling back to rule-based review.")
 
     comments = []
     passed = True
     score = 100
 
-    # 检查1：每个需求是否有对应的测试用例
-    req_ids = {req["id"] for req in requirements}
-    tc_req_ids = set()
-    for tc in test_cases:
-        tc_id = tc.get("id", "")
-        if tc_id.startswith("TC_"):
-            req_num = tc_id.split("_")[1]
-            tc_req_ids.add(f"REQ_{req_num}")
+    requirement_ids = {req["id"] for req in requirements if "id" in req}
+    test_case_requirement_ids = set()
+    for test_case in test_cases:
+        test_case_id = test_case.get("id", "")
+        if test_case_id.startswith("TC_"):
+            parts = test_case_id.split("_")
+            if len(parts) > 1:
+                test_case_requirement_ids.add(f"REQ_{parts[1]}")
 
-    missing_reqs = req_ids - tc_req_ids
-    if missing_reqs:
+    missing_requirements = requirement_ids - test_case_requirement_ids
+    if missing_requirements:
         passed = False
         score -= 20
-        comments.append({
-            "type": "missing_coverage",
-            "severity": "high",
-            "message": f"以下需求缺少测试用例: {missing_reqs}"
-        })
+        comments.append(
+            {
+                "type": "missing_coverage",
+                "severity": "high",
+                "message": f"Missing test-case coverage for requirements: {sorted(missing_requirements)}",
+            }
+        )
 
-    # 检查2：测试用例是否有预期结果
-    for tc in test_cases:
-        if not tc.get("expected"):
+    for test_case in test_cases:
+        if not test_case.get("expected"):
             score -= 5
-            comments.append({
-                "type": "missing_expected",
-                "severity": "medium",
-                "message": f"{tc['id']} 缺少预期结果"
-            })
+            comments.append(
+                {
+                    "type": "missing_expected",
+                    "severity": "medium",
+                    "message": f"{test_case.get('id', 'UNKNOWN_TC')} has no expected result.",
+                }
+            )
 
-    # 检查3：测试用例数量合理性
     if len(test_cases) < len(requirements):
         passed = False
         score -= 20
-        comments.append({
-            "type": "insufficient_cases",
-            "severity": "high",
-            "message": f"测试用例数量({len(test_cases)})少于需求数量({len(requirements)})"
-        })
+        comments.append(
+            {
+                "type": "insufficient_cases",
+                "severity": "high",
+                "message": (
+                    f"Generated test cases ({len(test_cases)}) are fewer than "
+                    f"requirements ({len(requirements)})."
+                ),
+            }
+        )
+
+    score = max(score, 0)
 
     return {
         "review_passed": passed,
-        "review_score": max(score, 0),
+        "review_score": score,
         "review_comments": comments,
         "review_suggestions": [],
         "current_step": "reviewed",
-        "agent_messages": [{
-            "role": "reviewer",
-            "content": f"评审{'通过' if passed else '未通过'}，得分: {max(score, 0)}/100"
-        }]
+        "agent_messages": [
+            {
+                "role": "reviewer",
+                "content": f"Fallback review {'passed' if passed else 'failed'} with score {score}/100.",
+            }
+        ],
     }
 
 
 def optimize_test_cases_node(state: AgentState) -> dict:
-    """优化测试用例"""
-    test_cases = state["test_cases"]
-
-    # 优化逻辑
+    """Keep a small compatibility optimization hook."""
     optimized = []
-    for tc in test_cases:
-        # 添加缺失的字段
-        if "priority" not in tc:
-            tc["priority"] = "medium"
-        optimized.append(tc)
-
+    for test_case in state.get("test_cases", []):
+        if "priority" not in test_case:
+            test_case["priority"] = "medium"
+        optimized.append(test_case)
     return {"test_cases": optimized}
 
 
-# ============ 阶段3新增节点 ============
-
 def generate_script_node(state: AgentState) -> dict:
-    """
-    脚本生成节点
+    """Generate a Midscene/Playwright script."""
+    print("\n[Agent] Generating Midscene test script...")
 
-    输入：test_cases, page_url
-    输出：generated_script
-    """
-    print("\n[Agent] 生成 Midscene 测试脚本...")
-
-    test_cases = state.get("test_cases", [])
+    test_cases = state.get("test_cases") or []
     page_url = state.get("page_url", "https://example.com")
 
     if not test_cases:
-        print("  [WARN] 没有测试用例，跳过脚本生成")
-        return {
-            "generated_script": None,
-            "current_step": "script_skipped"
-        }
+        print("  [WARN] No test cases available; skipping script generation.")
+        return {"generated_script": None, "current_step": "script_skipped"}
 
-    # 生成脚本
-    generator = MidsceneScriptGenerator(output_dir=str(GENERATED_TESTS_DIR))
-    script_path = generator.generate(test_cases, page_url=page_url)
+    scenario_config = state.get("scenario_config")
 
-    # 验证脚本是否真的存在
-    import os
+    generator = MidsceneScriptGenerator(output_dir=str(GENERATED_TESTS_DIR), use_llm=False)
+    script_path = generator.generate(
+        test_cases,
+        page_url=page_url,
+        scenario_config=scenario_config,
+    )
+
     abs_path = os.path.abspath(script_path)
     exists = os.path.exists(abs_path)
-    print(f"  [DEBUG] 生成的脚本路径: {script_path}")
-    print(f"  [DEBUG] 绝对路径: {abs_path}")
-    print(f"  [DEBUG] 文件存在: {exists}")
+    print(f"  [DEBUG] Script path: {script_path}")
+    print(f"  [DEBUG] Absolute path: {abs_path}")
+    print(f"  [DEBUG] Exists: {exists}")
 
     if not exists:
-        print(f"  [ERROR] 脚本文件不存在!")
-        return {
-            "generated_script": None,
-            "current_step": "script_failed"
-        }
+        print("  [ERROR] Generated script file does not exist.")
+        return {"generated_script": None, "current_step": "script_failed"}
 
-    print(f"  [OK] 脚本已生成: {script_path}")
-
+    print(f"  [OK] Script generated: {script_path}")
     return {
         "generated_script": script_path,
         "current_step": "script_generated",
-        "agent_messages": [{"role": "generator", "content": f"生成测试脚本: {script_path}"}]
+        "agent_messages": [
+            {"role": "generator", "content": f"Generated test script: {script_path}"}
+        ],
     }
 
 
 def execute_tests_node(state: AgentState) -> dict:
-    """
-    测试执行节点
-
-    输入：generated_script
-    输出：execution_results
-    """
-    print("\n[Agent] 执行测试脚本...")
+    """Execute the generated browser tests."""
+    print("\n[Agent] Executing test script...")
 
     script_path = state.get("generated_script")
-
     if not script_path:
-        print("  [WARN] 没有测试脚本，跳过执行")
-        return {
-            "execution_results": None,
-            "current_step": "execution_skipped"
+        print("  [WARN] No generated script available; skipping execution.")
+        return {"execution_results": None, "current_step": "execution_skipped"}
+
+    abs_path = os.path.abspath(script_path)
+    print(f"  [DEBUG] Script path: {script_path}")
+    print(f"  [DEBUG] Absolute path: {abs_path}")
+    print(f"  [DEBUG] Exists: {os.path.exists(abs_path)}")
+
+    executor = TestExecutor(
+        config={
+            "headed": True,
+            "timeout": 180000,
+        }
+    )
+    result = executor.run_tests(script_path)
+    scenario_config = state.get("scenario_config") or {}
+    if scenario_config:
+        result["scenario_type"] = scenario_config.get("scenario_type")
+        result["success_signal"] = scenario_config.get("success_signal")
+        result["metadata"] = {
+            "scenario_type": scenario_config.get("scenario_type"),
+            "success_signal": scenario_config.get("success_signal"),
+            "manual_wait": bool(
+                scenario_config.get("manual_wait")
+                or scenario_config.get("mfa_mode") == "manual_wait"
+            ),
+            "forbidden_actions": scenario_config.get("forbidden_actions") or [],
         }
 
-    # 调试：检查脚本是否存在
-    import os
-    abs_path = os.path.abspath(script_path)
-    print(f"  [DEBUG] 脚本路径: {script_path}")
-    print(f"  [DEBUG] 绝对路径: {abs_path}")
-    print(f"  [DEBUG] 文件存在: {os.path.exists(abs_path)}")
-
-    # 执行测试
-    executor = TestExecutor(config={
-        "headed": True,      # 有头模式，方便调试
-        "timeout": 180000,   # 180秒超时（Midscene AI 需要更长时间）
-    })
-
-    result = executor.run_tests(script_path)
-
-    # 如果运行环境在真正执行前就失败，按测试用例数写入兜底 Allure 失败结果，
-    # 保证全流程仍能产生失败统计和报告。
     if result.get("status") == "error" and result.get("total", 0) == 0:
         reporter = AllureReporter(results_dir="allure-results", report_dir="allure-report")
+        fallback_test_cases = state.get("test_cases") or []
+        if scenario_config.get("scenario_type") == "login_only" and fallback_test_cases:
+            fallback_test_cases = fallback_test_cases[:1]
         fallback = reporter.write_fallback_results(
-            test_cases=state.get("test_cases", []) or [],
-            error_message=result.get("error") or result.get("stderr") or result.get("raw_output") or "测试执行失败",
+            test_cases=fallback_test_cases,
+            error_message=(
+                result.get("error")
+                or result.get("stderr")
+                or result.get("raw_output")
+                or "Test execution failed."
+            ),
             script_path=script_path,
+            metadata=result.get("metadata"),
         )
         if fallback["created"] > 0:
-            result.update({
-                "status": "failed",
-                "total": fallback["total"],
-                "passed": fallback["passed"],
-                "failed": fallback["failed"],
-                "skipped": fallback["skipped"],
-            })
-            print(f"  [WARN] 执行器未产出测试结果，已写入 {fallback['created']} 条兜底失败结果")
+            result.update(
+                {
+                    "status": "failed",
+                    "total": fallback["total"],
+                    "passed": fallback["passed"],
+                    "failed": fallback["failed"],
+                    "skipped": fallback["skipped"],
+                }
+            )
+            print(
+                "  [WARN] Executor did not emit test results; "
+                f"wrote {fallback['created']} fallback Allure results."
+            )
 
-    # 打印结果摘要
-    print(f"  [OK] 执行完成")
-    print(f"       总数: {result['total']}")
-    print(f"       通过: {result['passed']}")
-    print(f"       失败: {result['failed']}")
-    print(f"       耗时: {result['duration']}秒")
+    print("  [OK] Execution finished")
+    print(f"       Total: {result['total']}")
+    print(f"       Passed: {result['passed']}")
+    print(f"       Failed: {result['failed']}")
+    print(f"       Duration: {result['duration']}s")
 
     return {
         "execution_results": result,
         "current_step": "tests_executed",
-        "agent_messages": [{
-            "role": "executor",
-            "content": f"执行完成: {result['passed']}/{result['total']} 通过"
-        }]
+        "agent_messages": [
+            {
+                "role": "executor",
+                "content": f"Execution finished: {result['passed']}/{result['total']} passed.",
+            }
+        ],
     }
 
 
 def generate_report_node(state: AgentState) -> dict:
-    """
-    报告生成节点
-
-    输入：execution_results
-    输出：allure_report_path
-    """
-    print("\n[Agent] 生成 Allure 测试报告...")
+    """Generate the Allure report."""
+    print("\n[Agent] Generating Allure report...")
 
     reporter = AllureReporter(results_dir="allure-results", report_dir="allure-report")
-
-    # 检查 Allure 是否安装
     if not reporter.check_allure_installed():
-        print("  [WARN] Allure 未安装，跳过报告生成")
-        print("  安装命令: npm install -g allure-commandline")
-        return {
-            "allure_report_path": None,
-            "current_step": "report_skipped"
-        }
+        print("  [WARN] Allure is not installed; skipping report generation.")
+        print("  Install with: npm install -g allure-commandline")
+        return {"allure_report_path": None, "current_step": "report_skipped"}
 
-    # 生成报告
+    results_dir = Path(reporter.results_dir)
+    has_result_files = results_dir.exists() and any(results_dir.glob("*result*.json"))
+    execution_results = state.get("execution_results") or {}
+
+    if not has_result_files and execution_results.get("tests"):
+        created = reporter.write_results_from_execution(
+            execution_results=execution_results,
+            script_path=state.get("generated_script"),
+        )
+        if created["created"] > 0:
+            print(
+                "  [INFO] Materialized "
+                f"{created['created']} Allure result files from execution results."
+            )
+
     result = reporter.generate_report()
-
     if result["status"] == "success":
-        print(f"  [OK] 报告已生成: {result['report_path']}")
+        print(f"  [OK] Report generated: {result['report_path']}")
         return {
             "allure_report_path": result["report_path"],
             "current_step": "report_generated",
-            "agent_messages": [{
-                "role": "reporter",
-                "content": f"Allure 报告已生成"
-            }]
-        }
-    else:
-        print(f"  [WARN] 报告生成失败: {result['error']}")
-        return {
-            "allure_report_path": None,
-            "current_step": "report_failed"
+            "agent_messages": [
+                {"role": "reporter", "content": "Generated Allure report successfully."}
+            ],
         }
 
+    print(f"  [WARN] Report generation failed: {result['error']}")
+    return {"allure_report_path": None, "current_step": "report_failed"}
 
-# ============ 构建工作流图 ============
 
 def build_workflow() -> StateGraph:
-    """
-    构建 Agent 协作工作流
-
-    阶段2流程:
-        START → analyze_requirements → generate_test_cases → review_test_cases
-                                                                      ↓
-                                                              should_regenerate?
-                                                              ↙        ↘
-                                                    regenerate         END
-                                                        ↓
-                                                generate_test_cases
-
-    阶段3扩展:
-        ... → review_test_cases (通过) → generate_script → execute_tests → generate_report → END
-    """
-    # 创建状态图
+    """Build the full LangGraph workflow."""
     workflow = StateGraph(AgentState)
 
-    # 添加节点
     workflow.add_node("analyze_requirements", analyze_requirements_node)
     workflow.add_node("generate_test_cases", generate_test_cases_node)
+    workflow.add_node(
+        "generate_test_case_for_requirement",
+        generate_test_case_for_requirement_node,
+        input_schema=SingleRequirementGenerationState,
+    )
+    workflow.add_node("finalize_test_case_generation", finalize_test_case_generation_node)
     workflow.add_node("review_test_cases", review_test_cases_node)
     workflow.add_node("increment_iteration", increment_iteration)
-    # 阶段3新增节点
     workflow.add_node("generate_script", generate_script_node)
     workflow.add_node("execute_tests", execute_tests_node)
     workflow.add_node("generate_report", generate_report_node)
 
-    # 设置入口
     workflow.set_entry_point("analyze_requirements")
 
-    # 添加边
     workflow.add_edge("analyze_requirements", "generate_test_cases")
-    workflow.add_edge("generate_test_cases", "review_test_cases")
+    workflow.add_conditional_edges("generate_test_cases", fan_out_requirements)
+    workflow.add_edge("generate_test_case_for_requirement", "finalize_test_case_generation")
+    workflow.add_edge("finalize_test_case_generation", "review_test_cases")
 
-    # 条件边：评审后决定下一步
-    # 通过 → 生成脚本 → 执行测试 → 生成报告 → END
-    # 不通过 → 迭代重新生成
     workflow.add_conditional_edges(
         "review_test_cases",
         should_regenerate,
         {
             "regenerate": "increment_iteration",
-            "end": "generate_script"  # 评审通过，进入脚本生成
-        }
+            "end": "generate_script",
+        },
     )
 
-    # 迭代后重新生成
     workflow.add_edge("increment_iteration", "generate_test_cases")
-
-    # 阶段3新增边：脚本生成 → 测试执行 → 报告生成 → END
     workflow.add_edge("generate_script", "execute_tests")
     workflow.add_edge("execute_tests", "generate_report")
     workflow.add_edge("generate_report", END)
@@ -515,24 +569,22 @@ def build_workflow() -> StateGraph:
     return workflow
 
 
-def run_workflow(requirement_text: str, max_iterations: int = 2, page_url: str = "https://example.com") -> AgentState:
-    """
-    运行 Agent 协作工作流
+def run_workflow(
+    requirement_text: str,
+    max_iterations: int = 2,
+    page_url: str = "https://example.com",
+    scenario_config: Optional[ScenarioConfig] = None,
+) -> AgentState:
+    """Run the end-to-end workflow."""
+    resolved_page_url = page_url
+    if scenario_config and scenario_config.get("page_url"):
+        resolved_page_url = str(scenario_config["page_url"])
 
-    Args:
-        requirement_text: 需求文档文本
-        max_iterations: 最大迭代次数
-        page_url: 目标页面 URL（阶段3新增）
-
-    Returns:
-        最终状态
-    """
-    # 初始状态
     initial_state: AgentState = {
         "requirement_text": requirement_text,
         "requirements": None,
         "requirement_summary": None,
-        "test_cases": None,
+        "test_cases": [],
         "review_passed": None,
         "review_score": None,
         "review_comments": None,
@@ -540,61 +592,57 @@ def run_workflow(requirement_text: str, max_iterations: int = 2, page_url: str =
         "iteration_count": 0,
         "max_iterations": max_iterations,
         "feedback": [],
-        # 阶段3新增
         "generated_script": None,
-        "page_url": page_url,
+        "page_url": resolved_page_url,
+        "scenario_config": scenario_config,
         "execution_results": None,
         "allure_report_path": None,
         "current_step": "init",
-        "agent_messages": []
+        "agent_messages": [],
     }
 
-    # 构建并编译工作流
     workflow = build_workflow()
     app = workflow.compile()
 
-    # 运行
     print("=" * 60)
-    print("Agent 协作工作流启动")
+    print("Agent workflow started")
     print("=" * 60)
 
     final_state = app.invoke(initial_state)
 
     print("\n" + "=" * 60)
-    print("Agent 协作工作流完成")
+    print("Agent workflow completed")
     print("=" * 60)
 
     return final_state
 
 
-# ============ 测试 ============
-
 if __name__ == "__main__":
-    # 测试工作流
-    test_requirement = """
-    # 用户登录功能
+    sample_requirement = """
+    # User Login
 
-    ## 功能描述
-    用户可以通过用户名和密码登录系统。
+    ## Description
+    Users can log into the system with username and password.
 
-    ## 验收标准
-    1. 正确的用户名和密码可以成功登录
-    2. 错误的密码提示"密码错误"
-    3. 用户名不存在提示"用户不存在"
-    4. 密码输入3次错误后锁定账户
+    ## Acceptance Criteria
+    1. Valid username and password log in successfully.
+    2. Invalid password shows an error message.
+    3. Unknown username shows an error message.
+    4. Lock the account after 3 failed password attempts.
     """
 
-    result = run_workflow(test_requirement, page_url="https://example.com/login")
+    result = run_workflow(sample_requirement, page_url="https://example.com/login")
 
-    print("\n最终结果:")
-    print(f"- 需求数量: {len(result.get('requirements', []))}")
-    print(f"- 用例数量: {len(result.get('test_cases', []))}")
-    print(f"- 评审通过: {result.get('review_passed')}")
-    print(f"- 迭代次数: {result.get('iteration_count')}")
+    print("\nFinal result:")
+    print(f"- Requirements: {len(result.get('requirements') or [])}")
+    print(f"- Test cases: {len(result.get('test_cases') or [])}")
+    print(f"- Review passed: {result.get('review_passed')}")
+    print(f"- Iterations: {result.get('iteration_count')}")
+    print(f"- Script: {result.get('generated_script')}")
 
-    # 阶段3新增输出
-    print(f"- 生成脚本: {result.get('generated_script')}")
-    exec_results = result.get('execution_results')
-    if exec_results:
-        print(f"- 执行结果: {exec_results['passed']}/{exec_results['total']} 通过")
-        print(f"- 执行耗时: {exec_results['duration']}秒")
+    execution_results = result.get("execution_results")
+    if execution_results:
+        print(
+            f"- Execution: {execution_results['passed']}/{execution_results['total']} passed"
+        )
+        print(f"- Duration: {execution_results['duration']}s")

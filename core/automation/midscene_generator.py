@@ -1,82 +1,101 @@
 """
-Midscene 测试脚本生成器
+Midscene test script generator.
 
-将测试用例（JSON格式）转换为 Midscene + Playwright 测试脚本（TypeScript）
+This module converts generated test cases into Midscene + Playwright scripts.
+The generator intentionally uses a hybrid strategy:
+
+- Deterministic UI operations use Playwright directly.
+- Perception or semantic checks still use Midscene `ai(...)`.
 """
+from __future__ import annotations
+
 import json
 import os
-from typing import Dict, List, Optional
 from datetime import datetime
+from typing import Any, Dict, List, Optional
 
+from pydantic import BaseModel, Field
+
+from core.utils.llm_client import get_llm_client
 from core.utils.project_paths import GENERATED_TESTS_DIR
 
 
+class ActionConversionResult(BaseModel):
+    """Structured result returned by the LLM step converter."""
+
+    steps: List[Dict[str, str]] = Field(
+        default_factory=list,
+        description="Converted Midscene steps with action_prompt and verify_prompt.",
+    )
+
+
 class MidsceneScriptGenerator:
-    """生成 Midscene + Playwright 测试脚本"""
+    """Generate Midscene + Playwright test scripts."""
 
-    def __init__(self, output_dir: str = str(GENERATED_TESTS_DIR)):
-        """
-        初始化生成器
-
-        Args:
-            output_dir: 输出目录
-        """
+    def __init__(self, output_dir: str = str(GENERATED_TESTS_DIR), use_llm: bool = True):
         self.output_dir = output_dir
+        self.use_llm = use_llm
+        self._llm_client = None
         os.makedirs(output_dir, exist_ok=True)
 
-    def generate(self, test_cases: List[Dict], page_url: str = "https://example.com") -> str:
-        """
-        生成测试脚本文件
+    @property
+    def llm_client(self):
+        if self._llm_client is None and self.use_llm:
+            self._llm_client = get_llm_client()
+        return self._llm_client
 
-        Args:
-            test_cases: 测试用例列表
-            page_url: 目标页面URL
-
-        Returns:
-            生成的脚本文件路径
-        """
-        script_content = self._generate_script_content(test_cases, page_url)
-
-        # 生成文件名
+    def generate(
+        self,
+        test_cases: List[Dict],
+        page_url: str = "https://example.com",
+        scenario_config: Optional[Dict[str, Any]] = None,
+    ) -> str:
+        script_content = self._generate_script_content(
+            test_cases,
+            page_url,
+            scenario_config=scenario_config,
+        )
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"auto_generated_{timestamp}.spec.ts"
         filepath = os.path.join(self.output_dir, filename)
-
-        with open(filepath, 'w', encoding='utf-8') as f:
+        with open(filepath, "w", encoding="utf-8") as f:
             f.write(script_content)
-
         return filepath
 
-    def generate_from_json_file(self, json_path: str, page_url: str = "https://example.com") -> str:
-        """
-        从JSON文件生成测试脚本
-
-        Args:
-            json_path: 测试用例JSON文件路径
-            page_url: 目标页面URL
-
-        Returns:
-            生成的脚本文件路径
-        """
-        with open(json_path, 'r', encoding='utf-8') as f:
+    def generate_from_json_file(
+        self,
+        json_path: str,
+        page_url: str = "https://example.com",
+        scenario_config: Optional[Dict[str, Any]] = None,
+    ) -> str:
+        with open(json_path, "r", encoding="utf-8") as f:
             data = json.load(f)
+        return self.generate(
+            data.get("test_cases", []),
+            page_url,
+            scenario_config=scenario_config,
+        )
 
-        test_cases = data.get("test_cases", [])
-        return self.generate(test_cases, page_url)
-
-    def _generate_script_content(self, test_cases: List[Dict], page_url: str) -> str:
-        """生成完整的脚本内容"""
+    def _generate_script_content(
+        self,
+        test_cases: List[Dict],
+        page_url: str,
+        scenario_config: Optional[Dict[str, Any]] = None,
+    ) -> str:
         parts = [
             self._generate_header(),
             self._generate_imports(),
             self._generate_test_fixture(),
             "",
-            self._generate_test_describe(test_cases, page_url)
+            self._generate_test_describe(
+                test_cases,
+                page_url,
+                scenario_config=scenario_config,
+            ),
         ]
         return "\n".join(parts)
 
     def _generate_header(self) -> str:
-        """生成文件头部注释"""
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         return f"""/**
  * 自动生成的 Midscene 测试脚本
@@ -88,13 +107,11 @@ class MidsceneScriptGenerator:
  */"""
 
     def _generate_imports(self) -> str:
-        """生成导入语句"""
         return """import { test as base, expect } from '@playwright/test';
 import { PlaywrightAiFixture } from '@midscene/web/playwright';
 import allure from 'allure-playwright';"""
 
     def _generate_test_fixture(self) -> str:
-        """生成测试 fixture 扩展"""
         return """
 // 扩展 test 以使用 Midscene AI fixture
 const test = base.extend<{
@@ -104,24 +121,45 @@ const test = base.extend<{
   aiInput: any;
   aiAssert: any;
   aiQuery: any;
-}>(PlaywrightAiFixture());"""
+}>(PlaywrightAiFixture());
 
-    def _generate_test_describe(self, test_cases: List[Dict], page_url: str) -> str:
-        """生成测试套件"""
-        test_functions = []
+async function attachFinalScreenshot(page: any, testInfo: any, options: { mask?: any[] } = {}) {
+  try {
+    const safeStatus = testInfo.status || 'unknown';
+    const screenshotPath = testInfo.outputPath(`final-${safeStatus}.png`);
+    await page.screenshot({
+      path: screenshotPath,
+      fullPage: true,
+      ...(options.mask ? { mask: options.mask } : {}),
+    });
+    await testInfo.attach(`final-screenshot-${safeStatus}`, {
+      path: screenshotPath,
+      contentType: 'image/png',
+    });
+  } catch (error) {
+    console.warn('[SCREENSHOT] Failed to attach final screenshot', error);
+  }
+}"""
 
-        for tc in test_cases:
-            test_func = self._generate_test_function(tc, page_url)
-            test_functions.append(test_func)
-
-        tests_content = "\n\n".join(test_functions)
-
-        return f"""test.describe('自动生成的测试用例', () => {{
-{tests_content}
-}});"""
+    def _generate_test_describe(
+        self,
+        test_cases: List[Dict],
+        page_url: str,
+        scenario_config: Optional[Dict[str, Any]] = None,
+    ) -> str:
+        if self._is_login_only_scenario(scenario_config):
+            test_functions = [
+                self._generate_login_only_test_function(
+                    test_cases,
+                    page_url,
+                    scenario_config or {},
+                )
+            ]
+        else:
+            test_functions = [self._generate_test_function(tc, page_url) for tc in test_cases]
+        return "test.describe('自动生成的测试用例', () => {\n" + "\n\n".join(test_functions) + "\n});"
 
     def _generate_test_function(self, test_case: Dict, page_url: str) -> str:
-        """生成单个测试函数"""
         tc_id = test_case.get("id", "TC_XXX")
         title = test_case.get("title", "未命名测试")
         steps = test_case.get("steps", [])
@@ -129,219 +167,465 @@ const test = base.extend<{
         tags = test_case.get("tags", [])
         priority = test_case.get("priority", "medium")
 
-        test_name_literal = self._to_ts_string(f"{tc_id}: {title}")
-
-        # 生成测试步骤
-        test_steps = self._generate_test_steps(steps, page_url, expected)
-
-        # 生成标签注释
         tag_comment = f"标签: {', '.join(tags)}" if tags else ""
-
-        return f"""  test({test_name_literal}, async ({{ page, ai }}) => {{
+        body = self._generate_test_steps(steps, page_url, expected)
+        return f"""  test({self._to_ts_string(f"{tc_id}: {title}")}, async ({{ page, ai }}, testInfo) => {{
     // 优先级: {priority}
     // {tag_comment}
-{test_steps}
+    console.log({self._to_ts_string(f"[TEST-START] {tc_id}: {title}")});
+    try {{
+{body}
+    }} finally {{
+      await attachFinalScreenshot(page, testInfo);
+    }}
+    console.log({self._to_ts_string(f"[TEST-END] {tc_id}: {title}")});
   }});"""
 
-    def _generate_decorators(self, tc_id: str, title: str, priority: str, tags: List[str]) -> str:
-        """生成测试装饰器"""
-        lines = []
+    def _is_login_only_scenario(self, scenario_config: Optional[Dict[str, Any]]) -> bool:
+        """Return whether the script should use the restricted login template."""
+        return (scenario_config or {}).get("scenario_type") == "login_only"
 
-        # Allure 标题
-        lines.append(f'@allure.title("{tc_id}: {title}")')
+    def _generate_login_only_test_function(
+        self,
+        test_cases: List[Dict],
+        page_url: str,
+        scenario_config: Dict[str, Any],
+    ) -> str:
+        """Generate a single bounded login test that stops after success detection."""
+        source_case = test_cases[0] if test_cases else {}
+        tc_id = source_case.get("id", "TC_LOGIN_ONLY")
+        title = source_case.get("title", "Restricted login verification")
+        signal = scenario_config.get("success_signal") or {}
+        credentials = scenario_config.get("credentials") or {}
+        success_value = str(signal.get("value") or "LianLian")
+        success_type = str(signal.get("type") or "visual_text_or_logo")
+        manual_wait_timeout_ms = int(scenario_config.get("manual_wait_timeout_ms") or 180000)
+        username_env = str(credentials.get("username_env") or "LOGIN_USERNAME")
+        password_env = str(credentials.get("password_env") or "LOGIN_PASSWORD")
+        forbidden_actions = scenario_config.get("forbidden_actions") or []
+        forbidden_comment = ", ".join(forbidden_actions) if forbidden_actions else "none"
+        body = self._generate_login_only_steps(
+            page_url=page_url,
+            success_value=success_value,
+            success_type=success_type,
+            manual_wait_timeout_ms=manual_wait_timeout_ms,
+            username_env=username_env,
+            password_env=password_env,
+        )
+        return f"""  test({self._to_ts_string(f"{tc_id}: {title}")}, async ({{ page, ai }}, testInfo) => {{
+    // scenario_type: login_only
+    // forbidden_actions: {forbidden_comment}
+    console.log({self._to_ts_string(f"[TEST-START] {tc_id}: {title}")});
+    let maskedFields = [];
+    try {{
+{body}
+    }} finally {{
+      await attachFinalScreenshot(page, testInfo, {{ mask: maskedFields }});
+    }}
+    console.log({self._to_ts_string(f"[TEST-END] {tc_id}: {title}")});
+  }});"""
 
-        # Allure 严重级别
-        severity_map = {
-            "critical": "BLOCKER",
-            "high": "CRITICAL",
-            "medium": "NORMAL",
-            "low": "MINOR"
-        }
-        severity = severity_map.get(priority, "NORMAL")
-        lines.append(f"@allure.severity(allure.severity_level.{severity})")
+    def _generate_login_only_steps(
+        self,
+        page_url: str,
+        success_value: str,
+        success_type: str,
+        manual_wait_timeout_ms: int,
+        username_env: str,
+        password_env: str,
+    ) -> str:
+        """Generate a safe login-only flow using runtime environment credentials."""
+        success_logo_selector = self._build_success_logo_selector(success_value, success_type)
+        return "\n".join(
+            [
+                f"    const loginUsername = process.env[{self._to_ts_string(username_env)}];",
+                f"    const loginPassword = process.env[{self._to_ts_string(password_env)}];",
+                "    if (!loginUsername || !loginPassword) {",
+                f"      throw new Error('Missing {username_env} or {password_env} environment variables.');",
+                "    }",
+                "    const identifierInput = page.locator(" + self._to_ts_string(
+                    "input[type=\"email\"]:visible, input[autocomplete=\"username\"]:visible, input[name*=\"user\" i]:visible, input[name*=\"account\" i]:visible, input[name*=\"mobile\" i]:visible, input[name*=\"phone\" i]:visible, input[type=\"text\"]:visible"
+                ) + ").first();",
+                "    const passwordInput = page.locator('input[type=\"password\"]:visible').first();",
+                "    const submitButton = page.locator(" + self._to_ts_string(
+                    "button[type=\"submit\"]:visible, input[type=\"submit\"]:visible, button:visible"
+                ) + ").first();",
+                f"    const successText = page.getByText({self._to_ts_string(success_value)}, {{ exact: false }});",
+                f"    const successLogo = page.locator({self._to_ts_string(success_logo_selector)}).first();",
+                "    const successSignal = successLogo.or(successText).first();",
+                "    maskedFields = [identifierInput, passwordInput];",
+                "    console.log('[STEP] Open login page');",
+                f"    await page.goto({self._to_ts_string(page_url)});",
+                "    await page.waitForLoadState('domcontentloaded');",
+                "    await expect(identifierInput).toBeVisible();",
+                "    await expect(passwordInput).toBeVisible();",
+                "    console.log('[STEP] Fill login identifier');",
+                "    await identifierInput.fill(loginUsername);",
+                "    console.log('[STEP] Fill login secret');",
+                "    await passwordInput.fill(loginPassword);",
+                "    console.log('[STEP] Capture masked login screenshot');",
+                "    await page.screenshot({ path: 'test-results/login-only-before-submit.png', mask: maskedFields });",
+                "    console.log('[STEP] Submit login form');",
+                "    await expect(submitButton).toBeVisible();",
+                "    await submitButton.click();",
+                "    console.log('[MANUAL-WAIT] Waiting for manual verification to complete.');",
+                "    await page.waitForLoadState('domcontentloaded');",
+                f"    await expect(successSignal).toBeVisible({{ timeout: {manual_wait_timeout_ms} }});",
+                "    console.log('[VERIFY] Login success signal detected.');",
+                "    await page.screenshot({ path: 'test-results/login-only-success.png' });",
+                "    await expect(successSignal).toBeVisible();",
+                "    // Stop immediately after login success detection. No further actions are allowed.",
+            ]
+        )
 
-        # pytest 标签
-        for tag in tags:
-            lines.append(f"@pytest.mark.{tag}")
-
-        return "\n    ".join(lines)
+    def _build_success_logo_selector(self, success_value: str, success_type: str) -> str:
+        """Build a safe Playwright logo selector for a login success signal."""
+        escaped = success_value.replace("\\", "\\\\").replace("\"", "\\\"")
+        if success_type == "visual_text_or_logo":
+            return (
+                f"img[alt*=\"{escaped}\" i], "
+                f"[aria-label*=\"{escaped}\" i], "
+                f"[title*=\"{escaped}\" i], "
+                f"img[src*=\"{escaped.lower()}\" i]"
+            )
+        return f"[aria-label*=\"{escaped}\" i], [title*=\"{escaped}\" i]"
 
     def _generate_test_steps(self, steps: List[Dict], page_url: str, final_expected: str) -> str:
-        """生成测试步骤代码"""
-        lines = []
-        lines.append("    // 访问目标页面")
-        lines.append(f"    await page.goto({self._to_ts_string(page_url)});")
-        lines.append("")
+        lines = [
+            "    // 访问目标页面",
+            "    console.log('[STEP] 打开目标页面');",
+            f"    await page.goto({self._to_ts_string(page_url)});",
+            "    await page.waitForLoadState('domcontentloaded');",
+            "    await page.waitForTimeout(1500);",
+            "    const initialUrl = page.url();",
+            "    const searchInput = page.locator('#kw:visible, input[name=\"wd\"]:visible, textarea[name=\"wd\"]:visible, input.s_ipt:visible, textarea.s_ipt:visible, input:visible, textarea:visible').first();",
+            "    const searchButton = page.locator('#su:visible, input[type=\"submit\"]:visible, button:visible').first();",
+            "",
+        ]
 
-        for step in steps:
-            step_lines = self._generate_single_step(step)
-            lines.extend(step_lines)
+        converted_steps = self._convert_steps_with_llm(steps) if self.use_llm and self.llm_client and steps else self._fallback_convert_steps(steps)
+
+        for step in converted_steps:
+            original_action = step.get("original_action", "")
+            action_prompt = step.get("action_prompt", "")
+            verify_prompt = step.get("verify_prompt", "")
+            expected_text = step.get("expected_text", "")
+            data = step.get("data", "")
+
+            lines.append(f"    // 步骤: {original_action}")
+            lines.append(f"    console.log({self._to_ts_string('[STEP] ' + original_action)});")
+
+            native_action_lines = self._generate_native_action_lines(original_action, data, expected_text)
+            if native_action_lines:
+                lines.extend(native_action_lines)
+            else:
+                lines.append(f"    await ai({self._to_ts_string(action_prompt or self._convert_action_fallback(original_action, data, expected_text))});")
+
+            if verify_prompt:
+                lines.append(f"    console.log({self._to_ts_string('[VERIFY] ' + (expected_text or verify_prompt))});")
+                native_verify_lines = self._generate_native_verify_lines(original_action, data, expected_text, verify_prompt)
+                if native_verify_lines:
+                    lines.extend(native_verify_lines)
+                else:
+                    lines.append(f"    await ai({self._to_ts_string('验证: ' + verify_prompt)});")
+
             lines.append("")
 
-        # 添加最终验证
-        if final_expected:
+        final_verify = self._convert_expected_fallback(final_expected)
+        if final_verify:
             lines.append("    // 最终验证")
-            ai_prompt = self._convert_expected_to_ai_prompt(final_expected)
-            lines.append(f"    await ai({self._to_ts_string(f'验证: {ai_prompt}')});")
+            lines.append(f"    console.log({self._to_ts_string('[FINAL-VERIFY] ' + final_expected)});")
+            native_final_lines = self._generate_native_verify_lines("最终验证", "", final_expected, final_verify)
+            if native_final_lines:
+                lines.extend(native_final_lines)
+            else:
+                lines.append(f"    await ai({self._to_ts_string('验证: ' + final_verify)});")
 
         return "\n".join(lines)
 
-    def _generate_single_step(self, step: Dict) -> List[str]:
-        """生成单个测试步骤"""
-        lines = []
+    def _convert_steps_with_llm(self, steps: List[Dict]) -> List[Dict]:
+        steps_desc = []
+        for i, step in enumerate(steps, 1):
+            action = step.get("action", "") if isinstance(step, dict) else str(step)
+            data = step.get("data", "") if isinstance(step, dict) else ""
+            expected = step.get("expected", "") if isinstance(step, dict) else ""
+            steps_desc.append(f"{i}. 操作: {action}；数据: {data}；预期: {expected}")
 
-        if isinstance(step, str):
-            step = {
-                "action": step,
-                "data": "",
-                "expected": "",
-            }
+        prompt = (
+            "你是测试自动化专家，需要把测试步骤转换成 Midscene AI 能稳定执行的指令。\n\n"
+            "要求：\n"
+            "1. action_prompt 必须是可直接执行的自然语言动作，不能为空。\n"
+            "2. 避免输出模糊动作，例如“继续下一步”“等待页面跳转或提示信息”。\n"
+            "3. verify_prompt 必须是可直接验证的结果描述；没有合适验证时可以留空。\n"
+            "4. 只输出 JSON，不要解释。\n\n"
+            "输出格式：\n"
+            '{\n  "steps": [\n    {"action_prompt": "...", "verify_prompt": "..."}\n  ]\n}\n\n'
+            "待转换步骤：\n"
+            + "\n".join(steps_desc)
+        )
 
-        action = step.get("action", "")
-        data = step.get("data", "")
-        expected = step.get("expected", "")
+        try:
+            result = self.llm_client.invoke_structured(
+                ActionConversionResult,
+                prompt,
+                operation="midscene_action_conversion",
+            )
+            if not isinstance(result, ActionConversionResult):
+                raise ValueError(f"Expected ActionConversionResult, got {type(result).__name__}")
 
-        # 生成步骤注释
-        lines.append(f"    // 步骤: {action}")
+            converted = []
+            for i, step in enumerate(steps):
+                action = step.get("action", "") if isinstance(step, dict) else str(step)
+                data = step.get("data", "") if isinstance(step, dict) else ""
+                expected = step.get("expected", "") if isinstance(step, dict) else ""
+                raw_action = result.steps[i].get("action_prompt", "") if i < len(result.steps) else ""
+                raw_verify = result.steps[i].get("verify_prompt", "") if i < len(result.steps) else ""
+                converted.append(
+                    {
+                        "original_action": action,
+                        "action_prompt": self._normalize_action_prompt(action, data, expected, raw_action),
+                        "verify_prompt": self._normalize_verify_prompt(expected, raw_verify),
+                        "expected_text": expected,
+                        "data": data,
+                    }
+                )
+            return converted
+        except Exception as e:
+            print(f"[WARNING] LLM 转换失败，使用降级方案: {e}")
+            return self._fallback_convert_steps(steps)
 
-        # 将 action 转换为 Midscene AI 指令
-        ai_prompt = self._convert_action_to_ai_prompt(action, data)
-        lines.append(f"    await ai({self._to_ts_string(ai_prompt)});")
+    def _fallback_convert_steps(self, steps: List[Dict]) -> List[Dict]:
+        converted = []
+        for step in steps:
+            action = step.get("action", "") if isinstance(step, dict) else str(step)
+            data = step.get("data", "") if isinstance(step, dict) else ""
+            expected = step.get("expected", "") if isinstance(step, dict) else ""
+            converted.append(
+                {
+                    "original_action": action,
+                    "action_prompt": self._convert_action_fallback(action, data, expected),
+                    "verify_prompt": self._convert_expected_fallback(expected),
+                    "expected_text": expected,
+                    "data": data,
+                }
+            )
+        return converted
 
-        # 如果有预期结果，添加验证
-        if expected and expected != "N/A":
-            verify_prompt = self._convert_expected_to_ai_prompt(expected)
-            lines.append(f"    await ai({self._to_ts_string(f'验证: {verify_prompt}')});")
+    def _generate_native_action_lines(self, action: str, data: str, expected: str) -> List[str]:
+        action_text = str(action or "")
+        data_text = "" if data is None else str(data)
 
+        if "定位" in action_text and ("搜索框" in action_text or "输入框" in action_text):
+            return ["    await expect(searchInput).toBeVisible();"]
+
+        if ("保持" in action_text and "空" in action_text and ("搜索框" in action_text or "输入框" in action_text)) or (
+            "清空" in action_text and ("搜索框" in action_text or "输入框" in action_text)
+        ):
+            return ["    await searchInput.fill('');"]
+
+        if ("输入" in action_text or "可输入" in action_text) and ("搜索框" in action_text or "输入框" in action_text):
+            return [f"    await searchInput.fill({self._to_ts_string(data_text or 'test')});"]
+
+        if "点击" in action_text and ("搜索" in action_text or "百度一下" in action_text):
+            return [
+                "    await expect(searchButton).toBeVisible();",
+                "    await searchButton.click();",
+            ]
+
+        if "搜索结果页" in action_text or "结果页面" in action_text or "结果页" in action_text:
+            return [
+                "    await page.waitForLoadState('domcontentloaded');",
+                "    await page.waitForTimeout(1500);",
+            ]
+
+        if "观察页面行为" in action_text and ("提示" in expected or "不跳转" in expected or "空" in expected):
+            return [
+                "    await page.waitForLoadState('domcontentloaded');",
+                "    await page.waitForTimeout(1200);",
+            ]
+
+        return []
+
+    def _generate_native_verify_lines(self, action: str, data: str, expected: str, verify_prompt: str) -> List[str]:
+        expected_text = str(expected or "")
+        verify_text = str(verify_prompt or "")
+        data_text = "" if data is None else str(data)
+
+        if self._is_url_assertion(verify_text):
+            return self._generate_native_url_assertions(verify_text)
+
+        if ("提示" in expected_text or "不跳转" in expected_text or "空输入" in expected_text) and (
+            "页面行为" in action or "系统行为" in action or "空" in expected_text
+        ):
+            return [
+                "    await expect(page.locator('body')).toBeVisible();",
+                "    await expect(searchInput).toBeVisible();",
+                "    await expect(searchButton).toBeVisible();",
+            ]
+
+        if "搜索结果页" in expected_text or "结果页面" in expected_text or "搜索结果" in expected_text or "结果列表" in expected_text:
+            return [
+                "    await page.waitForLoadState('domcontentloaded');",
+                "    await expect.poll(() => page.url()).toMatch(/(wd|word|\\/s\\?)/);",
+                "    await expect(page.locator('body')).toBeVisible();",
+            ]
+
+        if ("搜索框" in expected_text or "输入框" in expected_text) and "可见" in expected_text:
+            return ["    await expect(searchInput).toBeVisible();"]
+
+        if ("定位" in expected_text or "存在" in expected_text) and ("搜索框" in expected_text or "输入框" in expected_text):
+            return ["    await expect(searchInput).toBeVisible();"]
+
+        if ("输入框" in expected_text or "搜索框" in expected_text) and ("无任何字符" in expected_text or "为空" in expected_text):
+            return ["    await expect(searchInput).toHaveValue('');"]
+
+        if ("输入框" in expected_text or "搜索框" in expected_text) and ("显示" in expected_text or "输入" in expected_text):
+            if data_text:
+                return [f"    await expect(searchInput).toHaveValue({self._to_ts_string(data_text)});"]
+            return ["    await expect(searchInput).toHaveValue(/.+/);"]
+
+        if "按钮" in expected_text and ("可见" in expected_text or "点击" in expected_text or "enabled" in expected_text):
+            return ["    await expect(searchButton).toBeVisible();"]
+
+        return []
+
+    def _generate_verify_lines(self, verify_prompt: str, label: str | None = None) -> List[str]:
+        verify_text = label or verify_prompt
+        lines = [f"    console.log({self._to_ts_string('[VERIFY] ' + verify_text)});"]
+        native_lines = self._generate_native_verify_lines("", "", verify_text, verify_prompt)
+        if native_lines:
+            lines.extend(native_lines)
+        else:
+            lines.append(f"    await ai({self._to_ts_string('验证: ' + verify_prompt)});")
         return lines
 
-    def _convert_action_to_ai_prompt(self, action: str, data: str) -> str:
-        """
-        将测试步骤的 action 转换为 Midscene AI 指令
+    def _generate_native_url_assertions(self, verify_prompt: str) -> List[str]:
+        lines = ["    await expect.poll(() => page.url()).not.toBe(initialUrl);"]
+        if "搜索参数" in verify_prompt:
+            lines.append("    await expect.poll(() => page.url()).toMatch(/(wd|word)=/);")
+        return lines
 
-        Args:
-            action: 原始操作描述
-            data: 测试数据
+    def _is_url_assertion(self, verify_prompt: str) -> bool:
+        text = str(verify_prompt or "")
+        return "URL" in text or "地址栏" in text
 
-        Returns:
-            Midscene AI 指令
-        """
-        # 处理带数据的输入操作
-        if data and data not in ["N/A", "", "登录页面地址"]:
-            # 输入操作
+    def _normalize_action_prompt(self, action: str, data: str, expected: str, action_prompt: str) -> str:
+        prompt = self._sanitize_prompt(action_prompt)
+        if self._is_placeholder_prompt(prompt) or "等待页面跳转或提示信息" in prompt:
+            return self._convert_action_fallback(action, data, expected)
+        return prompt
+
+    def _normalize_verify_prompt(self, expected: str, verify_prompt: str) -> str:
+        prompt = self._sanitize_prompt(verify_prompt)
+        if self._is_placeholder_prompt(prompt):
+            return self._convert_expected_fallback(expected)
+        return prompt
+
+    def _sanitize_prompt(self, prompt: str) -> str:
+        value = str(prompt or "").strip()
+        if value in {"", "N/A", "无", "null", "None", "待补充"}:
+            return ""
+        return value
+
+    def _is_placeholder_prompt(self, prompt: str) -> bool:
+        value = self._sanitize_prompt(prompt)
+        return value in {"", "等待页面稳定", "等待页面加载完成后继续", "继续下一步"}
+
+    def _convert_action_fallback(self, action: str, data: str, expected: str = "") -> str:
+        action = str(action or "").strip()
+        data = "" if data is None else str(data).strip()
+        expected = "" if expected is None else str(expected).strip()
+
+        if "观察" in action and "历史记录" in expected:
+            return "观察搜索框下拉建议或历史记录区域，并确认页面没有报错提示"
+        if ("观察" in action or "验证" in action or "检查" in action) and "搜索结果" in expected:
+            return "等待搜索结果区域加载完成并观察结果列表"
+        if ("观察" in action or "验证" in action or "检查" in action) and ("报错" in expected or "异常" in expected):
+            return "观察页面是否出现报错、异常提示或空白崩溃"
+        if ("跳转" in action or "URL" in action) and ("搜索" in expected or "结果" in expected or "URL" in expected):
+            return "等待页面加载完成并观察地址栏和结果区域变化"
+        if "搜索结果页" in action or "结果页面" in action or "结果页" in action:
+            return "等待搜索结果页面加载完成"
+
+        if data and data not in {"N/A", "", "无", "登录页面地址"}:
             if "输入" in action or "填写" in action:
-                # 提取输入框描述
                 if "邮箱" in action or "用户名" in action:
                     return f'在邮箱或用户名输入框中输入 "{data}"'
-                elif "密码" in action:
+                if "密码" in action:
                     return f'在密码输入框中输入 "{data}"'
-                elif "搜索" in action or "关键词" in action:
+                if "搜索" in action or "关键词" in action:
                     return f'在搜索框中输入 "{data}"'
-                else:
-                    return f'在输入框中输入 "{data}"'
-
-            # 点击操作
+                return f'在输入框中输入 "{data}"'
             if "点击" in action:
                 return f"点击 {data}"
 
-        # 处理不带数据的操作
-        # 打开页面
         if "打开" in action or "访问" in action:
             return "等待页面加载完成"
-
-        # 点击操作 - 更精确的描述
+        if "定位" in action and ("搜索框" in action or "输入框" in action):
+            return "观察并定位页面上的搜索输入框"
         if "点击" in action:
             if "登录" in action:
                 return "点击登录按钮"
-            elif "忘记密码" in action:
+            if "忘记密码" in action:
                 return "点击忘记密码链接"
-            elif "搜索" in action or "百度" in action:
+            if "搜索" in action or "百度一下" in action:
                 return "点击搜索按钮"
-            else:
-                return "点击按钮"
-
-        # 输入操作（无数据）- 更精确的描述
+            return "点击按钮"
         if "输入" in action:
             if "邮箱" in action or "用户名" in action:
                 return "在邮箱或用户名输入框中输入测试内容"
-            elif "密码" in action:
+            if "密码" in action:
                 return "在密码输入框中输入测试内容"
-            elif "搜索" in action or "关键词" in action:
+            if "搜索" in action or "关键词" in action:
                 return "在搜索框中输入测试内容"
-            else:
-                return "在输入框中输入测试内容"
-
-        # 保持为空
+            return "在输入框中输入测试内容"
+        if "清空" in action and ("搜索框" in action or "输入框" in action):
+            return "清空搜索框内容"
         if "保持" in action and "空" in action:
-            return "不进行任何输入操作"
-
-        # 检查操作
+            return "保持搜索框为空，不执行任何输入操作"
         if "检查" in action or "验证" in action:
+            if "URL" in expected or "跳转" in expected:
+                return "等待页面加载完成并观察地址栏变化"
+            if "搜索结果" in expected or "结果列表" in expected:
+                return "等待搜索结果区域加载完成并观察结果列表"
             return "等待页面稳定"
-
-        # 刷新页面
         if "刷新" in action:
             return "刷新当前页面"
-
-        # 按键操作
-        if "Tab" in action or "Enter" in action:
-            return "按下键盘按键"
-
-        # 执行登录流程
-        if "执行" in action and "登录" in action:
-            return "执行登录操作"
-
-        # 默认情况：简化描述
         return "等待页面稳定"
 
-    def _convert_expected_to_ai_prompt(self, expected: str) -> str:
-        """
-        将预期结果转换为 Midscene AI 验证指令
-
-        Args:
-            expected: 原始预期结果描述
-
-        Returns:
-            Midscene AI 验证指令
-        """
-        # 清理预期结果描述
-        expected = expected.strip()
-
-        # 搜索相关验证
-        if "搜索结果" in expected or "结果" in expected:
-            return "页面上显示了搜索结果列表"
-
-        # 跳转相关
-        if "跳转" in expected:
+    def _convert_expected_fallback(self, expected: str) -> str:
+        expected = str(expected or "").strip()
+        if not expected or expected == "N/A":
+            return ""
+        if ("搜索框" in expected or "输入框" in expected) and "可见" in expected:
+            return "搜索框元素可见"
+        if ("定位" in expected or "存在" in expected) and ("搜索框" in expected or "输入框" in expected):
+            return "页面中存在搜索输入框"
+        if ("输入框" in expected or "搜索框" in expected) and ("显示" in expected or "输入" in expected):
+            return "输入框中显示了已输入文本"
+        if "无报错" in expected or "无异常" in expected:
+            return "页面未显示错误提示，且仍然可以正常交互"
+        if "历史记录" in expected:
+            return "页面显示了搜索建议或历史记录，且未出现错误提示"
+        if "默认搜索页" in expected:
+            return "页面保持在可正常交互的搜索页面，且未出现错误提示"
+        if "搜索结果页" in expected or "结果页面" in expected or "搜索结果" in expected or "结果列表" in expected or "结果" in expected:
+            return "页面显示了搜索结果列表"
+        if "跳转" in expected or "URL" in expected:
             return "页面URL发生了变化"
-
-        # 成功/失败
+        if "错误" in expected or "提示" in expected:
+            return "页面显示了提示信息"
+        if "按钮" in expected and ("可见" in expected or "点击" in expected or "enabled" in expected):
+            return "搜索按钮可见且可交互"
         if "成功" in expected:
             return "操作成功完成"
-        elif "失败" in expected:
-            return "页面显示了错误提示信息"
-
-        # 错误/提示
-        if "错误" in expected or "提示" in expected:
-            return "页面上显示了提示信息"
-
-        # 显示相关
-        if "显示" in expected:
-            if "结果" in expected:
-                return "页面上显示了搜索结果"
-            return "页面显示了相关内容"
-
-        # 默认：等待页面稳定
-        return "页面加载完成且稳定"
+        return "页面加载完成且状态稳定"
 
     def _to_ts_string(self, value: str) -> str:
-        """将 Python 字符串安全转换为 TypeScript 字符串字面量。"""
         return json.dumps(str(value), ensure_ascii=False)
 
 
-# 使用示例
 if __name__ == "__main__":
-    # 示例测试用例
     sample_test_cases = [
         {
             "id": "TC_001",
@@ -350,13 +634,13 @@ if __name__ == "__main__":
             "steps": [
                 {"action": "输入用户名", "data": "admin"},
                 {"action": "输入密码", "data": "password123"},
-                {"action": "点击登录按钮", "data": "N/A"}
+                {"action": "点击登录按钮", "data": ""},
             ],
             "expected": "登录成功",
-            "tags": ["smoke"]
+            "tags": ["smoke"],
         }
     ]
 
-    generator = MidsceneScriptGenerator()
-    filepath = generator.generate(sample_test_cases, "https://example.com/login")
-    print(f"生成测试脚本: {filepath}")
+    generator = MidsceneScriptGenerator(use_llm=False)
+    path = generator.generate(sample_test_cases, "https://example.com/login")
+    print(f"生成测试脚本: {path}")

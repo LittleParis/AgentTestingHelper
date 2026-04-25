@@ -1,4 +1,7 @@
 """LLM客户端封装 - 基于LangChain"""
+import json
+import os
+from pathlib import Path
 from typing import Dict, Any, List, Optional, Union
 from enum import Enum
 from datetime import datetime
@@ -19,6 +22,8 @@ from langchain_core.prompts import ChatPromptTemplate
 # 重试机制
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type, before_sleep_log
 import logging
+
+from core.utils.project_paths import LLM_DIAGNOSTICS_DIR, ensure_runtime_directories
 
 logger = logging.getLogger(__name__)
 
@@ -97,6 +102,29 @@ class ChatResponse(BaseModel):
     def total_tokens(self) -> int:
         """兼容旧接口：获取总token数"""
         return self.usage.total_tokens if self.usage else 0
+
+
+class StructuredOutputError(Exception):
+    """结构化输出失败时的统一异常。"""
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        diagnostics_path: Optional[str] = None,
+        raw_response_preview: Optional[str] = None,
+        original_exception: Optional[Exception] = None,
+    ):
+        super().__init__(message)
+        self.diagnostics_path = diagnostics_path
+        self.raw_response_preview = raw_response_preview
+        self.original_exception = original_exception
+
+    def __str__(self) -> str:
+        base = super().__str__()
+        if self.diagnostics_path:
+            base += f" | diagnostics={self.diagnostics_path}"
+        return base
 
 
 class TokenTracker:
@@ -233,6 +261,11 @@ class LLMClient:
         self.max_tokens = max_tokens if max_tokens is not None else settings.llm_max_tokens
         self.retry_attempts = retry_attempts if retry_attempts is not None else settings.llm_retry_attempts
         self.retry_delay = retry_delay if retry_delay is not None else settings.llm_retry_delay
+        self.use_env_proxy = self._parse_bool_env(
+            os.getenv("LLM_USE_ENV_PROXY"),
+            default=getattr(settings, "llm_use_env_proxy", False),
+        )
+        self.proxy_url = os.getenv("LLM_PROXY_URL") or getattr(settings, "llm_proxy_url", None)
 
         # 初始化 LangChain ChatOpenAI
         self._llm = self._create_llm()
@@ -242,14 +275,14 @@ class LLMClient:
 
     def _create_llm(self) -> ChatOpenAI:
         """创建LangChain LLM实例"""
-        # 创建不使用代理的 HTTP 客户端
-        http_client = httpx.Client(proxy=None)
+        # 继承环境变量中的代理配置，便于在受限网络环境中访问模型服务。
+        http_client = httpx.Client()
 
         kwargs = {
             "model": self.model,
             "temperature": self.temperature,
             "max_tokens": self.max_tokens,
-            "http_client": http_client,
+            "http_client": self._build_http_client(),
         }
 
         # 设置API密钥
@@ -271,6 +304,140 @@ class LLMClient:
             before_sleep=before_sleep_log(logger, logging.WARNING),
             reraise=True
         )
+
+    def _safe_preview(self, value: Any, max_length: int = 500) -> str:
+        """生成适合日志展示的短预览。"""
+        text = "" if value is None else str(value)
+        text = text.replace("\r", " ").replace("\n", "\\n")
+        if len(text) > max_length:
+            return text[:max_length] + "...(truncated)"
+        return text
+
+    def _build_http_client(self) -> httpx.Client:
+        """Build an HTTP client for text-model traffic with isolated proxy rules."""
+        client_kwargs: Dict[str, Any] = {}
+        if self.proxy_url:
+            client_kwargs["proxy"] = self.proxy_url
+        else:
+            client_kwargs["trust_env"] = self.use_env_proxy
+        return httpx.Client(**client_kwargs)
+
+    def _parse_bool_env(self, value: Optional[str], default: bool) -> bool:
+        """Parse a boolean environment variable with a safe default."""
+        if value is None:
+            return default
+        return value.strip().lower() in {"1", "true", "yes", "on"}
+
+    def _invoke_raw_prompt(self, prompt: str) -> str:
+        """直接调用底层模型，获取原始文本响应用于诊断。"""
+        response = self._llm.invoke([HumanMessage(content=prompt)])
+        content = getattr(response, "content", "")
+        if isinstance(content, list):
+            return json.dumps(content, ensure_ascii=False)
+        return str(content)
+
+    def _write_structured_diagnostics(
+        self,
+        *,
+        schema_name: str,
+        operation: str,
+        prompt: str,
+        exception: Exception,
+        raw_response: Optional[str] = None,
+        raw_capture_error: Optional[str] = None,
+    ) -> str:
+        """将结构化输出失败的现场落盘，便于后续排查。"""
+        ensure_runtime_directories()
+        LLM_DIAGNOSTICS_DIR.mkdir(parents=True, exist_ok=True)
+
+        safe_operation = "".join(ch if ch.isalnum() or ch in ("-", "_") else "_" for ch in (operation or schema_name))
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+        diagnostics_path = LLM_DIAGNOSTICS_DIR / f"{timestamp}_{safe_operation}.json"
+
+        payload = {
+            "timestamp": datetime.now().isoformat(),
+            "operation": operation,
+            "schema": schema_name,
+            "model": self.model,
+            "base_url": self.base_url,
+            "exception_type": type(exception).__name__,
+            "exception_message": str(exception),
+            "prompt_length": len(prompt or ""),
+            "prompt_preview": self._safe_preview(prompt, max_length=1200),
+            "prompt": prompt,
+            "raw_response_preview": self._safe_preview(raw_response, max_length=1200) if raw_response is not None else None,
+            "raw_response": raw_response,
+            "raw_capture_error": raw_capture_error,
+        }
+
+        with open(diagnostics_path, "w", encoding="utf-8") as file:
+            json.dump(payload, file, ensure_ascii=False, indent=2)
+
+        return str(diagnostics_path)
+
+    def invoke_structured(self, schema, prompt: str, operation: Optional[str] = None):
+        """
+        统一的结构化输出调用入口。
+
+        失败时会自动记录诊断文件，并抛出带路径的 StructuredOutputError。
+        """
+        schema_name = getattr(schema, "__name__", str(schema))
+        operation_name = operation or schema_name
+        structured_llm = self._llm.with_structured_output(schema)
+
+        try:
+            result = structured_llm.invoke(prompt)
+            if result is None:
+                raise ValueError("Structured output returned None")
+            logger.debug(
+                "Structured output succeeded: operation=%s schema=%s model=%s",
+                operation_name,
+                schema_name,
+                self.model,
+            )
+            return result
+        except Exception as exc:
+            logger.warning(
+                "Structured output failed: operation=%s schema=%s model=%s error=%s",
+                operation_name,
+                schema_name,
+                self.model,
+                exc,
+            )
+
+            raw_response = None
+            raw_capture_error = None
+            try:
+                raw_response = self._invoke_raw_prompt(prompt)
+            except Exception as raw_exc:
+                raw_capture_error = f"{type(raw_exc).__name__}: {raw_exc}"
+                logger.warning(
+                    "Structured output raw capture failed: operation=%s schema=%s error=%s",
+                    operation_name,
+                    schema_name,
+                    raw_capture_error,
+                )
+
+            diagnostics_path = self._write_structured_diagnostics(
+                schema_name=schema_name,
+                operation=operation_name,
+                prompt=prompt,
+                exception=exc,
+                raw_response=raw_response,
+                raw_capture_error=raw_capture_error,
+            )
+            logger.warning(
+                "Structured output diagnostics saved: operation=%s path=%s",
+                operation_name,
+                diagnostics_path,
+            )
+
+            raise StructuredOutputError(
+                f"Structured output failed for {operation_name}: {exc}",
+                diagnostics_path=diagnostics_path,
+                raw_response_preview=self._safe_preview(raw_response),
+                original_exception=exc,
+            ) from exc
 
     def chat(
         self,

@@ -6,6 +6,7 @@ PROJECT_ROOT = Path(__file__).parent.parent.parent
 
 # 输出目录
 OUTPUT_DIR = PROJECT_ROOT / "output"
+LLM_DIAGNOSTICS_DIR = OUTPUT_DIR / "llm_diagnostics"
 GENERATED_TESTS_DIR = PROJECT_ROOT / "midscene_run" / "generated"
 LEGACY_GENERATED_TESTS_DIR = PROJECT_ROOT / "tests" / "generated"
 
@@ -21,6 +22,7 @@ def ensure_runtime_directories() -> None:
     """确保运行期需要的目录存在。"""
     for directory in [
         OUTPUT_DIR,
+        LLM_DIAGNOSTICS_DIR,
         GENERATED_TESTS_DIR,
         ALLURE_RESULTS_DIR,
         ALLURE_REPORT_DIR,

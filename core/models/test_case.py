@@ -45,8 +45,8 @@ class TestCase(BaseModel):
         description="测试用例ID，格式：TC_001（支持子用例格式如 TC_001_001）"
     )
     requirement_id: str = Field(
-        pattern=r"^REQ_\d{3}$",
-        description="关联的需求ID"
+        pattern=r"^REQ_\d{1,6}$",
+        description="关联的需求ID，格式：REQ_001（支持1-6位数字）"
     )
     title: str = Field(
         min_length=5,

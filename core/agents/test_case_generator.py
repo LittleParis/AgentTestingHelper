@@ -65,9 +65,11 @@ class TestCaseGenerator:
         prompt = self._build_prompt(requirement, improvement_hints)
 
         try:
-            # 使用结构化输出
-            structured_llm = self.llm.with_structured_output(TestCaseGenerationResult)
-            result = structured_llm.invoke(prompt)
+            result = self.llm.invoke_structured(
+                TestCaseGenerationResult,
+                prompt,
+                operation=f"test_case_generation_{requirement.id}",
+            )
 
             # 验证返回的是正确的类型
             if isinstance(result, TestCaseGenerationResult):
@@ -88,6 +90,9 @@ class TestCaseGenerator:
 
     def _validate_and_convert(self, data: dict, requirement_id: str) -> TestCaseGenerationResult:
         """验证并转换字典为 TestCaseGenerationResult"""
+        if not isinstance(data, dict):
+            raise ValueError(f"Expected dict result, got {type(data).__name__}")
+
         test_cases = []
         raw_test_cases = data.get("test_cases", [])
 

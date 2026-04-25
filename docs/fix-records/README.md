@@ -8,6 +8,14 @@
 
 | 日期 | Issue 编号 | 文件 | 概述 |
 |------|------------|------|------|
+| 2026-04-24 | Bug | [2026-04-23-test-executor-json-report-path.md](2026-04-23-test-executor-json-report-path.md) | test_executor.py json_report_path 未定义导致测试无法执行 |
+| 2026-04-23 | #37 | [2026-04-23-issue-37.md](2026-04-23-issue-37.md) | QUICKSTART.md 环境变量名称和路径修正 |
+| 2026-04-23 | #42 | [2026-04-23-issue-42.md](2026-04-23-issue-42.md) | test_analyzer_core.py 改写为标准 pytest 格式 |
+| 2026-04-23 | #22 | [2026-04-23-issue-22.md](2026-04-23-issue-22.md) | AllureReporter.open_report 改用 webbrowser 避免进程泄漏 |
+| 2026-04-23 | #39 | [2026-04-23-issue-39.md](2026-04-23-issue-39.md) | get_settings 启动时检查 LLM_KEY 是否配置 |
+| 2026-04-23 | #32 | [2026-04-23-issue-32.md](2026-04-23-issue-32.md) | pytest.ini 移到根目录，更新 testpaths |
+| 2026-04-23 | #26 | [2026-04-23-issue-26.md](2026-04-23-issue-26.md) | generate_allure_from_results.py 移除硬编码，从实际文件读取 |
+| 2026-04-23 | #41 | [2026-04-23-issue-41.md](2026-04-23-issue-41.md) | test_workflow.py Mock 路径修复，添加 core. 前缀 |
 | 2026-04-22 | #14 | [2026-04-22-issue-14.md](2026-04-22-issue-14.md) | ID 格式正则放宽，支持 1-6 位数字和子用例格式 |
 | 2026-04-22 | #28 | [2026-04-22-issue-28.md](2026-04-22-issue-28.md) | TestExecutor 添加 --config 参数，修复相对路径 |
 | 2026-04-22 | #27 | [2026-04-22-issue-27.md](2026-04-22-issue-27.md) | conftest.py 移除重复路径拼接，统一使用 project_paths |

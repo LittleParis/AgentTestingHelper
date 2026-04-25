@@ -6,13 +6,13 @@
 
 ```bash
 # 创建虚拟环境（推荐）
-python -m venv venv
+python -m venv .venv
 
 # 激活虚拟环境
 # Windows PowerShell:
-.\venv\Scripts\Activate.ps1
+.\.venv\Scripts\Activate.ps1
 # Windows CMD:
-venv\Scripts\activate.bat
+.venv\Scripts\activate.bat
 
 # 安装依赖
 pip install -r requirements.txt
@@ -34,15 +34,16 @@ copy .env.example .env
 notepad .env
 ```
 
-在 `.env` 文件中填入你的Claude API密钥：
+在 `.env` 文件中填入你的 LLM API 密钥：
 ```
-ANTHROPIC_API_KEY=sk-ant-xxxxx
+LLM_KEY=your_api_key_here
+LLM_MODEL=gpt-3.5-turbo
 ```
 
 ### 4. 运行演示
 
 ```bash
-python main.py
+python main_v2.py
 ```
 
 你会看到：
@@ -78,13 +79,13 @@ AI测试自动化平台 - 阶段1演示
 
 ```bash
 # 查看需求分析结果
-type output\requirements.json
+type output\requirements*.json
 
 # 查看测试用例
-type output\test_cases.json
+type output\test_cases*.json
 
 # 查看生成的测试脚本
-dir tests\generated\
+dir midscene_run\generated\
 ```
 
 ## 理解生成的内容
@@ -121,13 +122,13 @@ dir tests\generated\
 }
 ```
 
-### 测试脚本 (tests/generated/tc_001.py)
-```python
-@allure.title("正常登录流程")
-async def test_tc_001(page: Page):
-    with allure.step("步骤1: 打开登录页面"):
-        await page.goto("https://example.com/login")
-    # ...
+### 测试脚本 (midscene_run/generated/*.spec.ts)
+```typescript
+test("TC_001: 正常登录流程", async ({ page, ai }) => {
+  await page.goto("https://example.com/login");
+  await ai("在邮箱输入框中输入 test@example.com");
+  // ...
+});
 ```
 
 ## 下一步
@@ -143,27 +144,29 @@ async def test_tc_001(page: Page):
 新用户应该能够注册账号...
 ```
 
-然后重新运行 `python main.py`
+然后重新运行 `python main_v2.py`
 
-### 运行生成的测试（需要调整）
+### 运行生成的测试
 
-生成的测试脚本是模板，需要手动调整选择器：
+生成的测试脚本使用 Midscene + Playwright：
 
 ```bash
-# 运行测试
-pytest tests/generated/tc_001.py -v
+# 进入 midscene_run 目录
+cd midscene_run
 
-# 生成Allure报告
-pytest tests/generated/ --alluredir=allure-results
-allure serve allure-results
+# 运行测试
+npx playwright test generated/
+
+# 生成 Allure 报告
+allure serve ../allure-results
 ```
 
 ## 常见问题
 
-### Q: 提示 "ANTHROPIC_API_KEY not found"
-A: 检查 `.env` 文件是否存在且包含正确的API密钥
+### Q: 提示 "LLM_KEY 未配置"
+A: 检查 `.env` 文件是否存在且包含正确的 API 密钥
 
-### Q: 提示 "No module named 'anthropic'"
+### Q: 提示 "No module named 'langchain'"
 A: 运行 `pip install -r requirements.txt`
 
 ### Q: 生成的测试脚本无法运行

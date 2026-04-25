@@ -1,3 +1,4 @@
+import 'dotenv/config';
 
 /**
  * Midscene 配置文件

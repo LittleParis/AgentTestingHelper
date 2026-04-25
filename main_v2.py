@@ -9,20 +9,17 @@
 - 测试执行
 - 反馈循环
 """
+import argparse
 import os
 import json
 from pathlib import Path
 from datetime import datetime
 from dotenv import load_dotenv
 
-# 禁用系统代理（解决连接问题）
-for var in ['HTTP_PROXY', 'HTTPS_PROXY', 'http_proxy', 'https_proxy', 'ALL_PROXY', 'all_proxy']:
-    os.environ.pop(var, None)
-os.environ['NO_PROXY'] = '*'
-
 from core.parsers.markdown_parser import parse_markdown
 from core.agents.workflow import run_workflow, AgentState
 from core.automation.allure_reporter import AllureReporter
+from core.utils.logging_setup import configure_logging
 from core.utils.project_paths import (
     OUTPUT_DIR,
     GENERATED_TESTS_DIR,
@@ -31,6 +28,78 @@ from core.utils.project_paths import (
     ALLURE_REPORT_DIR,
     PLAYWRIGHT_RESULTS_DIR,
 )
+
+
+def _read_login_scenario_config() -> dict | None:
+    """Build a runtime-only login scenario config from environment variables."""
+    scenario_type = os.getenv("SCENARIO_TYPE", "").strip().lower()
+    if scenario_type != "login_only":
+        return None
+
+    return {
+        "scenario_type": "login_only",
+        "page_url": os.getenv("LOGIN_PAGE_URL", "https://global.lianlianpay.com/signin"),
+        "credentials": {
+            "username_env": os.getenv("LOGIN_USERNAME_ENV", "LOGIN_USERNAME"),
+            "password_env": os.getenv("LOGIN_PASSWORD_ENV", "LOGIN_PASSWORD"),
+        },
+        "success_signal": {
+            "type": os.getenv("LOGIN_SUCCESS_SIGNAL_TYPE", "visual_text_or_logo"),
+            "value": os.getenv("LOGIN_SUCCESS_SIGNAL_VALUE", "LianLian"),
+        },
+        "manual_wait": True,
+        "mfa_mode": os.getenv("LOGIN_MFA_MODE", "manual_wait"),
+        "allowed_actions": [
+            "open_login_page",
+            "fill_identifier",
+            "fill_secret",
+            "submit_login",
+            "wait_manual_verification",
+            "assert_login_success_signal",
+            "stop_execution",
+        ],
+        "forbidden_actions": [
+            "menu_click",
+            "navigation_after_login",
+            "form_submit_other_than_login",
+            "logout",
+            "profile_edit",
+        ],
+        "manual_wait_timeout_ms": int(os.getenv("LOGIN_MANUAL_WAIT_TIMEOUT_MS", "180000")),
+    }
+
+
+def _parse_args() -> argparse.Namespace:
+    """Parse command line arguments for the main workflow entrypoint."""
+    parser = argparse.ArgumentParser(
+        description="Run the end-to-end AI testing workflow for a requirement document.",
+    )
+    parser.add_argument(
+        "--requirement-file",
+        dest="requirement_file",
+        help="Path to the requirement markdown file to execute.",
+    )
+    parser.add_argument(
+        "--page-url",
+        dest="page_url",
+        help="Optional page URL override for the generated workflow run.",
+    )
+    return parser.parse_args()
+
+
+def _resolve_requirement_file(
+    scenario_config: dict | None,
+    cli_requirement_file: str | None = None,
+) -> str:
+    """Select the requirement document for the current run."""
+    if cli_requirement_file:
+        return cli_requirement_file
+    configured = os.getenv("REQUIREMENT_FILE", "").strip()
+    if configured:
+        return configured
+    if scenario_config and scenario_config.get("scenario_type") == "login_only":
+        return "examples/requirement_login_only.md"
+    return "examples/requirement_baidu.md"
 
 
 def get_timestamp() -> str:
@@ -206,6 +275,8 @@ def print_summary(state: AgentState, timestamp: str):
 def main():
     """主流程 - 阶段3"""
     load_dotenv()
+    args = _parse_args()
+    scenario_config = _read_login_scenario_config()
 
     print("=" * 60)
     print("AI测试自动化平台 - 阶段3: 完整自动化流程")
@@ -215,11 +286,17 @@ def main():
     print("\n[步骤0] 清理历史数据...")
     clean_history_data()
 
+    log_file = configure_logging(force=True)
+    print(f"[日志] 已启用文件日志: {log_file}")
+
     timestamp = get_timestamp()
 
     # 1. 读取需求文档
     print("\n[步骤1] 读取需求文档...")
-    requirement_file = "examples/requirement_baidu.md"
+    requirement_file = _resolve_requirement_file(
+        scenario_config,
+        cli_requirement_file=args.requirement_file,
+    )
 
     if not os.path.exists(requirement_file):
         print(f"错误: 需求文档不存在 {requirement_file}")
@@ -236,6 +313,7 @@ def main():
         final_state = run_workflow(
             requirement_text=requirement_text,
             max_iterations=2,
+            scenario_config=scenario_config,
             page_url="https://www.baidu.com"  # 可根据实际项目修改，如登录页面地址
         )
     except Exception as e:
@@ -258,6 +336,8 @@ def main():
 
 def open_allure_report():
     """生成并打开 Allure HTML 报告"""
+    import sys
+
     reporter = AllureReporter(results_dir="allure-results", report_dir="allure-report")
 
     # 检查 Allure 是否安装
@@ -267,14 +347,17 @@ def open_allure_report():
         return
 
     # 检查是否有测试结果
-    if not reporter.results_dir.exists() or not list(reporter.results_dir.glob("*")):
+    has_result_files = reporter.results_dir.exists() and any(
+        reporter.results_dir.glob("*result*.json")
+    )
+    if not has_result_files:
         print("  [WARN] 没有测试结果，尝试从执行结果生成 Allure 数据...")
         
         # 尝试使用脚本生成 Allure 结果
         try:
             import subprocess
             result = subprocess.run(
-                ["python", "scripts/generate_allure_from_results.py"],
+                [sys.executable, "scripts/generate_allure_from_results.py"],
                 capture_output=True,
                 text=True,
                 encoding='utf-8',

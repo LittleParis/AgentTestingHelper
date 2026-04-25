@@ -1,80 +1,42 @@
-"""测试执行器 - 执行 Midscene/Playwright 测试脚本"""
+"""Test executor for running generated Midscene/Playwright scripts."""
+
+from __future__ import annotations
+
 import json
 import os
+import re
 import shutil
 import subprocess
-import tempfile
 import time
 from pathlib import Path
 from typing import Dict, List, Optional
 
-# 清除代理设置（解决连接问题）
-for _var in ['HTTP_PROXY', 'HTTPS_PROXY', 'http_proxy', 'https_proxy', 'ALL_PROXY', 'all_proxy']:
-    os.environ.pop(_var, None)
-os.environ['NO_PROXY'] = '*'
-
 
 class TestExecutor:
-    """
-    测试执行器 - 执行 Midscene 生成的测试脚本
+    """Run Playwright tests and normalize the execution results."""
 
-    支持执行 Playwright 测试脚本并收集执行结果。
-    """
+    __test__ = False
 
-    # 默认配置
     DEFAULT_CONFIG = {
-        # 浏览器配置
         "browser": "chromium",
-        "headed": False,  # 无头模式
-        "timeout": 120000,  # 120秒超时（Midscene AI 需要更长时间）
-
-        # 执行配置
-        "retries": 0,  # 失败重试次数
-        "workers": 1,  # 并行worker数
-
-        # 截图配置
+        "headed": False,
+        "timeout": 120000,
+        "retries": 0,
+        "workers": 1,
         "screenshot_on_failure": True,
         "screenshot_on_success": False,
-
-        # 报告配置
-        "reporter": "list",  # list/html/json
+        "reporter": "json",
         "output_dir": "test-results",
-
-        # 浏览器路径
-        "browsers_path": None,  # 默认使用环境变量
+        "browsers_path": None,
     }
 
     def __init__(self, config: Optional[Dict] = None):
-        """
-        初始化执行器
-
-        Args:
-            config: 配置选项，覆盖默认配置
-        """
         self.config = {**self.DEFAULT_CONFIG, **(config or {})}
         self._last_results: Optional[Dict] = None
 
     def run_tests(self, script_path: str) -> Dict:
-        """
-        执行测试脚本
-
-        Args:
-            script_path: 测试脚本路径或目录
-
-        Returns:
-            执行结果字典:
-            {
-                "status": "success" | "error",
-                "total": 10,
-                "passed": 8,
-                "failed": 2,
-                "skipped": 0,
-                "duration": 45.2,
-                "tests": [...],
-                "error": None | "错误信息"
-            }
-        """
-        abs_path = str(Path(script_path).absolute())
+        """Run a generated script and return normalized execution data."""
+        abs_path = str(Path(script_path).resolve())
         if not os.path.exists(abs_path):
             return {
                 "status": "error",
@@ -84,45 +46,39 @@ class TestExecutor:
                 "failed": 0,
                 "skipped": 0,
                 "duration": 0,
-                "tests": []
+                "tests": [],
             }
 
         start_time = time.time()
-        json_report_path = None
-
         try:
             env = os.environ.copy()
             if self.config.get("browsers_path"):
-                env["PLAYWRIGHT_BROWSERS_PATH"] = self.config["browsers_path"]
+                env["PLAYWRIGHT_BROWSERS_PATH"] = str(self.config["browsers_path"])
 
-            for var in ['HTTP_PROXY', 'HTTPS_PROXY', 'http_proxy', 'https_proxy', 'ALL_PROXY', 'all_proxy']:
-                env.pop(var, None)
-            env['NO_PROXY'] = '*'
-
-            with tempfile.NamedTemporaryFile(suffix='.json', delete=False) as f:
-                json_report_path = f.name
-
-            cmd_list = self._build_playwright_command_args(script_path, json_report_path)
-            print(f"  [DEBUG] 执行命令: {' '.join(cmd_list)}")
+            project_root = self._get_project_root()
+            cmd_list = self._build_playwright_command_args(script_path)
+            print(f"  [DEBUG] Running command: {' '.join(cmd_list)}")
 
             result = subprocess.run(
                 cmd_list,
                 capture_output=True,
                 timeout=self._calculate_timeout(),
                 shell=False,
-                encoding='utf-8',
-                errors='replace'
+                cwd=project_root,
+                env=env,
+                encoding="utf-8",
+                errors="replace",
             )
 
             duration = time.time() - start_time
-            print(f"  [DEBUG] 执行耗时: {duration:.2f}秒")
-            print(f"  [DEBUG] returncode: {result.returncode}")
+            print(f"  [DEBUG] Execution duration: {duration:.2f}s")
+            print(f"  [DEBUG] Return code: {result.returncode}")
 
-            if json_report_path and os.path.exists(json_report_path):
-                parsed = self._parse_json_report(json_report_path)
-            else:
-                combined_output = result.stdout + result.stderr
-                parsed = self._parse_text_output_fallback(combined_output)
+            parsed = self._parse_json_report_text(result.stdout)
+            if parsed["total"] == 0 and not parsed.get("error"):
+                fallback = self._parse_text_output_fallback(result.stdout + result.stderr)
+                if fallback["total"] > 0:
+                    parsed = fallback
 
             parsed["duration"] = round(duration, 2)
             parsed["status"] = self._determine_execution_status(result.returncode, parsed)
@@ -130,13 +86,24 @@ class TestExecutor:
             parsed["stdout"] = result.stdout
             parsed["stderr"] = result.stderr
             parsed["returncode"] = result.returncode
+            if parsed["status"] == "error" and not parsed.get("error"):
+                parsed["error"] = result.stderr.strip() or result.stdout.strip() or "Test execution failed."
 
-            print(f"  [DEBUG] 解析结果: total={parsed['total']}, passed={parsed['passed']}, failed={parsed['failed']}")
+            print(
+                "  [DEBUG] Parsed result: "
+                f"total={parsed['total']}, passed={parsed['passed']}, failed={parsed['failed']}"
+            )
 
             self._last_results = parsed
             return parsed
 
-        except subprocess.TimeoutExpired:
+        except subprocess.TimeoutExpired as exc:
+            stdout = ""
+            stderr = ""
+            if getattr(exc, "stdout", None):
+                stdout = exc.stdout if isinstance(exc.stdout, str) else exc.stdout.decode("utf-8", errors="replace")
+            if getattr(exc, "stderr", None):
+                stderr = exc.stderr if isinstance(exc.stderr, str) else exc.stderr.decode("utf-8", errors="replace")
             return {
                 "status": "error",
                 "error": "Test execution timeout",
@@ -144,135 +111,192 @@ class TestExecutor:
                 "passed": 0,
                 "failed": 0,
                 "skipped": 0,
-                "duration": time.time() - start_time,
-                "tests": []
+                "duration": round(time.time() - start_time, 2),
+                "tests": [],
+                "stdout": stdout,
+                "stderr": stderr,
+                "raw_output": stdout + stderr,
             }
-        except Exception as e:
+        except Exception as exc:
             return {
                 "status": "error",
-                "error": str(e),
+                "error": str(exc),
                 "total": 0,
                 "passed": 0,
                 "failed": 0,
                 "skipped": 0,
-                "duration": time.time() - start_time,
-                "tests": []
+                "duration": round(time.time() - start_time, 2),
+                "tests": [],
             }
-        finally:
-            if json_report_path and os.path.exists(json_report_path):
-                try:
-                    os.unlink(json_report_path)
-                except OSError:
-                    pass
 
     def run_single_test(self, script_path: str, test_name: str) -> Dict:
-        """
-        执行单个测试用例
-
-        Args:
-            script_path: 测试脚本路径
-            test_name: 测试用例名称（grep 模式）
-
-        Returns:
-            单个测试的执行结果
-        """
-        # 使用 --grep 过滤特定测试
+        """Run a single test via Playwright grep filtering."""
         config = {**self.config, "grep": test_name}
-        executor = TestExecutor(config)
-        return executor.run_tests(script_path)
+        return TestExecutor(config).run_tests(script_path)
 
     def _parse_json_report(self, json_path: str) -> Dict:
-        """
-        解析 Playwright JSON 报告
-
-        Args:
-            json_path: JSON 报告文件路径
-
-        Returns:
-            解析后的结果字典
-        """
+        """Parse a Playwright JSON report from disk."""
         results = {
             "total": 0,
             "passed": 0,
             "failed": 0,
             "skipped": 0,
-            "tests": []
+            "tests": [],
+            "error": None,
         }
 
         try:
-            with open(json_path, 'r', encoding='utf-8') as f:
-                report = json.load(f)
+            with open(json_path, "r", encoding="utf-8") as file:
+                report = json.load(file)
+        except (OSError, json.JSONDecodeError, TypeError) as exc:
+            print(f"  [DEBUG] Failed to parse JSON report file: {exc}")
+            return results
 
-            stats = report.get("stats", {})
-            results["passed"] = stats.get("expected", 0)
-            results["failed"] = stats.get("unexpected", 0) + stats.get("flaky", 0)
-            results["skipped"] = stats.get("skipped", 0)
-            results["total"] = results["passed"] + results["failed"] + results["skipped"]
+        return self._parse_report_object(report)
 
-            for suite in report.get("suites", []):
-                self._extract_tests_from_suite(suite, results["tests"])
+    def _parse_json_report_text(self, report_text: str) -> Dict:
+        """Parse a Playwright JSON reporter payload from stdout."""
+        results = {
+            "total": 0,
+            "passed": 0,
+            "failed": 0,
+            "skipped": 0,
+            "tests": [],
+            "error": None,
+        }
 
-        except (json.JSONDecodeError, KeyError, TypeError) as e:
-            print(f"  [DEBUG] JSON 解析失败: {e}")
+        if not report_text or not report_text.strip():
+            return results
+
+        try:
+            report = json.loads(report_text)
+        except (json.JSONDecodeError, TypeError) as exc:
+            print(f"  [DEBUG] Failed to parse JSON stdout: {exc}")
+            return results
+
+        return self._parse_report_object(report)
+
+    def _parse_report_object(self, report: Dict) -> Dict:
+        """Normalize a parsed Playwright report object."""
+        results = {
+            "total": 0,
+            "passed": 0,
+            "failed": 0,
+            "skipped": 0,
+            "tests": [],
+            "error": None,
+        }
+
+        stats = report.get("stats", {})
+        results["passed"] = stats.get("expected", 0)
+        results["failed"] = stats.get("unexpected", 0) + stats.get("flaky", 0)
+        results["skipped"] = stats.get("skipped", 0)
+        results["total"] = results["passed"] + results["failed"] + results["skipped"]
+
+        for suite in report.get("suites", []):
+            self._extract_tests_from_suite(suite, results["tests"])
+
+        errors = report.get("errors") or []
+        if errors:
+            first_error = errors[0]
+            if isinstance(first_error, dict):
+                results["error"] = first_error.get("message") or first_error.get("stack")
+            else:
+                results["error"] = str(first_error)
 
         return results
 
-    def _extract_tests_from_suite(self, suite: Dict, tests_list: List) -> None:
-        """递归提取测试用例信息"""
+    def _extract_tests_from_suite(self, suite: Dict, tests_list: List[Dict]) -> None:
+        """Recursively extract test-level details from nested suites."""
         for spec in suite.get("specs", []):
             for test in spec.get("tests", []):
-                test_name = test.get("title", spec.get("title", "unknown"))
-                status = test.get("status", "unknown")
-                duration = test.get("duration", 0)
-
-                tests_list.append({
-                    "name": test_name,
-                    "status": status,
-                    "duration": duration
-                })
+                error_details = self._extract_test_error_details(test)
+                attachments = self._extract_test_attachments(test)
+                tests_list.append(
+                    {
+                        "name": test.get("title", spec.get("title", "unknown")),
+                        "status": test.get("status", "unknown"),
+                        "duration": test.get("duration", 0),
+                        "attachments": attachments,
+                        **error_details,
+                    }
+                )
 
         for child_suite in suite.get("suites", []):
             self._extract_tests_from_suite(child_suite, tests_list)
 
-    def _parse_text_output_fallback(self, output: str) -> Dict:
-        """
-        降级方案：解析 Playwright 文本输出
-        仅在 JSON 报告不可用时使用
-        """
-        import re
+    def _extract_test_error_details(self, test: Dict) -> Dict:
+        """Extract the most useful single-test failure details from Playwright JSON."""
+        for result in test.get("results", []) or []:
+            errors = result.get("errors") or []
+            if not errors:
+                continue
 
+            first_error = errors[0]
+            if isinstance(first_error, dict):
+                message = first_error.get("message") or first_error.get("value") or ""
+                trace = first_error.get("stack") or message
+            else:
+                message = str(first_error)
+                trace = message
+
+            return {
+                "error": message,
+                "trace": trace,
+            }
+
+        return {}
+
+    def _extract_test_attachments(self, test: Dict) -> List[Dict]:
+        """Extract attachment metadata from the final Playwright test result."""
+        for result in reversed(test.get("results", []) or []):
+            attachments = []
+            for attachment in result.get("attachments", []) or []:
+                path = attachment.get("path")
+                if not path:
+                    continue
+                attachments.append(
+                    {
+                        "name": attachment.get("name") or Path(path).name,
+                        "path": path,
+                        "contentType": attachment.get("contentType") or "application/octet-stream",
+                    }
+                )
+            if attachments:
+                return attachments
+        return []
+
+    def _parse_text_output_fallback(self, output: str) -> Dict:
+        """Fallback summary parser when JSON output is unavailable."""
         results = {
             "total": 0,
             "passed": 0,
             "failed": 0,
             "skipped": 0,
-            "tests": []
+            "tests": [],
+            "error": None,
         }
+
+        if not output:
+            return results
 
         summary_passed = re.search(r"(\d+)\s+passed", output)
         summary_failed = re.search(r"(\d+)\s+failed", output)
         summary_skipped = re.search(r"(\d+)\s+skipped", output)
 
-        if summary_passed or summary_failed:
-            results["passed"] = int(summary_passed.group(1)) if summary_passed else 0
-            results["failed"] = int(summary_failed.group(1)) if summary_failed else 0
-            results["skipped"] = int(summary_skipped.group(1)) if summary_skipped else 0
-
+        results["passed"] = int(summary_passed.group(1)) if summary_passed else 0
+        results["failed"] = int(summary_failed.group(1)) if summary_failed else 0
+        results["skipped"] = int(summary_skipped.group(1)) if summary_skipped else 0
         results["total"] = results["passed"] + results["failed"] + results["skipped"]
 
         return results
 
     def get_execution_summary(self) -> Dict:
-        """
-        获取最近一次执行的摘要
-
-        Returns:
-            执行摘要字典
-        """
+        """Return the latest execution summary."""
         if not self._last_results:
             return {
                 "status": "no_results",
-                "message": "No test execution results available"
+                "message": "No test execution results available",
             }
 
         return {
@@ -282,67 +306,59 @@ class TestExecutor:
             "failed": self._last_results.get("failed", 0),
             "skipped": self._last_results.get("skipped", 0),
             "duration": self._last_results.get("duration", 0),
-            "pass_rate": self._calculate_pass_rate()
+            "pass_rate": self._calculate_pass_rate(),
         }
 
     def get_failed_tests(self) -> List[Dict]:
-        """获取失败的测试列表"""
+        """Return failed tests from the last run."""
         if not self._last_results:
             return []
-        return [t for t in self._last_results.get("tests", []) if t["status"] == "failed"]
+        return [test for test in self._last_results.get("tests", []) if test["status"] == "failed"]
 
     def get_screenshots(self) -> List[str]:
-        """获取截图文件列表"""
+        """Return screenshots captured under the configured output directory."""
         output_dir = Path(self.config["output_dir"])
         if not output_dir.exists():
             return []
 
-        screenshots = []
+        screenshots: List[str] = []
         for pattern in ["**/*.png", "**/*.jpg"]:
-            screenshots.extend(str(p) for p in output_dir.glob(pattern))
-
+            screenshots.extend(str(path) for path in output_dir.glob(pattern))
         return screenshots
 
     def _build_playwright_command(self, script_path: str) -> str:
-        """
-        构建 Playwright 执行命令
+        """Build a human-readable Playwright CLI command."""
+        project_root = self._get_project_root()
+        config_path = Path(project_root) / "config" / "playwright.config.ts"
+        normalized_script_path = self._normalize_script_path(script_path, project_root)
+        workers = max(int(self.config.get("workers", 1) or 1), 1)
 
-        Args:
-            script_path: 测试脚本路径
-
-        Returns:
-            命令字符串
-        """
-        normalized_script_path = Path(script_path).as_posix()
         parts = [
             "npx playwright test",
             f'"{normalized_script_path}"',
+            f"--config={config_path.as_posix()}",
             f"--timeout={self.config['timeout']}",
             f"--retries={self.config['retries']}",
+            "--reporter=json",
+            f"--workers={workers}",
         ]
 
         if self.config.get("headed"):
             parts.append("--headed")
-
         if self.config.get("project"):
             parts.append(f"--project={self.config['project']}")
-
         if self.config.get("grep"):
             parts.append(f'--grep "{self.config["grep"]}"')
 
-        if self.config.get("workers", 1) > 1:
-            parts.append(f"--workers={self.config['workers']}")
-
         return " ".join(parts)
 
-    def _build_playwright_command_args(self, script_path: str, json_report_path: str) -> List[str]:
-        """构建 subprocess 可直接执行的命令参数列表。"""
+    def _build_playwright_command_args(self, script_path: str) -> List[str]:
+        """Build subprocess-ready Playwright command arguments."""
         npx_executable = self._resolve_npx_executable()
-        normalized_script_path = Path(script_path).as_posix()
-
-        # 获取项目根目录，用于定位配置文件
         project_root = self._get_project_root()
         config_path = Path(project_root) / "config" / "playwright.config.ts"
+        normalized_script_path = self._normalize_script_path(script_path, project_root)
+        workers = max(int(self.config.get("workers", 1) or 1), 1)
 
         parts = [
             npx_executable,
@@ -352,39 +368,40 @@ class TestExecutor:
             f"--config={config_path.as_posix()}",
             f"--timeout={self.config['timeout']}",
             f"--retries={self.config['retries']}",
-            f"--reporter=json",
-            f"--output={json_report_path}",
+            "--reporter=json",
+            f"--workers={workers}",
         ]
 
         if self.config.get("headed"):
             parts.append("--headed")
-
         if self.config.get("project"):
             parts.append(f"--project={self.config['project']}")
-
         if self.config.get("grep"):
             parts.extend(["--grep", self.config["grep"]])
 
-        if self.config.get("workers", 1) > 1:
-            parts.append(f"--workers={self.config['workers']}")
-
         return parts
 
+    def _normalize_script_path(self, script_path: str, project_root: str) -> str:
+        """Normalize script paths so Playwright matches them against testDir."""
+        script = Path(script_path).resolve()
+        try:
+            normalized = script.relative_to(Path(project_root).resolve()).as_posix()
+        except ValueError:
+            normalized = script.as_posix()
+        return normalized
+
     def _calculate_timeout(self) -> int:
-        """计算命令超时时间（秒）"""
-        # 测试超时 + 额外缓冲时间
-        test_timeout = self.config.get("timeout", 60000) / 1000
-        buffer = 120  # 2分钟缓冲
-        return int(test_timeout + buffer)
+        """Return subprocess timeout in seconds."""
+        test_timeout_seconds = self.config.get("timeout", 60000) / 1000
+        buffer_seconds = 120
+        return int(test_timeout_seconds + buffer_seconds)
 
     def _get_project_root(self) -> str:
-        """获取项目根目录"""
-        # 当前文件: automation/test_executor.py
-        # 项目根目录: 上两级，使用绝对路径
-        return str(Path(__file__).parent.parent.absolute())
+        """Return the repository root."""
+        return str(Path(__file__).resolve().parent.parent.parent)
 
     def _calculate_pass_rate(self) -> float:
-        """计算通过率"""
+        """Calculate pass rate from the last execution results."""
         if not self._last_results:
             return 0.0
 
@@ -396,22 +413,15 @@ class TestExecutor:
         return round(passed / total * 100, 2)
 
     def _determine_execution_status(self, returncode: int, parsed: Dict) -> str:
-        """根据 Playwright 返回码和解析结果判断执行状态。"""
+        """Infer a stable execution status from CLI exit code and parsed results."""
         if parsed.get("failed", 0) > 0:
             return "failed"
-
         if returncode != 0 and parsed.get("total", 0) == 0:
             return "error"
-
         if returncode != 0:
             return "failed"
-
         return "success"
 
     def _resolve_npx_executable(self) -> str:
-        """在 Windows 下优先使用 npx.cmd，避免 shell=False 时找不到命令。"""
-        return (
-            shutil.which("npx.cmd")
-            or shutil.which("npx")
-            or "npx.cmd"
-        )
+        """Resolve the npx executable with Windows compatibility."""
+        return shutil.which("npx.cmd") or shutil.which("npx") or "npx.cmd"

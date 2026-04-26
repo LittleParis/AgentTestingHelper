@@ -8,6 +8,13 @@
 - JSON Schema 生成
 """
 
+from .workflow import (
+    AgentState,
+    SingleRequirementGenerationState,
+    ScenarioConfig,
+    merge_lists,
+)
+
 from .requirement import (
     Requirement,
     RequirementType,
@@ -20,6 +27,32 @@ from .test_case import (
     TestCaseType,
     TestStep,
     TestCaseGenerationResult
+)
+
+from .test_strategy import (
+    CoverageAxis,
+    ExecutionMode,
+    FocusLevel,
+    FocusPointStrategy,
+    OverallRisk,
+    RequirementStrategy,
+    TestStrategyPlan,
+)
+
+from .script_plan import (
+    AssertionIntent,
+    AssertionKind,
+    ExecutionPolicy,
+    ExecutionTarget,
+    FallbackPolicy,
+    IntentType,
+    NativeOperation,
+    NativeOperationKind,
+    PlannerDecisionTrace,
+    ScenarioPlan,
+    ScriptExecutionPlan,
+    ScriptSetupPlan,
+    ScriptStepPlan,
 )
 
 from .review import (
@@ -43,15 +76,28 @@ from .config import (
 )
 
 # 从 llm_client 导出（避免循环导入，这里只是重新导出）
-from core.utils.llm_client import (
-    Message,
-    MessageRole,
-    ChatResponse,
-    TokenUsage,
-    FinishReason
-)
+try:
+    from core.utils.llm_client import (
+        Message,
+        MessageRole,
+        ChatResponse,
+        TokenUsage,
+        FinishReason
+    )
+except Exception:  # pragma: no cover - optional dependency may be unavailable in lightweight test envs
+    Message = None
+    MessageRole = None
+    ChatResponse = None
+    TokenUsage = None
+    FinishReason = None
 
 __all__ = [
+    # 工作流模型
+    "AgentState",
+    "SingleRequirementGenerationState",
+    "ScenarioConfig",
+    "merge_lists",
+
     # 需求模型
     "Requirement",
     "RequirementType",
@@ -63,6 +109,26 @@ __all__ = [
     "TestCaseType",
     "TestStep",
     "TestCaseGenerationResult",
+    "CoverageAxis",
+    "ExecutionMode",
+    "FocusLevel",
+    "FocusPointStrategy",
+    "OverallRisk",
+    "RequirementStrategy",
+    "TestStrategyPlan",
+    "AssertionIntent",
+    "AssertionKind",
+    "ExecutionPolicy",
+    "ExecutionTarget",
+    "FallbackPolicy",
+    "IntentType",
+    "NativeOperation",
+    "NativeOperationKind",
+    "PlannerDecisionTrace",
+    "ScenarioPlan",
+    "ScriptExecutionPlan",
+    "ScriptSetupPlan",
+    "ScriptStepPlan",
 
     # 评审模型
     "ReviewResult",

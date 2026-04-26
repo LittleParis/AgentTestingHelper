@@ -12,12 +12,17 @@
 import argparse
 import os
 import json
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 from dotenv import load_dotenv
 
-from core.parsers.markdown_parser import parse_markdown
-from core.agents.workflow import run_workflow, AgentState
+from core.parsers.markdown_parser import (
+    extract_credentials,
+    extract_page_url,
+    parse_markdown,
+)
+from core.models.workflow import AgentState
+from core.agents.workflow import run_workflow
 from core.automation.allure_reporter import AllureReporter
 from core.utils.logging_setup import configure_logging
 from core.utils.project_paths import (
@@ -30,15 +35,11 @@ from core.utils.project_paths import (
 )
 
 
-def _read_login_scenario_config() -> dict | None:
-    """Build a runtime-only login scenario config from environment variables."""
-    scenario_type = os.getenv("SCENARIO_TYPE", "").strip().lower()
-    if scenario_type != "login_only":
-        return None
-
+def _build_login_only_scenario_config(page_url: str | None = None) -> dict:
+    """Build the default login-only scenario config."""
     return {
         "scenario_type": "login_only",
-        "page_url": os.getenv("LOGIN_PAGE_URL", "https://global.lianlianpay.com/signin"),
+        "page_url": page_url or os.getenv("LOGIN_PAGE_URL", "https://global.lianlianpay.com/signin"),
         "credentials": {
             "username_env": os.getenv("LOGIN_USERNAME_ENV", "LOGIN_USERNAME"),
             "password_env": os.getenv("LOGIN_PASSWORD_ENV", "LOGIN_PASSWORD"),
@@ -67,6 +68,15 @@ def _read_login_scenario_config() -> dict | None:
         ],
         "manual_wait_timeout_ms": int(os.getenv("LOGIN_MANUAL_WAIT_TIMEOUT_MS", "180000")),
     }
+
+
+def _read_login_scenario_config() -> dict | None:
+    """Build a runtime-only login scenario config from environment variables."""
+    scenario_type = os.getenv("SCENARIO_TYPE", "").strip().lower()
+    if scenario_type != "login_only":
+        return None
+
+    return _build_login_only_scenario_config()
 
 
 def _parse_args() -> argparse.Namespace:
@@ -102,6 +112,81 @@ def _resolve_requirement_file(
     return "examples/requirement_baidu.md"
 
 
+def _inject_requirement_credentials(
+    scenario_config: dict | None,
+    requirement_text: str,
+) -> tuple[dict | None, dict[str, str | None]]:
+    """Merge requirement-document credentials into the runtime config for execution-time injection."""
+    extracted_credentials = extract_credentials(requirement_text)
+
+    if not any(extracted_credentials.values()):
+        return scenario_config, extracted_credentials
+
+    updated_config = dict(scenario_config or {})
+    credentials = dict(updated_config.get("credentials") or {})
+    credentials.setdefault("username_env", os.getenv("LOGIN_USERNAME_ENV", "LOGIN_USERNAME"))
+    credentials.setdefault("password_env", os.getenv("LOGIN_PASSWORD_ENV", "LOGIN_PASSWORD"))
+
+    if extracted_credentials.get("identifier"):
+        credentials["username_value"] = extracted_credentials["identifier"]
+    if extracted_credentials.get("password"):
+        credentials["password_value"] = extracted_credentials["password"]
+
+    updated_config["credentials"] = credentials
+    return updated_config, extracted_credentials
+
+
+def _maybe_enable_login_only_scenario(
+    scenario_config: dict | None,
+    requirement_file: str,
+    requirement_text: str,
+    extracted_url: str | None,
+    extracted_credentials: dict[str, str | None],
+) -> dict | None:
+    """Infer the bounded login-only scenario when the requirement file already encodes it."""
+    if scenario_config and scenario_config.get("scenario_type") == "login_only":
+        if extracted_url and not scenario_config.get("page_url"):
+            updated_config = dict(scenario_config)
+            updated_config["page_url"] = extracted_url
+            return updated_config
+        return scenario_config
+
+    file_hint = "login_only" in Path(requirement_file).stem.lower()
+    text_lower = requirement_text.lower()
+    has_execution_boundary = "execution boundary" in text_lower
+    has_login_url = any(
+        token in (extracted_url or "").lower()
+        for token in ("/signin", "/login", "sign-in")
+    )
+    has_runtime_credentials = bool(
+        extracted_credentials.get("identifier") and extracted_credentials.get("password")
+    )
+
+    if not (file_hint or (has_execution_boundary and has_login_url and has_runtime_credentials)):
+        return scenario_config
+
+    inferred_config = _build_login_only_scenario_config(page_url=extracted_url)
+    if scenario_config:
+        merged_config = dict(scenario_config)
+        merged_config.setdefault("scenario_type", inferred_config["scenario_type"])
+        merged_config.setdefault("page_url", inferred_config["page_url"])
+        merged_config.setdefault("success_signal", inferred_config["success_signal"])
+        merged_config.setdefault("manual_wait", inferred_config["manual_wait"])
+        merged_config.setdefault("mfa_mode", inferred_config["mfa_mode"])
+        merged_config.setdefault("allowed_actions", inferred_config["allowed_actions"])
+        merged_config.setdefault("forbidden_actions", inferred_config["forbidden_actions"])
+        merged_config.setdefault(
+            "manual_wait_timeout_ms",
+            inferred_config["manual_wait_timeout_ms"],
+        )
+        merged_credentials = dict(inferred_config.get("credentials") or {})
+        merged_credentials.update(merged_config.get("credentials") or {})
+        merged_config["credentials"] = merged_credentials
+        return merged_config
+
+    return inferred_config
+
+
 def get_timestamp() -> str:
     """获取当前时间戳"""
     return datetime.now().strftime("(%Y-%m-%d_%H-%M-%S)")
@@ -119,32 +204,52 @@ def clean_history_data():
         print("  [清理] output 目录...")
         for file in output_dir.iterdir():
             if file.is_file():
-                file.unlink()
-                print(f"    - 删除: {file.name}")
+                try:
+                    file.unlink()
+                    print(f"    - 删除: {file.name}")
+                except PermissionError:
+                    print(f"    - 跳过(文件被占用): {file.name}")
+                except OSError as e:
+                    print(f"    - 跳过(删除失败): {file.name} - {e}")
 
     if tests_dir.exists():
         print(f"  [清理] {tests_dir} 目录...")
         for file in tests_dir.glob("*.spec.ts"):
-            file.unlink()
-            print(f"    - 删除: {file.name}")
+            try:
+                file.unlink()
+                print(f"    - 删除: {file.name}")
+            except PermissionError:
+                print(f"    - 跳过(文件被占用): {file.name}")
+            except OSError as e:
+                print(f"    - 跳过(删除失败): {file.name} - {e}")
 
     if LEGACY_GENERATED_TESTS_DIR.exists():
         print("  [清理] tests/generated 旧目录...")
         for file in LEGACY_GENERATED_TESTS_DIR.glob("*.spec.ts"):
-            file.unlink()
-            print(f"    - 删除: {file.name}")
+            try:
+                file.unlink()
+                print(f"    - 删除: {file.name}")
+            except PermissionError:
+                print(f"    - 跳过(文件被占用): {file.name}")
+            except OSError as e:
+                print(f"    - 跳过(删除失败): {file.name} - {e}")
 
     # 清理 Allure 与 Playwright 运行产物，避免历史结果污染当前报告
     for directory in [allure_results_dir, allure_report_dir, test_results_dir]:
         if directory.exists():
             print(f"  [清理] {directory} 目录...")
             for item in directory.iterdir():
-                if item.is_file():
-                    item.unlink()
-                else:
-                    import shutil
-                    shutil.rmtree(item)
-                print(f"    - 删除: {item.name}")
+                try:
+                    if item.is_file():
+                        item.unlink()
+                    else:
+                        import shutil
+                        shutil.rmtree(item)
+                    print(f"    - 删除: {item.name}")
+                except PermissionError:
+                    print(f"    - 跳过(文件被占用): {item.name}")
+                except OSError as e:
+                    print(f"    - 跳过(删除失败): {item.name} - {e}")
 
 
 def save_results(state: AgentState, timestamp: str):
@@ -178,6 +283,13 @@ def save_results(state: AgentState, timestamp: str):
         print(f"  需求分析: {requirements_file}")
 
     # 保存测试用例
+    test_strategy = state.get("test_strategy")
+    if test_strategy:
+        strategy_file = output_dir / f"test_strategy{timestamp}.json"
+        with open(strategy_file, "w", encoding="utf-8") as f:
+            json.dump({"test_strategy": serialize_value(test_strategy)}, f, ensure_ascii=False, indent=2)
+        print(f"  test strategy: {strategy_file}")
+
     test_cases = state.get("test_cases", [])
     if test_cases:
         test_cases_file = output_dir / f"test_cases{timestamp}.json"
@@ -305,16 +417,57 @@ def main():
     requirement_text = parse_markdown(requirement_file)
     print(f"[OK] 需求文档读取成功 ({len(requirement_text)} 字符)")
 
+    # 从需求文档中提取 page_url
+    extracted_url = extract_page_url(requirement_text)
+    if extracted_url:
+        print(f"[OK] 从需求文档提取 URL: {extracted_url}")
+
+    scenario_config, extracted_credentials = _inject_requirement_credentials(
+        scenario_config,
+        requirement_text,
+    )
+    scenario_config = _maybe_enable_login_only_scenario(
+        scenario_config,
+        requirement_file,
+        requirement_text,
+        extracted_url,
+        extracted_credentials,
+    )
+    if scenario_config and scenario_config.get("scenario_type") == "login_only":
+        print("[INFO] Auto-enabled the bounded login_only scenario.")
+    if any(extracted_credentials.values()):
+        identifier_status = "是" if extracted_credentials.get("identifier") else "否"
+        password_status = "是" if extracted_credentials.get("password") else "否"
+        if scenario_config and scenario_config.get("scenario_type") == "login_only":
+            print(
+                "[OK] 已从需求文档提取登录凭证并注入执行环境 "
+                f"(identifier: {identifier_status}, password: {password_status})"
+            )
+        else:
+            print(
+                "[INFO] 已从需求文档提取登录凭证 "
+                f"(identifier: {identifier_status}, password: {password_status})"
+            )
+
     # 2. 运行 Agent 协作工作流（包含脚本生成和测试执行）
     print("\n[步骤2] 启动完整工作流...")
     print("-" * 60)
 
     try:
+        # URL 优先级: CLI > 需求文档提取 > scenario_config > 默认值
+        resolved_page_url = (
+            args.page_url
+            or extracted_url
+            or (scenario_config.get("page_url") if scenario_config else None)
+            or "https://www.baidu.com"
+        )
+        print(f"[INFO] 使用页面 URL: {resolved_page_url}")
+
         final_state = run_workflow(
             requirement_text=requirement_text,
             max_iterations=2,
             scenario_config=scenario_config,
-            page_url="https://www.baidu.com"  # 可根据实际项目修改，如登录页面地址
+            page_url=resolved_page_url,
         )
     except Exception as e:
         print(f"[FAIL] 工作流执行失败: {e}")

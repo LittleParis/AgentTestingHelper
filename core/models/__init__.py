@@ -65,6 +65,13 @@ from .review import (
     CommentSeverity
 )
 
+from .runtime import (
+    BenchmarkCase,
+    ExecutionFailureCategory,
+    FailureAnalysisResult,
+    RunManifest,
+)
+
 from .config import (
     LLMConfig,
     TestConfig,
@@ -138,6 +145,10 @@ __all__ = [
     "RequirementReviewDetail",
     "CommentType",
     "CommentSeverity",
+    "BenchmarkCase",
+    "ExecutionFailureCategory",
+    "FailureAnalysisResult",
+    "RunManifest",
 
     # 配置模型
     "LLMConfig",

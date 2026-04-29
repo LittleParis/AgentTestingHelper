@@ -283,3 +283,29 @@ class TestRunTests:
         assert result["status"] == "failed"
         assert result["passed"] == 1
         assert result["failed"] == 2
+
+    @patch("core.automation.test_executor.subprocess.run")
+    def test_run_tests_applies_env_overrides(self, mock_run):
+        mock_run.return_value.returncode = 0
+        mock_run.return_value.stdout = json.dumps(
+            {
+                "stats": {"expected": 1, "unexpected": 0, "flaky": 0, "skipped": 0},
+                "suites": [],
+            }
+        )
+        mock_run.return_value.stderr = ""
+
+        with patch("os.path.exists", return_value=True):
+            executor = TestExecutor(
+                {
+                    "env_overrides": {
+                        "LOGIN_USERNAME": "sample_user@example.com",
+                        "LOGIN_PASSWORD": "sample-password-123",
+                    }
+                }
+            )
+            executor.run_tests("test.spec.ts")
+
+        _, kwargs = mock_run.call_args
+        assert kwargs["env"]["LOGIN_USERNAME"] == "sample_user@example.com"
+        assert kwargs["env"]["LOGIN_PASSWORD"] == "sample-password-123"

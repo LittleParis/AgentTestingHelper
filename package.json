@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "@playwright/test": "^1.59.1"
+  },
+  "devDependencies": {
+    "@midscene/web": "^0.15.0",
+    "allure-commandline": "^2.38.1",
+    "allure-playwright": "^3.7.1"
+  }
+}

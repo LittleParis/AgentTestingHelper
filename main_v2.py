@@ -1,42 +1,158 @@
-"""
-主程序 - 阶段3：完整自动化测试流程
+"""Stable CLI entrypoint for the AI testing workflow."""
 
-使用 LangGraph 实现 Agent 协作：
-- 需求分析 Agent
-- 测试用例生成 Agent
-- 测试用例评审 Agent
-- 脚本生成（Midscene）
-- 测试执行
-- 反馈循环
-"""
+from __future__ import annotations
+
 import argparse
-import os
 import json
+import os
+import shutil
+import sys
 from datetime import datetime
+from enum import Enum
 from pathlib import Path
+from typing import Any, Dict, Iterable, Optional
+
 from dotenv import load_dotenv
 
+from core.agents.workflow import run_workflow
+from core.automation.allure_reporter import AllureReporter
+from core.models.runtime import BenchmarkCase, RunManifest
+from core.models.workflow import AgentState
 from core.parsers.markdown_parser import (
+    extract_credential_env_names,
     extract_credentials,
     extract_page_url,
     parse_markdown,
 )
-from core.models.workflow import AgentState
-from core.agents.workflow import run_workflow
-from core.automation.allure_reporter import AllureReporter
 from core.utils.logging_setup import configure_logging
 from core.utils.project_paths import (
-    OUTPUT_DIR,
+    ALLURE_REPORT_DIR,
+    ALLURE_RESULTS_DIR,
     GENERATED_TESTS_DIR,
     LEGACY_GENERATED_TESTS_DIR,
-    ALLURE_RESULTS_DIR,
-    ALLURE_REPORT_DIR,
+    OUTPUT_DIR,
     PLAYWRIGHT_RESULTS_DIR,
 )
 
 
+BENCHMARK_CASES: dict[str, BenchmarkCase] = {
+    "login-success": BenchmarkCase(
+        id="login-success",
+        name="Login Success Path",
+        requirement_file="examples/benchmarks/benchmark_login_success.md",
+        description="Bounded login flow with runtime credential injection and success-signal validation.",
+        page_url="https://global.lianlianpay.com/signin",
+        expected_focus=["runtime credentials", "native-first planning", "success signal assertion"],
+    ),
+    "form-validation": BenchmarkCase(
+        id="form-validation",
+        name="Form Validation Path",
+        requirement_file="examples/benchmarks/benchmark_form_validation.md",
+        description="Form submission with invalid input and inline validation checks.",
+        page_url="https://example.com/signup",
+        expected_focus=["negative cases", "field validation", "assertion clarity"],
+    ),
+    "list-search": BenchmarkCase(
+        id="list-search",
+        name="List Search Path",
+        requirement_file="examples/benchmarks/benchmark_list_search.md",
+        description="Search/list filtering flow with deterministic assertions on result visibility.",
+        page_url="https://www.baidu.com",
+        expected_focus=["query entry", "result list assertion", "benchmark stability"],
+    ),
+}
+
+
+def _build_offline_smoke_state(requirement_text: str, page_url: str, execute_ui: bool) -> AgentState:
+    """Create a deterministic workflow result for CI smoke validation."""
+    return {
+        "requirement_text": requirement_text,
+        "requirements": [
+            {
+                "id": "REQ_SMOKE_001",
+                "title": "Offline smoke validation",
+                "description": "Deterministic fallback state used to validate CLI artifact wiring.",
+                "acceptance_criteria": ["CLI writes stable output artifacts without external LLM calls."],
+            }
+        ],
+        "planned_requirements": None,
+        "test_strategy": {
+            "strategy_version": "offline-smoke",
+            "overall_summary": "Offline smoke mode bypassed remote LLM calls and validated CLI output contracts.",
+            "requirement_strategies": [],
+            "total_suggested_case_budget": 1,
+            "fallback_used": True,
+            "metadata": {"offline_smoke": True},
+        },
+        "requirement_summary": "Offline smoke requirement summary.",
+        "test_cases": [
+            {
+                "id": "TC_SMOKE_001",
+                "requirement_id": "REQ_SMOKE_001",
+                "title": "Offline smoke case",
+                "steps": [{"step_number": 1, "action": "Validate CLI artifact contract", "expected": "Stable files are written"}],
+                "expected": "Stable files are written",
+                "tags": ["smoke", "offline"],
+            }
+        ],
+        "review_passed": True,
+        "review_score": 100,
+        "review_comments": [],
+        "review_suggestions": [],
+        "iteration_count": 0,
+        "max_iterations": 0,
+        "feedback": [],
+        "generated_script": None,
+        "script_plans": [
+            {
+                "testcase_id": "TC_SMOKE_001",
+                "title": "Offline smoke case",
+                "scenario": {
+                    "scenario_type": "generic",
+                    "execution_policy": "native_first",
+                },
+                "steps": [
+                    {
+                        "step_number": 1,
+                        "preferred_executor": "playwright_native",
+                        "action_prompt": "Validate CLI artifact contract",
+                        "verify_prompt": "Stable files are written",
+                    }
+                ],
+            }
+        ],
+        "page_url": page_url,
+        "scenario_config": None,
+        "execute_ui": execute_ui,
+        "execution_results": {
+            "status": "skipped",
+            "total": 0,
+            "passed": 0,
+            "failed": 0,
+            "skipped": 0,
+            "duration": 0,
+            "tests": [],
+            "failure_analysis": {
+                "category": "none",
+                "summary": "Offline smoke mode skips browser execution by design.",
+                "confidence": 1.0,
+                "evidence": [],
+                "suggested_action": None,
+            },
+        },
+        "allure_report_path": None,
+        "current_step": "offline_smoke_completed",
+        "agent_messages": [
+            {
+                "role": "offline_smoke",
+                "content": "Offline smoke mode validated the CLI artifact contract without external dependencies.",
+            }
+        ],
+    }
+
+
 def _build_login_only_scenario_config(page_url: str | None = None) -> dict:
-    """Build the default login-only scenario config."""
+    """Build the default bounded login-only scenario config."""
     return {
         "scenario_type": "login_only",
         "page_url": page_url or os.getenv("LOGIN_PAGE_URL", "https://global.lianlianpay.com/signin"),
@@ -71,39 +187,60 @@ def _build_login_only_scenario_config(page_url: str | None = None) -> dict:
 
 
 def _read_login_scenario_config() -> dict | None:
-    """Build a runtime-only login scenario config from environment variables."""
     scenario_type = os.getenv("SCENARIO_TYPE", "").strip().lower()
     if scenario_type != "login_only":
         return None
-
     return _build_login_only_scenario_config()
 
 
-def _parse_args() -> argparse.Namespace:
-    """Parse command line arguments for the main workflow entrypoint."""
+def _parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
+    """Parse CLI arguments with backward-compatible default `run` behavior."""
+    argv = list(sys.argv[1:] if argv is None else argv)
+    command_names = {"run", "validate", "demo"}
+    normalized_argv = argv if argv[:1] and argv[0] in command_names else ["run", *argv]
+
     parser = argparse.ArgumentParser(
-        description="Run the end-to-end AI testing workflow for a requirement document.",
+        description="Run the AI-driven test design and UI automation workflow.",
     )
-    parser.add_argument(
-        "--requirement-file",
-        dest="requirement_file",
-        help="Path to the requirement markdown file to execute.",
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    def add_common_arguments(subparser: argparse.ArgumentParser) -> None:
+        subparser.add_argument("--requirement-file", dest="requirement_file", help="Path to the requirement markdown file.")
+        subparser.add_argument("--page-url", dest="page_url", help="Optional page URL override.")
+        subparser.add_argument("--output-dir", dest="output_dir", default=str(OUTPUT_DIR / "runs"), help="Directory that stores stable run artifacts.")
+        subparser.add_argument("--max-iterations", dest="max_iterations", type=int, default=2, help="Maximum review/generation iterations.")
+        subparser.add_argument("--clean", action="store_true", help="Clean transient runtime directories before the run.")
+        subparser.add_argument("--no-open-report", action="store_true", help="Do not auto-open the Allure report after a UI run.")
+
+    run_parser = subparsers.add_parser("run", help="Run the full workflow, including optional UI execution.")
+    add_common_arguments(run_parser)
+    run_parser.add_argument("--no-ui", action="store_true", help="Generate and validate artifacts without running browser automation.")
+
+    validate_parser = subparsers.add_parser("validate", help="Validate the requirement-to-plan pipeline without UI execution.")
+    add_common_arguments(validate_parser)
+
+    demo_parser = subparsers.add_parser("demo", help="Run one of the official benchmark cases.")
+    add_common_arguments(demo_parser)
+    demo_parser.add_argument(
+        "--demo-case",
+        choices=sorted(BENCHMARK_CASES.keys()),
+        default="login-success",
+        help="Official benchmark case to run.",
     )
-    parser.add_argument(
-        "--page-url",
-        dest="page_url",
-        help="Optional page URL override for the generated workflow run.",
-    )
-    return parser.parse_args()
+    demo_parser.add_argument("--no-ui", action="store_true", help="Prepare benchmark artifacts without running browser automation.")
+
+    return parser.parse_args(normalized_argv)
 
 
 def _resolve_requirement_file(
     scenario_config: dict | None,
     cli_requirement_file: str | None = None,
+    benchmark_case: BenchmarkCase | None = None,
 ) -> str:
-    """Select the requirement document for the current run."""
     if cli_requirement_file:
         return cli_requirement_file
+    if benchmark_case:
+        return benchmark_case.requirement_file
     configured = os.getenv("REQUIREMENT_FILE", "").strip()
     if configured:
         return configured
@@ -116,21 +253,46 @@ def _inject_requirement_credentials(
     scenario_config: dict | None,
     requirement_text: str,
 ) -> tuple[dict | None, dict[str, str | None]]:
-    """Merge requirement-document credentials into the runtime config for execution-time injection."""
-    extracted_credentials = extract_credentials(requirement_text)
+    """Merge requirement-document credentials into runtime scenario config.
 
-    if not any(extracted_credentials.values()):
+    Priority:
+    1. Plaintext `identifier` / `password` from the requirement
+    2. `.env` or process env values resolved via the configured env names
+    3. Env-name placeholders kept for runtime lookup only
+    """
+    extracted_credentials = extract_credentials(requirement_text)
+    extracted_env_names = extract_credential_env_names(requirement_text)
+
+    if not any(extracted_credentials.values()) and not any(extracted_env_names.values()):
         return scenario_config, extracted_credentials
 
     updated_config = dict(scenario_config or {})
     credentials = dict(updated_config.get("credentials") or {})
-    credentials.setdefault("username_env", os.getenv("LOGIN_USERNAME_ENV", "LOGIN_USERNAME"))
-    credentials.setdefault("password_env", os.getenv("LOGIN_PASSWORD_ENV", "LOGIN_PASSWORD"))
+    credentials.setdefault(
+        "username_env",
+        extracted_env_names.get("identifier_env") or os.getenv("LOGIN_USERNAME_ENV", "LOGIN_USERNAME"),
+    )
+    credentials.setdefault(
+        "password_env",
+        extracted_env_names.get("password_env") or os.getenv("LOGIN_PASSWORD_ENV", "LOGIN_PASSWORD"),
+    )
+    if extracted_env_names.get("identifier_env"):
+        credentials["username_env"] = extracted_env_names["identifier_env"]
+    if extracted_env_names.get("password_env"):
+        credentials["password_env"] = extracted_env_names["password_env"]
 
     if extracted_credentials.get("identifier"):
         credentials["username_value"] = extracted_credentials["identifier"]
     if extracted_credentials.get("password"):
         credentials["password_value"] = extracted_credentials["password"]
+    if not credentials.get("username_value"):
+        fallback_username = os.getenv(str(credentials.get("username_env") or "LOGIN_USERNAME"), "").strip()
+        if fallback_username:
+            credentials["username_value"] = fallback_username
+    if not credentials.get("password_value"):
+        fallback_password = os.getenv(str(credentials.get("password_env") or "LOGIN_PASSWORD"), "").strip()
+        if fallback_password:
+            credentials["password_value"] = fallback_password
 
     updated_config["credentials"] = credentials
     return updated_config, extracted_credentials
@@ -143,7 +305,7 @@ def _maybe_enable_login_only_scenario(
     extracted_url: str | None,
     extracted_credentials: dict[str, str | None],
 ) -> dict | None:
-    """Infer the bounded login-only scenario when the requirement file already encodes it."""
+    """Infer a bounded login-only scenario when the requirement document encodes it."""
     if scenario_config and scenario_config.get("scenario_type") == "login_only":
         if extracted_url and not scenario_config.get("page_url"):
             updated_config = dict(scenario_config)
@@ -151,16 +313,11 @@ def _maybe_enable_login_only_scenario(
             return updated_config
         return scenario_config
 
-    file_hint = "login_only" in Path(requirement_file).stem.lower()
+    file_hint = "login_only" in Path(requirement_file).stem.lower() or "login_success" in Path(requirement_file).stem.lower()
     text_lower = requirement_text.lower()
     has_execution_boundary = "execution boundary" in text_lower
-    has_login_url = any(
-        token in (extracted_url or "").lower()
-        for token in ("/signin", "/login", "sign-in")
-    )
-    has_runtime_credentials = bool(
-        extracted_credentials.get("identifier") and extracted_credentials.get("password")
-    )
+    has_login_url = any(token in (extracted_url or "").lower() for token in ("/signin", "/login", "sign-in"))
+    has_runtime_credentials = bool(extracted_credentials.get("identifier") and extracted_credentials.get("password"))
 
     if not (file_hint or (has_execution_boundary and has_login_url and has_runtime_credentials)):
         return scenario_config
@@ -175,10 +332,7 @@ def _maybe_enable_login_only_scenario(
         merged_config.setdefault("mfa_mode", inferred_config["mfa_mode"])
         merged_config.setdefault("allowed_actions", inferred_config["allowed_actions"])
         merged_config.setdefault("forbidden_actions", inferred_config["forbidden_actions"])
-        merged_config.setdefault(
-            "manual_wait_timeout_ms",
-            inferred_config["manual_wait_timeout_ms"],
-        )
+        merged_config.setdefault("manual_wait_timeout_ms", inferred_config["manual_wait_timeout_ms"])
         merged_credentials = dict(inferred_config.get("credentials") or {})
         merged_credentials.update(merged_config.get("credentials") or {})
         merged_config["credentials"] = merged_credentials
@@ -187,245 +341,286 @@ def _maybe_enable_login_only_scenario(
     return inferred_config
 
 
-def get_timestamp() -> str:
-    """获取当前时间戳"""
-    return datetime.now().strftime("(%Y-%m-%d_%H-%M-%S)")
+def _hydrate_runtime_credentials(scenario_config: dict | None) -> dict | None:
+    """Backfill runtime credential values from env after the scenario is known."""
+    if not scenario_config:
+        return None
+
+    credentials = dict((scenario_config.get("credentials") or {}))
+    if not credentials:
+        return scenario_config
+
+    username_env = str(credentials.get("username_env") or "LOGIN_USERNAME")
+    password_env = str(credentials.get("password_env") or "LOGIN_PASSWORD")
+
+    if not credentials.get("username_value"):
+        username_value = os.getenv(username_env, "").strip()
+        if username_value:
+            credentials["username_value"] = username_value
+    if not credentials.get("password_value"):
+        password_value = os.getenv(password_env, "").strip()
+        if password_value:
+            credentials["password_value"] = password_value
+
+    updated_config = dict(scenario_config)
+    updated_config["credentials"] = credentials
+    return updated_config
 
 
-def clean_history_data():
-    """清理历史数据"""
-    output_dir = OUTPUT_DIR
-    tests_dir = GENERATED_TESTS_DIR
-    allure_results_dir = ALLURE_RESULTS_DIR
-    allure_report_dir = ALLURE_REPORT_DIR
-    test_results_dir = PLAYWRIGHT_RESULTS_DIR
-
-    if output_dir.exists():
-        print("  [清理] output 目录...")
-        for file in output_dir.iterdir():
-            if file.is_file():
-                try:
-                    file.unlink()
-                    print(f"    - 删除: {file.name}")
-                except PermissionError:
-                    print(f"    - 跳过(文件被占用): {file.name}")
-                except OSError as e:
-                    print(f"    - 跳过(删除失败): {file.name} - {e}")
-
-    if tests_dir.exists():
-        print(f"  [清理] {tests_dir} 目录...")
-        for file in tests_dir.glob("*.spec.ts"):
+def clean_history_data() -> None:
+    """Clean transient runtime directories without touching benchmark artifacts."""
+    directories = [
+        GENERATED_TESTS_DIR,
+        LEGACY_GENERATED_TESTS_DIR,
+        ALLURE_RESULTS_DIR,
+        ALLURE_REPORT_DIR,
+        PLAYWRIGHT_RESULTS_DIR,
+    ]
+    for directory in directories:
+        if not directory.exists():
+            continue
+        print(f"  [clean] {directory}")
+        for item in directory.iterdir():
             try:
-                file.unlink()
-                print(f"    - 删除: {file.name}")
-            except PermissionError:
-                print(f"    - 跳过(文件被占用): {file.name}")
-            except OSError as e:
-                print(f"    - 跳过(删除失败): {file.name} - {e}")
-
-    if LEGACY_GENERATED_TESTS_DIR.exists():
-        print("  [清理] tests/generated 旧目录...")
-        for file in LEGACY_GENERATED_TESTS_DIR.glob("*.spec.ts"):
-            try:
-                file.unlink()
-                print(f"    - 删除: {file.name}")
-            except PermissionError:
-                print(f"    - 跳过(文件被占用): {file.name}")
-            except OSError as e:
-                print(f"    - 跳过(删除失败): {file.name} - {e}")
-
-    # 清理 Allure 与 Playwright 运行产物，避免历史结果污染当前报告
-    for directory in [allure_results_dir, allure_report_dir, test_results_dir]:
-        if directory.exists():
-            print(f"  [清理] {directory} 目录...")
-            for item in directory.iterdir():
-                try:
-                    if item.is_file():
-                        item.unlink()
-                    else:
-                        import shutil
-                        shutil.rmtree(item)
-                    print(f"    - 删除: {item.name}")
-                except PermissionError:
-                    print(f"    - 跳过(文件被占用): {item.name}")
-                except OSError as e:
-                    print(f"    - 跳过(删除失败): {item.name} - {e}")
+                if item.is_dir():
+                    shutil.rmtree(item)
+                else:
+                    item.unlink()
+            except OSError as exc:
+                print(f"    - skip {item.name}: {exc}")
 
 
-def save_results(state: AgentState, timestamp: str):
-    """保存工作流结果"""
-    from datetime import datetime
-
-    output_dir = OUTPUT_DIR
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-    # 辅助函数：处理 Pydantic 模型和 datetime 序列化
-    def serialize_value(v):
-        if hasattr(v, 'model_dump'):
-            # Pydantic 模型
-            data = v.model_dump()
-            return serialize_value(data)
-        elif isinstance(v, datetime):
-            # datetime 转换为 ISO 格式字符串
-            return v.isoformat()
-        elif isinstance(v, list):
-            return [serialize_value(item) for item in v]
-        elif isinstance(v, dict):
-            return {k: serialize_value(val) for k, val in v.items()}
-        return v
-
-    # 保存需求分析结果
-    requirements = state.get("requirements", [])
-    if requirements:
-        requirements_file = output_dir / f"requirements{timestamp}.json"
-        with open(requirements_file, "w", encoding="utf-8") as f:
-            json.dump({"requirements": serialize_value(requirements)}, f, ensure_ascii=False, indent=2)
-        print(f"  需求分析: {requirements_file}")
-
-    # 保存测试用例
-    test_strategy = state.get("test_strategy")
-    if test_strategy:
-        strategy_file = output_dir / f"test_strategy{timestamp}.json"
-        with open(strategy_file, "w", encoding="utf-8") as f:
-            json.dump({"test_strategy": serialize_value(test_strategy)}, f, ensure_ascii=False, indent=2)
-        print(f"  test strategy: {strategy_file}")
-
-    test_cases = state.get("test_cases", [])
-    if test_cases:
-        test_cases_file = output_dir / f"test_cases{timestamp}.json"
-        with open(test_cases_file, "w", encoding="utf-8") as f:
-            json.dump({"test_cases": serialize_value(test_cases)}, f, ensure_ascii=False, indent=2)
-        print(f"  测试用例: {test_cases_file}")
-
-    # 保存评审结果
-    review_comments = state.get("review_comments", [])
-    review_suggestions = state.get("review_suggestions", [])
-    review_score = state.get("review_score")
-
-    if review_comments or review_suggestions:
-        review_file = output_dir / f"review{timestamp}.json"
-        with open(review_file, "w", encoding="utf-8") as f:
-            json.dump({
-                "passed": state.get("review_passed"),
-                "score": review_score,
-                "comments": serialize_value(review_comments),
-                "suggestions": serialize_value(review_suggestions)
-            }, f, ensure_ascii=False, indent=2)
-        print(f"  评审结果: {review_file}")
-
-    # 保存执行结果（阶段3新增）
-    exec_results = state.get("execution_results")
-    if exec_results:
-        exec_file = output_dir / f"execution{timestamp}.json"
-        with open(exec_file, "w", encoding="utf-8") as f:
-            json.dump(serialize_value(exec_results), f, ensure_ascii=False, indent=2)
-        print(f"  执行结果: {exec_file}")
+def _serialize_value(value: Any) -> Any:
+    if hasattr(value, "model_dump"):
+        return _serialize_value(value.model_dump())
+    if isinstance(value, Enum):
+        return value.value
+    if isinstance(value, Path):
+        return str(value)
+    if isinstance(value, dict):
+        return {key: _serialize_value(val) for key, val in value.items()}
+    if isinstance(value, list):
+        return [_serialize_value(item) for item in value]
+    return value
 
 
-def print_summary(state: AgentState, timestamp: str):
-    """打印执行摘要"""
+def _build_run_id() -> str:
+    return datetime.now().strftime("%Y%m%d_%H%M%S")
+
+
+def _copy_generated_script(script_path: str | None, run_dir: Path) -> str | None:
+    if not script_path:
+        return None
+    source = Path(script_path)
+    if not source.exists():
+        return None
+    target = run_dir / "generated.spec.ts"
+    shutil.copy2(source, target)
+    return str(target)
+
+
+def _write_json(path: Path, payload: Any) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "w", encoding="utf-8") as handle:
+        json.dump(_serialize_value(payload), handle, ensure_ascii=False, indent=2)
+
+
+def _execution_target_counts(script_plans: list[dict[str, Any]] | None) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for plan in script_plans or []:
+        for step in plan.get("steps") or []:
+            target = str(step.get("preferred_executor") or "unknown")
+            counts[target] = counts.get(target, 0) + 1
+    return counts
+
+
+def build_run_summary(
+    state: AgentState,
+    manifest: RunManifest,
+    benchmark_case: BenchmarkCase | None = None,
+) -> dict[str, Any]:
+    """Build a concise, stable summary for the run."""
+    requirements = state.get("requirements") or []
+    test_strategy = state.get("test_strategy") or {}
+    script_plans = state.get("script_plans") or []
+    execution_results = state.get("execution_results") or {}
+    failure_analysis = execution_results.get("failure_analysis") or {}
+    details = []
+    for plan in script_plans:
+        scenario = plan.get("scenario") or {}
+        details.append(
+            {
+                "testcase_id": plan.get("testcase_id"),
+                "scenario_type": scenario.get("scenario_type"),
+                "execution_policy": scenario.get("execution_policy"),
+            }
+        )
+
+    return {
+        "run_id": manifest.run_id,
+        "benchmark_case": benchmark_case.model_dump() if benchmark_case else None,
+        "requirement_count": len(requirements),
+        "test_case_count": len(state.get("test_cases") or []),
+        "review_score": state.get("review_score"),
+        "review_passed": state.get("review_passed"),
+        "iteration_count": state.get("iteration_count", 0),
+        "strategy_budget": test_strategy.get("total_suggested_case_budget"),
+        "planned_script_count": len(script_plans),
+        "execution_target_counts": _execution_target_counts(script_plans),
+        "scenario_overview": details,
+        "execution_status": execution_results.get("status"),
+        "failure_category": failure_analysis.get("category", "none"),
+        "failure_summary": failure_analysis.get("summary"),
+        "artifacts": manifest.files,
+    }
+
+
+def save_results(
+    state: AgentState,
+    *,
+    manifest: RunManifest,
+    benchmark_case: BenchmarkCase | None = None,
+) -> dict[str, str]:
+    """Persist the stable output contract for one run."""
+    run_dir = Path(manifest.output_dir)
+    run_dir.mkdir(parents=True, exist_ok=True)
+
+    generated_script_copy = _copy_generated_script(state.get("generated_script"), run_dir)
+    files = {
+        "requirements": str(run_dir / "requirements.json"),
+        "test_strategy": str(run_dir / "test_strategy.json"),
+        "test_cases": str(run_dir / "test_cases.json"),
+        "review": str(run_dir / "review.json"),
+        "script_plan": str(run_dir / "script_plan.json"),
+        "execution": str(run_dir / "execution.json"),
+        "run_summary": str(run_dir / "run_summary.json"),
+        "run_manifest": str(run_dir / "run_manifest.json"),
+    }
+    if generated_script_copy:
+        files["generated_script"] = generated_script_copy
+
+    _write_json(Path(files["requirements"]), {"requirements": state.get("requirements") or []})
+    _write_json(Path(files["test_strategy"]), {"test_strategy": state.get("test_strategy")})
+    _write_json(Path(files["test_cases"]), {"test_cases": state.get("test_cases") or []})
+    _write_json(
+        Path(files["review"]),
+        {
+            "passed": state.get("review_passed"),
+            "score": state.get("review_score"),
+            "comments": state.get("review_comments") or [],
+            "suggestions": state.get("review_suggestions") or [],
+        },
+    )
+    _write_json(Path(files["script_plan"]), {"script_plans": state.get("script_plans") or []})
+    _write_json(Path(files["execution"]), state.get("execution_results"))
+
+    manifest.files = files
+    summary = build_run_summary(state, manifest, benchmark_case)
+    _write_json(Path(files["run_summary"]), summary)
+    _write_json(Path(files["run_manifest"]), manifest.model_dump())
+    return files
+
+
+def _print_summary(state: AgentState, manifest: RunManifest, files: dict[str, str]) -> None:
+    execution_results = state.get("execution_results") or {}
+    failure_analysis = execution_results.get("failure_analysis") or {}
     print("\n" + "=" * 60)
-    print("Agent 协作工作流完成")
+    print("Workflow completed")
     print("=" * 60)
-
-    print(f"\n生成时间: {timestamp}")
-    print(f"\n执行统计:")
-    print(f"  - 需求数量: {len(state.get('requirements', []))}")
-    print(f"  - 用例数量: {len(state.get('test_cases', []))}")
-    print(f"  - 评审得分: {state.get('review_score', 'N/A')}/100")
-    print(f"  - 迭代次数: {state.get('iteration_count', 0)}")
-    print(f"  - 评审通过: {'是' if state.get('review_passed') else '否'}")
-
-    # 阶段3新增：脚本和执行信息
-    print(f"\n脚本与执行:")
-    print(f"  - 生成脚本: {state.get('generated_script', 'N/A')}")
-
-    exec_results = state.get("execution_results")
-    if exec_results:
-        print(f"  - 执行状态: {exec_results.get('status')}")
-        print(f"  - 测试总数: {exec_results.get('total')}")
-        print(f"  - 通过数量: {exec_results.get('passed')}")
-        print(f"  - 失败数量: {exec_results.get('failed')}")
-        print(f"  - 执行耗时: {exec_results.get('duration')}秒")
-
-        # 计算通过率
-        if exec_results.get('total', 0) > 0:
-            pass_rate = exec_results['passed'] / exec_results['total'] * 100
-            print(f"  - 通过率: {pass_rate:.1f}%")
-
-    # Allure 报告
-    allure_path = state.get("allure_report_path")
-    if allure_path:
-        print(f"\n测试报告:")
-        print(f"  - Allure 报告: {allure_path}")
-        print(f"  - 查看命令: allure open {allure_path}")
-
-    # 显示评审建议
-    suggestions = state.get("review_suggestions", [])
-    if suggestions:
-        print(f"\n改进建议:")
-        for i, suggestion in enumerate(suggestions[:5], 1):
-            print(f"  {i}. {suggestion}")
-        if len(suggestions) > 5:
-            print(f"  ... 还有 {len(suggestions) - 5} 条建议")
-
-    # 显示 Agent 消息
-    messages = state.get("agent_messages", [])
-    if messages:
-        print(f"\nAgent 消息:")
-        for msg in messages[-5:]:  # 只显示最后5条
-            if isinstance(msg, dict):
-                print(f"  [{msg.get('role', 'unknown')}]: {msg.get('content', '')}")
-
-    print("\n输出文件:")
-    print(f"  1. 测试用例: output/test_cases{timestamp}.json")
-    print(f"  2. 评审结果: output/review{timestamp}.json")
-    if exec_results:
-        print(f"  3. 执行结果: output/execution{timestamp}.json")
+    print(f"Run ID: {manifest.run_id}")
+    print(f"Requirement file: {manifest.requirement_file}")
+    print(f"UI execution: {'enabled' if manifest.execute_ui else 'disabled'}")
+    print(f"Requirements: {len(state.get('requirements') or [])}")
+    print(f"Test cases: {len(state.get('test_cases') or [])}")
+    print(f"Review score: {state.get('review_score')}")
+    print(f"Planned scripts: {len(state.get('script_plans') or [])}")
+    print(f"Execution status: {execution_results.get('status')}")
+    if failure_analysis:
+        print(f"Failure category: {failure_analysis.get('category')}")
+        print(f"Failure summary: {failure_analysis.get('summary')}")
+    print("Artifacts:")
+    for label, path in files.items():
+        print(f"  - {label}: {path}")
 
 
-def main():
-    """主流程 - 阶段3"""
+def open_allure_report() -> None:
+    """Open the Allure report if the toolchain is available."""
+    reporter = AllureReporter(results_dir="allure-results", report_dir="allure-report")
+    if not reporter.check_allure_installed():
+        print("  [WARN] Allure is not installed; skip opening report.")
+        return
+
+    result = reporter.generate_report()
+    if result["status"] != "success":
+        print(f"  [WARN] Failed to generate report: {result['error']}")
+        return
+
+    open_result = reporter.open_report()
+    if open_result["status"] == "success":
+        print(f"  [OK] Report URL: {open_result['url']}")
+    else:
+        print(f"  [WARN] Failed to serve report: {open_result['error']}")
+
+
+def _load_benchmark_case(args: argparse.Namespace) -> BenchmarkCase | None:
+    if args.command != "demo":
+        return None
+    return BENCHMARK_CASES[args.demo_case]
+
+
+def _resolve_page_url(
+    args: argparse.Namespace,
+    extracted_url: str | None,
+    scenario_config: dict | None,
+    benchmark_case: BenchmarkCase | None,
+) -> str:
+    return (
+        args.page_url
+        or extracted_url
+        or (scenario_config.get("page_url") if scenario_config else None)
+        or (benchmark_case.page_url if benchmark_case else None)
+        or "https://www.baidu.com"
+    )
+
+
+def _command_execute_ui(args: argparse.Namespace) -> bool:
+    if args.command == "validate":
+        return False
+    return not getattr(args, "no_ui", False)
+
+
+def _offline_smoke_enabled() -> bool:
+    return os.getenv("AI_TEST_OFFLINE_SMOKE", "").strip().lower() in {"1", "true", "yes"}
+
+
+def run_command(args: argparse.Namespace) -> int:
     load_dotenv()
-    args = _parse_args()
+    benchmark_case = _load_benchmark_case(args)
     scenario_config = _read_login_scenario_config()
 
     print("=" * 60)
-    print("AI测试自动化平台 - 阶段3: 完整自动化流程")
+    print("AI Testing Workflow CLI")
     print("=" * 60)
 
-    # 0. 清理历史数据
-    print("\n[步骤0] 清理历史数据...")
-    clean_history_data()
+    if args.clean:
+        print("\n[step] Cleaning transient runtime directories...")
+        clean_history_data()
 
     log_file = configure_logging(force=True)
-    print(f"[日志] 已启用文件日志: {log_file}")
+    print(f"[log] {log_file}")
 
-    timestamp = get_timestamp()
-
-    # 1. 读取需求文档
-    print("\n[步骤1] 读取需求文档...")
     requirement_file = _resolve_requirement_file(
         scenario_config,
         cli_requirement_file=args.requirement_file,
+        benchmark_case=benchmark_case,
     )
-
     if not os.path.exists(requirement_file):
-        print(f"错误: 需求文档不存在 {requirement_file}")
-        return
+        print(f"[error] Requirement file not found: {requirement_file}")
+        return 1
 
     requirement_text = parse_markdown(requirement_file)
-    print(f"[OK] 需求文档读取成功 ({len(requirement_text)} 字符)")
-
-    # 从需求文档中提取 page_url
     extracted_url = extract_page_url(requirement_text)
-    if extracted_url:
-        print(f"[OK] 从需求文档提取 URL: {extracted_url}")
-
-    scenario_config, extracted_credentials = _inject_requirement_credentials(
-        scenario_config,
-        requirement_text,
-    )
+    scenario_config, extracted_credentials = _inject_requirement_credentials(scenario_config, requirement_text)
     scenario_config = _maybe_enable_login_only_scenario(
         scenario_config,
         requirement_file,
@@ -433,122 +628,64 @@ def main():
         extracted_url,
         extracted_credentials,
     )
-    if scenario_config and scenario_config.get("scenario_type") == "login_only":
-        print("[INFO] Auto-enabled the bounded login_only scenario.")
-    if any(extracted_credentials.values()):
-        identifier_status = "是" if extracted_credentials.get("identifier") else "否"
-        password_status = "是" if extracted_credentials.get("password") else "否"
-        if scenario_config and scenario_config.get("scenario_type") == "login_only":
-            print(
-                "[OK] 已从需求文档提取登录凭证并注入执行环境 "
-                f"(identifier: {identifier_status}, password: {password_status})"
-            )
-        else:
-            print(
-                "[INFO] 已从需求文档提取登录凭证 "
-                f"(identifier: {identifier_status}, password: {password_status})"
-            )
+    scenario_config = _hydrate_runtime_credentials(scenario_config)
 
-    # 2. 运行 Agent 协作工作流（包含脚本生成和测试执行）
-    print("\n[步骤2] 启动完整工作流...")
-    print("-" * 60)
+    execute_ui = _command_execute_ui(args)
+    resolved_page_url = _resolve_page_url(args, extracted_url, scenario_config, benchmark_case)
+    output_root = Path(args.output_dir).expanduser().resolve()
+    run_id = _build_run_id()
+    run_dir = output_root / run_id
+    manifest = RunManifest(
+        run_id=run_id,
+        command=args.command,
+        requirement_file=str(Path(requirement_file).resolve()),
+        page_url=resolved_page_url,
+        output_dir=str(run_dir),
+        execute_ui=execute_ui,
+        benchmark_case_id=benchmark_case.id if benchmark_case else None,
+    )
+
+    print(f"[info] Requirement file: {requirement_file}")
+    print(f"[info] Page URL: {resolved_page_url}")
+    print(f"[info] Output dir: {run_dir}")
+    if benchmark_case:
+        print(f"[info] Benchmark: {benchmark_case.id} - {benchmark_case.name}")
 
     try:
-        # URL 优先级: CLI > 需求文档提取 > scenario_config > 默认值
-        resolved_page_url = (
-            args.page_url
-            or extracted_url
-            or (scenario_config.get("page_url") if scenario_config else None)
-            or "https://www.baidu.com"
-        )
-        print(f"[INFO] 使用页面 URL: {resolved_page_url}")
-
-        final_state = run_workflow(
-            requirement_text=requirement_text,
-            max_iterations=2,
-            scenario_config=scenario_config,
-            page_url=resolved_page_url,
-        )
-    except Exception as e:
-        print(f"[FAIL] 工作流执行失败: {e}")
+        if _offline_smoke_enabled():
+            print("[info] Offline smoke mode enabled; bypassing remote workflow execution.")
+            final_state = _build_offline_smoke_state(
+                requirement_text=requirement_text,
+                page_url=resolved_page_url,
+                execute_ui=execute_ui,
+            )
+        else:
+            final_state = run_workflow(
+                requirement_text=requirement_text,
+                max_iterations=args.max_iterations,
+                scenario_config=scenario_config,
+                page_url=resolved_page_url,
+                execute_ui=execute_ui,
+            )
+    except Exception as exc:
+        print(f"[error] Workflow failed: {exc}")
         import traceback
         traceback.print_exc()
-        return
+        return 1
 
-    # 3. 保存结果
-    print("\n[步骤3] 保存结果...")
-    save_results(final_state, timestamp)
+    files = save_results(final_state, manifest=manifest, benchmark_case=benchmark_case)
+    _print_summary(final_state, manifest, files)
 
-    # 4. 打印摘要
-    print_summary(final_state, timestamp)
+    if execute_ui and not args.no_open_report and final_state.get("execution_results", {}).get("status") != "skipped":
+        open_allure_report()
 
-    # 5. 自动打开 Allure 报告
-    print("\n[步骤4] 打开测试报告...")
-    open_allure_report()
+    return 0
 
 
-def open_allure_report():
-    """生成并打开 Allure HTML 报告"""
-    import sys
-
-    reporter = AllureReporter(results_dir="allure-results", report_dir="allure-report")
-
-    # 检查 Allure 是否安装
-    if not reporter.check_allure_installed():
-        print("  [WARN] Allure 未安装，无法生成报告")
-        print("  安装命令: npm install -g allure-commandline")
-        return
-
-    # 检查是否有测试结果
-    has_result_files = reporter.results_dir.exists() and any(
-        reporter.results_dir.glob("*result*.json")
-    )
-    if not has_result_files:
-        print("  [WARN] 没有测试结果，尝试从执行结果生成 Allure 数据...")
-        
-        # 尝试使用脚本生成 Allure 结果
-        try:
-            import subprocess
-            result = subprocess.run(
-                [sys.executable, "scripts/generate_allure_from_results.py"],
-                capture_output=True,
-                text=True,
-                encoding='utf-8',
-                errors='replace'  # 忽略编码错误
-            )
-            
-            if result.returncode == 0:
-                print("  [OK] 已从执行结果生成 Allure 数据")
-            else:
-                print(f"  [WARN] 生成 Allure 数据失败: {result.stderr}")
-                return
-        except Exception as e:
-            print(f"  [WARN] 无法生成 Allure 数据: {e}")
-            return
-
-    # 生成静态 HTML 报告
-    print("  [INFO] 正在生成 Allure HTML 报告...")
-    result = reporter.generate_report()
-
-    if result["status"] == "success":
-        print(f"  [OK] 报告已生成: {result['report_path']}")
-        open_result = reporter.open_report()
-        if open_result["status"] == "success":
-            print(f"  [OK] 报告服务地址: {open_result['url']}")
-            
-            # 尝试自动打开浏览器
-            try:
-                import webbrowser
-                webbrowser.open(open_result['url'])
-                print("  [OK] 已自动打开浏览器")
-            except Exception as e:
-                print(f"  [WARN] 无法自动打开浏览器: {e}")
-                print(f"  请手动访问: {open_result['url']}")
-        else:
-            print(f"  [WARN] 报告已生成，但启动本地服务失败: {open_result['error']}")
-    else:
-        print(f"  [FAIL] 报告生成失败: {result['error']}")
+def main() -> int:
+    args = _parse_args()
+    return run_command(args)
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

@@ -1,68 +1,59 @@
-"""测试用例生成Agent - 使用结构化输出"""
+"""Test-case generation agent driven by explicit strategy context."""
+
+from __future__ import annotations
+
 import json
-from typing import Dict, Any, List, Union, Optional
+from typing import Any, Dict, List, Optional, Union
+
 from pydantic import ValidationError
 
-from core.utils.llm_client import get_llm_client
-from core.models.requirement import Requirement
+from core.models.requirement import Priority, Requirement, RequirementType
 from core.models.test_case import TestCase, TestCaseGenerationResult, TestCaseType, TestStep
-from core.models.requirement import Priority
+from core.utils.llm_client import get_llm_client
 
 
 class TestCaseGenerator:
-    """测试用例生成Agent - 使用 LangChain 结构化输出"""
+    """Generate structured test cases from a requirement and its strategy."""
 
     def __init__(self):
-        """初始化测试用例生成Agent"""
         self.llm = get_llm_client()
 
     def generate(
         self,
         requirement: Union[Dict[str, Any], Requirement],
-        improvement_hints: Optional[List[str]] = None
+        improvement_hints: Optional[List[str]] = None,
+        generation_context: Optional[Dict[str, Any]] = None,
+        strategy_context: Optional[Dict[str, Any]] = None,
     ) -> List[Dict[str, Any]]:
-        """
-        基于需求生成测试用例（向后兼容接口）
-
-        Args:
-            requirement: 结构化需求（字典或 Requirement 模型）
-            improvement_hints: 改进提示（来自评审反馈）
-
-        Returns:
-            测试用例列表（字典格式）
-        """
-        # 转换为 Requirement 模型
+        """Backward-compatible dict interface."""
         if isinstance(requirement, dict):
+            effective_context = strategy_context or generation_context or requirement.get("generation_context")
             req = self._dict_to_requirement(requirement)
         else:
+            effective_context = strategy_context or generation_context
             req = requirement
 
-        # 调用新的 Pydantic 版本
-        result = self.generate_structured(req, improvement_hints)
-
-        # 转换为字典格式保持兼容性
-        return [tc.model_dump() for tc in result.test_cases]
+        result = self.generate_structured(
+            req,
+            improvement_hints=improvement_hints,
+            strategy_context=effective_context,
+        )
+        return [tc.model_dump(mode="json") for tc in result.test_cases]
 
     def generate_structured(
         self,
         requirement: Requirement,
-        improvement_hints: Optional[List[str]] = None
+        improvement_hints: Optional[List[str]] = None,
+        generation_context: Optional[Dict[str, Any]] = None,
+        strategy_context: Optional[Dict[str, Any]] = None,
     ) -> TestCaseGenerationResult:
-        """
-        基于需求生成测试用例（使用结构化输出）
-
-        Args:
-            requirement: Requirement 模型
-            improvement_hints: 改进提示（来自评审反馈）
-
-        Returns:
-            TestCaseGenerationResult: 结构化的测试用例生成结果
-
-        Raises:
-            ValueError: 当输入参数无效时
-            ValidationError: 当 LLM 输出不符合预期格式时
-        """
-        prompt = self._build_prompt(requirement, improvement_hints)
+        """Generate test cases with structured output."""
+        effective_context = strategy_context or generation_context
+        prompt = self._build_prompt(
+            requirement,
+            improvement_hints,
+            generation_context=effective_context,
+        )
 
         try:
             result = self.llm.invoke_structured(
@@ -71,138 +62,169 @@ class TestCaseGenerator:
                 operation=f"test_case_generation_{requirement.id}",
             )
 
-            # 验证返回的是正确的类型
             if isinstance(result, TestCaseGenerationResult):
-                # 确保 requirement_id 正确
-                for tc in result.test_cases:
-                    tc.requirement_id = requirement.id
-                return result
+                structured_result = result
             else:
-                # 如果返回的是字典，手动转换
-                return self._validate_and_convert(result, requirement.id)
+                structured_result = self._validate_and_convert(result, requirement.id)
 
-        except ValidationError as e:
-            print(f"[TestCaseGenerator] 数据验证失败: {e}")
-            return self._fallback_invoke(prompt, requirement.id)
-        except Exception as e:
-            print(f"[TestCaseGenerator] 结构化输出失败: {e}")
-            return self._fallback_invoke(prompt, requirement.id)
+            for test_case in structured_result.test_cases:
+                test_case.requirement_id = requirement.id
+            return self._apply_generation_plan(structured_result, requirement.id, effective_context)
+        except ValidationError as exc:
+            print(f"[TestCaseGenerator] Structured validation failed: {exc}")
+            return self._fallback_invoke(prompt, requirement.id, effective_context)
+        except Exception as exc:
+            print(f"[TestCaseGenerator] Structured generation failed: {exc}")
+            return self._fallback_invoke(prompt, requirement.id, effective_context)
 
     def _validate_and_convert(self, data: dict, requirement_id: str) -> TestCaseGenerationResult:
-        """验证并转换字典为 TestCaseGenerationResult"""
         if not isinstance(data, dict):
             raise ValueError(f"Expected dict result, got {type(data).__name__}")
 
         test_cases = []
         raw_test_cases = data.get("test_cases", [])
-
-        for i, tc_data in enumerate(raw_test_cases):
-            tc_data = self._ensure_test_case_fields(tc_data, requirement_id, i + 1)
+        for index, tc_data in enumerate(raw_test_cases, start=1):
+            tc_data = self._ensure_test_case_fields(tc_data, requirement_id, index)
             try:
-                test_case = TestCase.model_validate(tc_data)
-                test_cases.append(test_case)
+                test_cases.append(TestCase.model_validate(tc_data))
             except ValidationError:
-                fixed_tc = self._fix_test_case_data(tc_data, requirement_id, i + 1)
+                fixed_tc = self._fix_test_case_data(tc_data, requirement_id, index)
                 if fixed_tc:
                     test_cases.append(fixed_tc)
 
         return TestCaseGenerationResult(
             test_cases=test_cases,
             requirement_id=requirement_id,
-            total_count=len(test_cases)
+            total_count=len(test_cases),
         )
 
-    def _fallback_invoke(self, prompt: str, requirement_id: str) -> TestCaseGenerationResult:
-        """降级方案：手动解析JSON"""
-        print("[TestCaseGenerator] 使用降级解析方案")
+    def _fallback_invoke(
+        self,
+        prompt: str,
+        requirement_id: str,
+        strategy_context: Optional[Dict[str, Any]] = None,
+    ) -> TestCaseGenerationResult:
+        print("[TestCaseGenerator] Falling back to plain JSON generation")
 
         try:
             content = self.llm.chat_simple(prompt, temperature=0.7, max_tokens=4096)
             json_data = self._extract_json(content)
-            return self._parse_llm_response(json_data, requirement_id)
-        except Exception as e:
-            print(f"[TestCaseGenerator] 降级解析也失败: {e}")
-            raise
+            parsed = self._parse_llm_response(json_data, requirement_id)
+            return self._apply_generation_plan(parsed, requirement_id, strategy_context)
+        except Exception as exc:
+            print(f"[TestCaseGenerator] Plain JSON generation also failed: {exc}")
+            return self._apply_generation_plan(
+                TestCaseGenerationResult(test_cases=[], requirement_id=requirement_id, total_count=0),
+                requirement_id,
+                strategy_context,
+            )
 
     def _dict_to_requirement(self, req_dict: Dict[str, Any]) -> Requirement:
-        """将字典转换为 Requirement 模型"""
         try:
             return Requirement.model_validate(req_dict)
         except ValidationError:
-            # 如果验证失败，尝试修复
+            priority_value = str(req_dict.get("priority") or "medium")
+            type_value = str(req_dict.get("type") or "functional")
             return Requirement(
                 id=req_dict.get("id", "REQ_001"),
-                title=req_dict.get("title", "未命名需求"),
-                description=req_dict.get("description", "需求描述"),
-                priority=Priority(req_dict.get("priority", "medium")),
-                acceptance_criteria=req_dict.get("acceptance_criteria", ["基本功能正常"]),
-                ui_elements=req_dict.get("ui_elements", [])
+                title=req_dict.get("title", "Untitled requirement"),
+                description=req_dict.get("description", "Requirement description is missing."),
+                priority=Priority(priority_value if priority_value in {"high", "medium", "low"} else "medium"),
+                type=RequirementType(type_value if type_value in {"functional", "non_functional", "business", "technical"} else "functional"),
+                acceptance_criteria=req_dict.get("acceptance_criteria", ["Core flow works correctly."]),
+                ui_elements=req_dict.get("ui_elements", []),
             )
 
-    def _build_prompt(self, requirement: Requirement, improvement_hints: Optional[List[str]] = None) -> str:
-        """构建生成 prompt"""
+    def _build_prompt(
+        self,
+        requirement: Requirement,
+        improvement_hints: Optional[List[str]] = None,
+        generation_context: Optional[Dict[str, Any]] = None,
+        strategy_context: Optional[Dict[str, Any]] = None,
+    ) -> str:
+        strategy_context = strategy_context or generation_context
         req_json = requirement.model_dump_json(indent=2)
 
-        # 构建改进提示部分
         hints_section = ""
         if improvement_hints:
-            hints_list = "\n".join(f"  - {hint}" for hint in improvement_hints)
+            hints_list = "\n".join(f"- {hint}" for hint in improvement_hints)
             hints_section = f"""
-## ⚠️ 上次评审发现的问题（本次必须修复）
-
+Review feedback to address in this regeneration:
 {hints_list}
 
-**重要**: 本次生成必须解决上述问题，否则评审将再次不通过。
+The new test cases must resolve these feedback items.
 """
 
-        return f"""你是一个资深测试工程师。基于以下需求，生成测试用例。
+        planning_section = ""
+        count_instruction = "Generate only the compact set of cases required by the requirement."
+        if strategy_context:
+            target_case_count = strategy_context.get("target_case_count")
+            count_instruction = (
+                f"You must generate exactly {target_case_count} test cases, no more and no less."
+                if target_case_count
+                else count_instruction
+            )
+            planning_json = json.dumps(strategy_context, ensure_ascii=False, indent=2)
+            planning_section = f"""
+Strategy context:
+```json
+{planning_json}
+```
+
+Generation rules:
+1. Cover critical focus points first and expand them according to their coverage_axes.
+2. Expand major points next.
+3. Keep normal points to essential coverage only.
+4. Do not let light points create standalone filler cases. Merge them into smoke or the main-path cases whenever possible.
+5. Decide which focus points can share the same case before writing the final JSON.
+6. Never add extra cases just because the requirement text is long.
+7. {count_instruction}
+"""
+
+        return f"""You are a senior QA engineer. Generate executable UI-oriented test cases from the requirement below.
 {hints_section}
-需求信息：
+{planning_section}
+Requirement:
 {req_json}
 
-输出格式（JSON）：
+Output JSON:
 ```json
 {{
   "test_cases": [
     {{
       "id": "TC_001",
-      "requirement_id": "REQ_001",
-      "title": "测试用例标题",
+      "requirement_id": "{requirement.id}",
+      "title": "Test case title",
       "priority": "high",
       "type": "functional",
       "steps": [
         {{
           "step_number": 1,
-          "action": "操作描述（用自然语言）",
-          "data": "测试数据",
-          "expected": "预期结果"
+          "action": "Action description",
+          "data": "Optional data",
+          "expected": "Expected result"
         }}
       ],
-      "expected": "最终预期结果",
+      "expected": "Final expected result",
       "tags": ["smoke"]
     }}
   ]
 }}
 ```
 
-要求：
-1. **ID格式**: 必须使用 TC_001, TC_002 格式
-2. **requirement_id**: 必须与需求的 ID 一致（{requirement.id}）
-3. **步骤描述**: 清晰，适合 UI 自动化，每个步骤至少 5 个字符
-4. **预期结果**: 每个步骤必须有预期结果，至少 3 个字符
-5. **测试类型**: functional, ui, api, integration, performance, security
-6. **优先级**: high, medium, low
-7. **覆盖场景**: 包含正向和负向测试
-8. **独立性**: 每个用例独立可执行
-9. **数量**: 至少生成 2-3 个测试用例
-
-请直接输出 JSON，不要有其他内容。"""
+Validation rules:
+1. requirement_id must equal {requirement.id}.
+2. Each case needs at least one step, and step_number values must be consecutive starting from 1.
+3. Actions must be specific enough for UI automation.
+4. Expected results must be concrete and observable.
+5. type must be one of functional, ui, api, integration, performance, security.
+6. priority must be one of high, medium, low.
+7. Cases for the same requirement must not be duplicates.
+8. Output JSON only.
+"""
 
     def _extract_json(self, content: str) -> Dict[str, Any]:
-        """从 LLM 响应中提取 JSON"""
         content = content.strip()
-
-        # 尝试从 markdown 代码块中提取
         if "```json" in content:
             start = content.find("```json") + 7
             end = content.find("```", start)
@@ -214,180 +236,259 @@ class TestCaseGenerator:
             if end != -1:
                 content = content[start:end].strip()
 
-        # 解析 JSON
         try:
             return json.loads(content)
         except json.JSONDecodeError:
-            # 尝试修复常见的 JSON 格式问题
-            content = self._fix_json_format(content)
-            return json.loads(content)
+            return json.loads(self._fix_json_format(content))
 
     def _fix_json_format(self, content: str) -> str:
-        """修复常见的 JSON 格式问题"""
         content = content.strip()
-
-        # 移除可能的前后缀
-        if content.startswith('```'):
+        if content.startswith("```"):
             content = content[3:]
-        if content.endswith('```'):
+        if content.endswith("```"):
             content = content[:-3]
-
-        # 移除可能的语言标识
-        if content.startswith('json'):
+        if content.startswith("json"):
             content = content[4:]
 
-        # 确保以 { 开头，} 结尾
         content = content.strip()
-        if not content.startswith('{'):
-            start = content.find('{')
+        if not content.startswith("{"):
+            start = content.find("{")
             if start != -1:
                 content = content[start:]
-
-        if not content.endswith('}'):
-            end = content.rfind('}')
+        if not content.endswith("}"):
+            end = content.rfind("}")
             if end != -1:
-                content = content[:end+1]
-
+                content = content[: end + 1]
         return content
 
     def _parse_llm_response(self, json_data: Dict[str, Any], requirement_id: str) -> TestCaseGenerationResult:
-        """使用 Pydantic 解析 LLM 响应"""
         try:
             test_cases = []
             raw_test_cases = json_data.get("test_cases", [])
-
-            for i, tc_data in enumerate(raw_test_cases):
+            for index, tc_data in enumerate(raw_test_cases, start=1):
+                tc_data = self._ensure_test_case_fields(tc_data, requirement_id, index)
                 try:
-                    # 确保必要字段存在
-                    tc_data = self._ensure_test_case_fields(tc_data, requirement_id, i + 1)
-
-                    # 验证和创建测试用例对象
-                    test_case = TestCase.model_validate(tc_data)
-                    test_cases.append(test_case)
-
-                except ValidationError as e:
-                    print(f"[TestCaseGenerator] 测试用例 {i+1} 验证失败: {e}")
-                    # 尝试修复常见问题
-                    fixed_tc = self._fix_test_case_data(tc_data, requirement_id, i + 1)
+                    test_cases.append(TestCase.model_validate(tc_data))
+                except ValidationError as exc:
+                    print(f"[TestCaseGenerator] Test case {index} validation failed: {exc}")
+                    fixed_tc = self._fix_test_case_data(tc_data, requirement_id, index)
                     if fixed_tc:
                         test_cases.append(fixed_tc)
 
-            # 创建生成结果
             return TestCaseGenerationResult(
                 test_cases=test_cases,
                 requirement_id=requirement_id,
-                total_count=len(test_cases)
+                total_count=len(test_cases),
             )
-
-        except ValidationError as e:
-            print(f"[TestCaseGenerator] 结果验证失败: {e}")
+        except ValidationError as exc:
+            print(f"[TestCaseGenerator] Result validation failed: {exc}")
             raise
 
+    def _apply_generation_plan(
+        self,
+        result: TestCaseGenerationResult,
+        requirement_id: str,
+        strategy_context: Optional[Dict[str, Any]],
+    ) -> TestCaseGenerationResult:
+        context = strategy_context or {}
+        prefix = str(context.get("case_id_prefix") or requirement_id.split("_", 1)[-1])
+        target_case_count = int(context.get("target_case_count") or 0)
+
+        test_cases = list(result.test_cases)
+        if target_case_count > 0:
+            if len(test_cases) > target_case_count:
+                test_cases = test_cases[:target_case_count]
+            elif len(test_cases) < target_case_count:
+                test_cases.extend(
+                    self._build_fallback_cases(
+                        requirement_id=requirement_id,
+                        strategy_context=context,
+                        count=target_case_count - len(test_cases),
+                    )
+                )
+
+        for index, test_case in enumerate(test_cases, start=1):
+            test_case.requirement_id = requirement_id
+            test_case.id = f"TC_{prefix}_{index:03d}"
+
+        result.test_cases = test_cases
+        result.requirement_id = requirement_id
+        result.total_count = len(test_cases)
+
+        coverage_focus = context.get("coverage_focus") or []
+        if context:
+            result.generation_strategy = (
+                f"planning_mode={context.get('planning_mode', 'default')}; "
+                f"overall_risk={context.get('overall_risk', 'unknown')}; "
+                f"coverage_focus={','.join(str(item) for item in coverage_focus)}"
+            )
+        return result
+
+    def _build_fallback_cases(
+        self,
+        *,
+        requirement_id: str,
+        strategy_context: Dict[str, Any],
+        count: int,
+    ) -> List[TestCase]:
+        focus_points = list(strategy_context.get("focus_points") or [])
+        ordered_points = self._sort_focus_points(focus_points)
+        if not ordered_points:
+            ordered_points = [
+                {
+                    "point_id": f"{requirement_id}_P01",
+                    "point_text": "Cover the primary happy path of the requirement.",
+                    "focus_level": "normal",
+                    "execution_mode": "standard",
+                    "coverage_axes": ["happy_path"],
+                }
+            ]
+
+        generated: List[TestCase] = []
+        for index in range(count):
+            point = ordered_points[index % len(ordered_points)]
+            title = self._build_fallback_title(point, index=index + 1)
+            axes = point.get("coverage_axes") or ["happy_path"]
+            steps = [
+                TestStep(
+                    step_number=1,
+                    action="Open the target page or prepare the prerequisite state",
+                    expected="The system is ready for the target interaction",
+                ),
+                TestStep(
+                    step_number=2,
+                    action=point.get("point_text") or "Execute the core interaction",
+                    expected=self._build_step_expectation(point),
+                ),
+                TestStep(
+                    step_number=3,
+                    action="Observe the final system feedback",
+                    expected=self._build_final_expectation(point),
+                ),
+            ]
+            generated.append(
+                TestCase(
+                    id=f"TC_FALLBACK_{index + 1:03d}",
+                    requirement_id=requirement_id,
+                    title=title,
+                    priority=self._fallback_priority(point.get("focus_level")),
+                    type=TestCaseType.FUNCTIONAL,
+                    steps=steps,
+                    expected=self._build_final_expectation(point),
+                    tags=self._build_tags(point, axes),
+                )
+            )
+        return generated
+
+    def _sort_focus_points(self, focus_points: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        ranking = {"critical": 0, "major": 1, "normal": 2, "light": 3}
+        return sorted(
+            focus_points,
+            key=lambda point: (
+                ranking.get(str(point.get("focus_level") or "normal"), 2),
+                str(point.get("point_id") or ""),
+            ),
+        )
+
+    def _build_fallback_title(self, point: Dict[str, Any], *, index: int) -> str:
+        point_text = str(point.get("point_text") or "Requirement coverage").strip()
+        trimmed = point_text[:80]
+        return f"Strategy fallback case {index}: {trimmed}"
+
+    def _build_step_expectation(self, point: Dict[str, Any]) -> str:
+        axes = point.get("coverage_axes") or ["happy_path"]
+        if "negative" in axes:
+            return "The system rejects invalid behavior with a clear and observable response"
+        if "boundary" in axes:
+            return "The system handles the boundary condition predictably"
+        if "recovery" in axes:
+            return "The system provides a recovery path and remains consistent"
+        return "The key interaction completes as defined by the requirement"
+
+    def _build_final_expectation(self, point: Dict[str, Any]) -> str:
+        focus_level = str(point.get("focus_level") or "normal")
+        if focus_level == "critical":
+            return "The high-risk business result is correct, visible, and leaves the system in a consistent state"
+        if focus_level == "major":
+            return "The important business rule or failure path is validated with an observable result"
+        if focus_level == "light":
+            return "The lightweight check is covered without expanding scope beyond the main flow"
+        return "The expected business outcome is observable and correct"
+
+    def _fallback_priority(self, focus_level: Optional[str]) -> Priority:
+        return {
+            "critical": Priority.HIGH,
+            "major": Priority.HIGH,
+            "normal": Priority.MEDIUM,
+            "light": Priority.LOW,
+        }.get(str(focus_level or "normal"), Priority.MEDIUM)
+
+    def _build_tags(self, point: Dict[str, Any], axes: List[str]) -> List[str]:
+        tags = ["strategy"]
+        focus_level = str(point.get("focus_level") or "").strip().lower()
+        execution_mode = str(point.get("execution_mode") or "").strip().lower()
+        if focus_level:
+            tags.append(focus_level)
+        if execution_mode:
+            tags.append(execution_mode)
+        tags.extend(str(axis).strip().lower() for axis in axes if str(axis).strip())
+        return tags
+
     def _ensure_test_case_fields(self, tc_data: Dict, requirement_id: str, index: int) -> Dict:
-        """确保测试用例字段完整"""
-        data = tc_data.copy()
-
-        # 确保 ID 格式
-        if "id" not in data or not data["id"]:
+        data = dict(tc_data or {})
+        if not data.get("id"):
             data["id"] = f"TC_{index:03d}"
-
-        # 确保 requirement_id 一致
         data["requirement_id"] = requirement_id
+        if not data.get("title"):
+            data["title"] = f"Test case {index}"
+        if not data.get("expected"):
+            data["expected"] = "The expected behavior is observed"
 
-        # 确保标题存在
-        if "title" not in data or not data["title"]:
-            data["title"] = f"测试用例 {index}"
-
-        # 确保预期结果存在
-        if "expected" not in data or not data["expected"]:
-            data["expected"] = "测试通过"
-
-        # 确保 steps 存在且格式正确
-        if "steps" not in data or not data["steps"]:
-            data["steps"] = [{
-                "step_number": 1,
-                "action": "执行测试操作",
-                "expected": "操作成功"
-            }]
+        steps = data.get("steps") or []
+        if not steps:
+            steps = [
+                {
+                    "step_number": 1,
+                    "action": "Execute the target test operation",
+                    "expected": "The target behavior is observed",
+                }
+            ]
         else:
-            # 确保步骤序号连续
-            for j, step in enumerate(data["steps"]):
-                step["step_number"] = j + 1
-                if "expected" not in step or not step["expected"]:
-                    step["expected"] = "操作成功"
+            normalized_steps = []
+            for step_index, step in enumerate(steps, start=1):
+                normalized_step = dict(step or {})
+                normalized_step["step_number"] = step_index
+                if not normalized_step.get("expected"):
+                    normalized_step["expected"] = "The step succeeds"
+                normalized_steps.append(normalized_step)
+            steps = normalized_steps
 
-        # 确保 tags 存在
+        data["steps"] = steps
         if "tags" not in data:
             data["tags"] = []
-
         return data
 
-    def _fix_test_case_data(self, tc_data: Dict, requirement_id: str, index: int) -> TestCase:
-        """尝试修复测试用例数据"""
+    def _fix_test_case_data(self, tc_data: Dict, requirement_id: str, index: int) -> Optional[TestCase]:
         try:
-            # 确保所有必要字段
             fixed_data = self._ensure_test_case_fields(tc_data, requirement_id, index)
-
-            # 验证优先级
-            if "priority" not in fixed_data or fixed_data["priority"] not in ["high", "medium", "low"]:
+            if fixed_data.get("priority") not in {"high", "medium", "low"}:
                 fixed_data["priority"] = "medium"
-
-            # 验证类型
-            valid_types = ["functional", "ui", "api", "integration", "performance", "security"]
-            if "type" not in fixed_data or fixed_data["type"] not in valid_types:
+            if fixed_data.get("type") not in {
+                "functional",
+                "ui",
+                "api",
+                "integration",
+                "performance",
+                "security",
+            }:
                 fixed_data["type"] = "functional"
-
             return TestCase.model_validate(fixed_data)
-
-        except Exception as e:
-            print(f"[TestCaseGenerator] 无法修复测试用例数据: {e}")
-            # 返回一个最小的有效测试用例
+        except Exception as exc:
+            print(f"[TestCaseGenerator] Unable to repair test case data: {exc}")
             return TestCase(
                 id=f"TC_{index:03d}",
                 requirement_id=requirement_id,
-                title=f"测试用例 {index}",
-                steps=[TestStep(step_number=1, action="执行测试", expected="测试通过")],
-                expected="测试通过"
-            )
-
-    def _fallback_parse(self, json_data: Dict[str, Any], requirement_id: str) -> TestCaseGenerationResult:
-        """降级解析方案（当 Pydantic 验证失败时）"""
-        print("[TestCaseGenerator] 使用降级解析方案")
-
-        try:
-            test_cases = []
-            raw_test_cases = json_data.get("test_cases", [])
-
-            for i, tc_data in enumerate(raw_test_cases):
-                # 创建最基本的测试用例对象
-                test_case = TestCase(
-                    id=tc_data.get("id", f"TC_{i+1:03d}"),
-                    requirement_id=requirement_id,
-                    title=tc_data.get("title", f"测试用例 {i+1}"),
-                    priority=Priority.MEDIUM,
-                    type=TestCaseType.FUNCTIONAL,
-                    steps=[TestStep(
-                        step_number=j+1,
-                        action=step.get("action", "执行操作"),
-                        data=step.get("data"),
-                        expected=step.get("expected", "操作成功")
-                    ) for j, step in enumerate(tc_data.get("steps", [{"action": "执行测试"}]))],
-                    expected=tc_data.get("expected", "测试通过"),
-                    tags=tc_data.get("tags", [])
-                )
-                test_cases.append(test_case)
-
-            return TestCaseGenerationResult(
-                test_cases=test_cases,
-                requirement_id=requirement_id,
-                total_count=len(test_cases)
-            )
-
-        except Exception as e:
-            print(f"[TestCaseGenerator] 降级解析也失败: {e}")
-            # 返回空结果
-            return TestCaseGenerationResult(
-                test_cases=[],
-                requirement_id=requirement_id,
-                total_count=0
+                title=f"Test case {index}",
+                steps=[TestStep(step_number=1, action="Execute the test", expected="The test passes")],
+                expected="The test passes",
             )

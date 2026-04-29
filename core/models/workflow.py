@@ -35,6 +35,7 @@ class AgentState(TypedDict, total=False):
     script_plans: Optional[List[dict]]
     page_url: Optional[str]
     scenario_config: Optional[dict]
+    execute_ui: bool
     execution_results: Optional[dict]
     allure_report_path: Optional[str]
 

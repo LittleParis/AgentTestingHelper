@@ -11,6 +11,8 @@ import time
 from pathlib import Path
 from typing import Dict, List, Optional
 
+from core.automation.execution_analysis import analyze_execution_failure
+
 
 class TestExecutor:
     """Run Playwright tests and normalize the execution results."""
@@ -28,6 +30,7 @@ class TestExecutor:
         "reporter": "json",
         "output_dir": "test-results",
         "browsers_path": None,
+        "env_overrides": None,
     }
 
     def __init__(self, config: Optional[Dict] = None):
@@ -54,6 +57,14 @@ class TestExecutor:
             env = os.environ.copy()
             if self.config.get("browsers_path"):
                 env["PLAYWRIGHT_BROWSERS_PATH"] = str(self.config["browsers_path"])
+            if self.config.get("env_overrides"):
+                env.update(
+                    {
+                        str(key): str(value)
+                        for key, value in self.config["env_overrides"].items()
+                        if value is not None
+                    }
+                )
 
             project_root = self._get_project_root()
             cmd_list = self._build_playwright_command_args(script_path)
@@ -88,6 +99,13 @@ class TestExecutor:
             parsed["returncode"] = result.returncode
             if parsed["status"] == "error" and not parsed.get("error"):
                 parsed["error"] = result.stderr.strip() or result.stdout.strip() or "Test execution failed."
+            parsed["failure_analysis"] = analyze_execution_failure(
+                status=parsed["status"],
+                error=parsed.get("error"),
+                raw_output=parsed["raw_output"],
+                required_env_vars=self._required_env_vars(),
+                env_values=env,
+            ).model_dump()
 
             print(
                 "  [DEBUG] Parsed result: "
@@ -116,6 +134,13 @@ class TestExecutor:
                 "stdout": stdout,
                 "stderr": stderr,
                 "raw_output": stdout + stderr,
+                "failure_analysis": analyze_execution_failure(
+                    status="error",
+                    error="Test execution timeout",
+                    raw_output=stdout + stderr,
+                    required_env_vars=self._required_env_vars(),
+                    env_values=os.environ,
+                ).model_dump(),
             }
         except Exception as exc:
             return {
@@ -127,6 +152,12 @@ class TestExecutor:
                 "skipped": 0,
                 "duration": round(time.time() - start_time, 2),
                 "tests": [],
+                "failure_analysis": analyze_execution_failure(
+                    status="error",
+                    error=str(exc),
+                    required_env_vars=self._required_env_vars(),
+                    env_values=os.environ,
+                ).model_dump(),
             }
 
     def run_single_test(self, script_path: str, test_name: str) -> Dict:
@@ -219,6 +250,11 @@ class TestExecutor:
                         "duration": test.get("duration", 0),
                         "attachments": attachments,
                         **error_details,
+                        "failure_analysis": analyze_execution_failure(
+                            status=str(test.get("status", "unknown")),
+                            error=error_details.get("error"),
+                            trace=error_details.get("trace"),
+                        ).model_dump(),
                     }
                 )
 
@@ -425,3 +461,8 @@ class TestExecutor:
     def _resolve_npx_executable(self) -> str:
         """Resolve the npx executable with Windows compatibility."""
         return shutil.which("npx.cmd") or shutil.which("npx") or "npx.cmd"
+
+    def _required_env_vars(self) -> List[str]:
+        """Return required env vars inferred from executor overrides."""
+        overrides = self.config.get("env_overrides") or {}
+        return sorted(str(name) for name in overrides.keys())

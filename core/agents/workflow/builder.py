@@ -78,6 +78,7 @@ def create_initial_state(
     max_iterations: int = 2,
     page_url: str = "https://example.com",
     scenario_config: Optional[ScenarioConfig] = None,
+    execute_ui: bool = True,
 ) -> AgentState:
     """Create the initial workflow state."""
     resolved_page_url = page_url
@@ -102,6 +103,7 @@ def create_initial_state(
         "script_plans": None,
         "page_url": resolved_page_url,
         "scenario_config": scenario_config,
+        "execute_ui": execute_ui,
         "execution_results": None,
         "allure_report_path": None,
         "current_step": "init",

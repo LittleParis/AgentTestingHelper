@@ -16,6 +16,7 @@ def run_workflow(
     max_iterations: int = 2,
     page_url: str = "https://example.com",
     scenario_config: Optional[ScenarioConfig] = None,
+    execute_ui: bool = True,
 ) -> AgentState:
     """Run the end-to-end workflow."""
     initial_state = create_initial_state(
@@ -23,6 +24,7 @@ def run_workflow(
         max_iterations=max_iterations,
         page_url=page_url,
         scenario_config=scenario_config,
+        execute_ui=execute_ui,
     )
 
     workflow = build_workflow()

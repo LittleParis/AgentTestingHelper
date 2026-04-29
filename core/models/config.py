@@ -223,6 +223,46 @@ class WorkflowConfig(BaseModel):
     )
 
 
+class StrategyConfig(BaseModel):
+    """测试策略配置"""
+    strategy_temperature: float = Field(
+        default=0.2,
+        ge=0.0,
+        le=1.0,
+        description="LLM策略生成温度"
+    )
+    max_total_cases: int = Field(
+        default=8,
+        ge=1,
+        le=20,
+        description="单文档最大用例总数"
+    )
+    max_budget_per_requirement: int = Field(
+        default=6,
+        ge=1,
+        le=12,
+        description="单个需求的预算上限"
+    )
+    critical_case_weight: int = Field(
+        default=3,
+        ge=1,
+        le=5,
+        description="critical级别用例权重"
+    )
+    major_case_weight: int = Field(
+        default=2,
+        ge=1,
+        le=4,
+        description="major级别用例权重"
+    )
+    normal_case_weight: int = Field(
+        default=1,
+        ge=1,
+        le=3,
+        description="normal级别用例权重"
+    )
+
+
 class ProjectSettings(BaseSettings):
     """项目配置 - 支持环境变量"""
 
@@ -304,6 +344,11 @@ class ProjectSettings(BaseSettings):
     max_iterations: int = Field(default=2)
     review_threshold: float = Field(default=60.0)
 
+    # 测试策略配置
+    strategy_temperature: float = Field(default=0.2, description="策略规划温度")
+    max_total_cases: int = Field(default=8, description="单文档最大用例总数")
+    max_budget_per_requirement: int = Field(default=6, description="单个需求预算上限")
+
     def get_llm_config(self) -> LLMConfig:
         """获取LLM配置对象"""
         return LLMConfig(
@@ -344,6 +389,14 @@ class ProjectSettings(BaseSettings):
         return WorkflowConfig(
             max_iterations=self.max_iterations,
             review_threshold=self.review_threshold
+        )
+
+    def get_strategy_config(self) -> StrategyConfig:
+        """获取测试策略配置对象"""
+        return StrategyConfig(
+            strategy_temperature=self.strategy_temperature,
+            max_total_cases=self.max_total_cases,
+            max_budget_per_requirement=self.max_budget_per_requirement,
         )
 
 

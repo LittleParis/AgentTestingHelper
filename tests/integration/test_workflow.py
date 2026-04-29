@@ -482,14 +482,14 @@ class TestWorkflowIntegration:
             "credentials": {
                 "username_env": "LOGIN_USERNAME",
                 "password_env": "LOGIN_PASSWORD",
-                "username_value": "13189230030",
-                "password_value": "Cmz16676002869",
+                "username_value": "sample_user@example.com",
+                "password_value": "sample-password-123",
             },
         }
 
         assert _build_executor_env_overrides(scenario_config) == {
-            "LOGIN_USERNAME": "13189230030",
-            "LOGIN_PASSWORD": "Cmz16676002869",
+            "LOGIN_USERNAME": "sample_user@example.com",
+            "LOGIN_PASSWORD": "sample-password-123",
         }
 
     @patch("core.agents.workflow.nodes.script_nodes.os.path.exists", return_value=True)
@@ -571,8 +571,8 @@ class TestWorkflowIntegration:
             "credentials": {
                 "username_env": "LOGIN_USERNAME",
                 "password_env": "LOGIN_PASSWORD",
-                "username_value": "13189230030",
-                "password_value": "Cmz16676002869",
+                "username_value": "sample_user@example.com",
+                "password_value": "sample-password-123",
             },
         }
         state = make_state(
@@ -587,8 +587,8 @@ class TestWorkflowIntegration:
                 "headed": True,
                 "timeout": 180000,
                 "env_overrides": {
-                    "LOGIN_USERNAME": "13189230030",
-                    "LOGIN_PASSWORD": "Cmz16676002869",
+                    "LOGIN_USERNAME": "sample_user@example.com",
+                    "LOGIN_PASSWORD": "sample-password-123",
                 },
             }
         )

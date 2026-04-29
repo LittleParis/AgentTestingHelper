@@ -46,9 +46,15 @@ midscene_run/dump
 midscene_run/report
 midscene_run/tmp
 midscene_run/log
+midscene_run/cache/
+midscene_run/generated/
 
 # Playwright browsers (本地安装，不提交到 git)
 browsers/
+output/
+allure-report-single/
+temp/
+*.spec.ts(*)
 
 # 个人文档（复盘、面试准备等，不上传）
 docs/retrospectives/

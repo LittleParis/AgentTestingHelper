@@ -1,0 +1,51 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Compile Python sources
+        run: python -m compileall main_v2.py core tests
+
+      - name: Run smoke unit tests
+        run: |
+          pytest \
+            tests/unit/test_script_planning_pipeline.py \
+            tests/unit/test_test_executor.py \
+            tests/unit/test_main_v2_runtime_credentials.py \
+            tests/unit/test_login_only_scenario.py \
+            tests/unit/test_runtime_artifacts.py \
+            tests/unit/test_midscene_generator_regression.py
+
+      - name: Run CLI validate smoke
+        env:
+          AI_TEST_OFFLINE_SMOKE: "1"
+        run: |
+          python main_v2.py validate \
+            --requirement-file examples/benchmarks/benchmark_list_search.md \
+            --output-dir output/ci-smoke
+
+      - name: Verify CLI artifacts
+        run: |
+          latest_run_dir=$(ls -1 output/ci-smoke | sort | tail -n 1)
+          test -f "output/ci-smoke/${latest_run_dir}/requirements.json"
+          test -f "output/ci-smoke/${latest_run_dir}/test_strategy.json"
+          test -f "output/ci-smoke/${latest_run_dir}/test_cases.json"
+          test -f "output/ci-smoke/${latest_run_dir}/script_plan.json"
+          test -f "output/ci-smoke/${latest_run_dir}/execution.json"
+          test -f "output/ci-smoke/${latest_run_dir}/run_summary.json"

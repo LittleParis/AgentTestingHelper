@@ -14,7 +14,16 @@ try:
     from langchain_openai import ChatOpenAI
 except ImportError:
     # 如果langchain_openai不可用，使用基础的langchain
-    from langchain.chat_models import ChatOpenAI
+    try:
+        from langchain.chat_models import ChatOpenAI
+    except Exception:
+        class ChatOpenAI:  # type: ignore[override]
+            """Fallback stub used when langchain chat dependencies are unavailable."""
+
+            def __init__(self, *args, **kwargs):
+                raise ImportError(
+                    "ChatOpenAI is unavailable. Install langchain_openai or a compatible langchain package."
+                )
 
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage, BaseMessage
 from langchain_core.prompts import ChatPromptTemplate
@@ -273,14 +282,14 @@ class LLMClient:
         # Token 追踪器
         self._token_tracker = get_token_tracker()
 
-    def _create_llm(self) -> ChatOpenAI:
+    def _create_llm(self, temperature: Optional[float] = None) -> ChatOpenAI:
         """创建LangChain LLM实例"""
         # 继承环境变量中的代理配置，便于在受限网络环境中访问模型服务。
         http_client = httpx.Client()
 
         kwargs = {
             "model": self.model,
-            "temperature": self.temperature,
+            "temperature": self.temperature if temperature is None else temperature,
             "max_tokens": self.max_tokens,
             "http_client": self._build_http_client(),
         }
@@ -375,7 +384,13 @@ class LLMClient:
 
         return str(diagnostics_path)
 
-    def invoke_structured(self, schema, prompt: str, operation: Optional[str] = None):
+    def invoke_structured(
+        self,
+        schema,
+        prompt: str,
+        operation: Optional[str] = None,
+        temperature: Optional[float] = None,
+    ):
         """
         统一的结构化输出调用入口。
 
@@ -383,48 +398,37 @@ class LLMClient:
         """
         schema_name = getattr(schema, "__name__", str(schema))
         operation_name = operation or schema_name
-        structured_llm = self._llm.with_structured_output(schema)
+        effective_temperature = self.temperature if temperature is None else temperature
+        llm_for_structured = self._llm if temperature is None else self._create_llm(temperature=temperature)
+        structured_llm = llm_for_structured.with_structured_output(schema)
 
         try:
             result = structured_llm.invoke(prompt)
             if result is None:
                 raise ValueError("Structured output returned None")
             logger.debug(
-                "Structured output succeeded: operation=%s schema=%s model=%s",
+                "Structured output succeeded: operation=%s schema=%s model=%s temperature=%s",
                 operation_name,
                 schema_name,
                 self.model,
+                effective_temperature,
             )
             return result
         except Exception as exc:
             logger.warning(
-                "Structured output failed: operation=%s schema=%s model=%s error=%s",
+                "Structured output failed: operation=%s schema=%s model=%s temperature=%s error=%s",
                 operation_name,
                 schema_name,
                 self.model,
+                effective_temperature,
                 exc,
             )
-
-            raw_response = None
-            raw_capture_error = None
-            try:
-                raw_response = self._invoke_raw_prompt(prompt)
-            except Exception as raw_exc:
-                raw_capture_error = f"{type(raw_exc).__name__}: {raw_exc}"
-                logger.warning(
-                    "Structured output raw capture failed: operation=%s schema=%s error=%s",
-                    operation_name,
-                    schema_name,
-                    raw_capture_error,
-                )
 
             diagnostics_path = self._write_structured_diagnostics(
                 schema_name=schema_name,
                 operation=operation_name,
                 prompt=prompt,
                 exception=exc,
-                raw_response=raw_response,
-                raw_capture_error=raw_capture_error,
             )
             logger.warning(
                 "Structured output diagnostics saved: operation=%s path=%s",
@@ -435,7 +439,7 @@ class LLMClient:
             raise StructuredOutputError(
                 f"Structured output failed for {operation_name}: {exc}",
                 diagnostics_path=diagnostics_path,
-                raw_response_preview=self._safe_preview(raw_response),
+                raw_response_preview=None,
                 original_exception=exc,
             ) from exc
 

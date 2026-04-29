@@ -14,6 +14,28 @@ def execute_tests_node(state: AgentState) -> dict:
     """Execute the generated browser tests."""
     print("\n[Agent] Executing test script...")
 
+    if not state.get("execute_ui", True):
+        print("  [INFO] UI execution disabled for this run; skipping browser execution.")
+        return {
+            "execution_results": {
+                "status": "skipped",
+                "total": 0,
+                "passed": 0,
+                "failed": 0,
+                "skipped": 0,
+                "duration": 0,
+                "tests": [],
+                "failure_analysis": {
+                    "category": "none",
+                    "summary": "UI execution was disabled for this run.",
+                    "confidence": 1.0,
+                    "evidence": [],
+                    "suggested_action": None,
+                },
+            },
+            "current_step": "execution_skipped",
+        }
+
     script_path = state.get("generated_script")
     if not script_path:
         print("  [WARN] No generated script available; skipping execution.")
@@ -101,6 +123,10 @@ def execute_tests_node(state: AgentState) -> dict:
 def generate_report_node(state: AgentState) -> dict:
     """Generate the Allure report."""
     print("\n[Agent] Generating Allure report...")
+
+    if not state.get("execute_ui", True):
+        print("  [INFO] UI execution disabled for this run; report generation skipped.")
+        return {"allure_report_path": None, "current_step": "report_skipped"}
 
     reporter = AllureReporter(results_dir="allure-results", report_dir="allure-report")
     if not reporter.check_allure_installed():

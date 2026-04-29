@@ -1,8 +1,6 @@
 import os
 from unittest.mock import MagicMock, patch
 
-from langgraph.types import Overwrite, Send
-
 from core.models.workflow import AgentState
 from core.agents.workflow import (
     build_workflow,
@@ -25,6 +23,7 @@ from core.agents.workflow.nodes import (
     plan_test_strategy_node,
     review_test_cases_node,
 )
+from core.utils.langgraph_compat import Overwrite, Send
 
 # Alias for backward compatibility with tests
 _build_executor_env_overrides = build_executor_env_overrides

@@ -1,7 +1,5 @@
 """Test case generation nodes."""
 
-from langgraph.types import Overwrite, Send
-
 from core.agents.test_case_generator import TestCaseGenerator
 from core.agents.workflow.scenarios import (
     is_login_only_scenario,
@@ -9,6 +7,7 @@ from core.agents.workflow.scenarios import (
 )
 from core.agents.workflow.utils import get_improvement_hints
 from core.models.workflow import AgentState, SingleRequirementGenerationState
+from core.utils.langgraph_compat import Overwrite, Send
 
 
 def generate_test_cases_node(state: AgentState) -> dict:

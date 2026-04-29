@@ -4,9 +4,13 @@ from __future__ import annotations
 
 from typing import Annotated, Any, Dict, List, Optional, TypedDict
 
+from core.utils.langgraph_compat import Overwrite
+
 
 def merge_lists(left: Optional[List[dict]], right: Optional[List[dict]]) -> List[dict]:
     """Reducer used by LangGraph when multiple parallel nodes update the same list field."""
+    if isinstance(right, Overwrite):
+        return list(right.value or [])
     return [*(left or []), *(right or [])]
 
 
